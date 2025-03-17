@@ -3,7 +3,9 @@
 --
 
 -- Dumped from database version 14.13
--- Dumped by pg_dump version 14.13
+-- Dumped by pg_dump version 16.1
+
+-- Started on 2025-03-17 14:06:28
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -17,6 +19,48 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- TOC entry 4 (class 2615 OID 2200)
+-- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+ALTER SCHEMA public OWNER TO postgres;
+
+--
+-- TOC entry 892 (class 1247 OID 16414)
+-- Name: b_permissions; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.b_permissions AS ENUM (
+  'none',
+  'read',
+  'read-write',
+  'write'
+  );
+
+
+ALTER TYPE public.b_permissions OWNER TO postgres;
+
+--
+-- TOC entry 895 (class 1247 OID 16424)
+-- Name: cpa_type; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.cpa_type AS ENUM (
+  'bool',
+  'float',
+  'int',
+  'money',
+  'string'
+  );
+
+
+ALTER TYPE public.cpa_type OWNER TO postgres;
+
+--
+-- TOC entry 883 (class 1247 OID 16386)
 -- Name: index; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -31,6 +75,7 @@ CREATE TYPE public.index AS ENUM (
 ALTER TYPE public.index OWNER TO postgres;
 
 --
+-- TOC entry 886 (class 1247 OID 16396)
 -- Name: p_index; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -45,6 +90,7 @@ CREATE TYPE public.p_index AS ENUM (
 ALTER TYPE public.p_index OWNER TO postgres;
 
 --
+-- TOC entry 889 (class 1247 OID 16406)
 -- Name: p_type; Type: TYPE; Schema: public; Owner: postgres
 --
 
@@ -57,26 +103,8 @@ CREATE TYPE public.p_type AS ENUM (
 
 ALTER TYPE public.p_type OWNER TO postgres;
 
-CREATE TYPE public.b_permissions AS ENUM (
-  'none',
-  'read',
-  'read-write',
-  'write'
-  );
-
-ALTER TYPE public.b_permissions OWNER TO postgres;
-
-CREATE TYPE public.cpa_type AS ENUM (
-  'bool',
-  'float',
-  'int',
-  'money',
-  'string'
-  );
-
-ALTER TYPE public.cpa_type OWNER TO postgres;
-
 --
+-- TOC entry 270 (class 1255 OID 16435)
 -- Name: check_root_url(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -97,6 +125,34 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- TOC entry 269 (class 1259 OID 25336)
+-- Name: attribute_block; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.attribute_block (
+                                      block_id integer NOT NULL,
+                                      attribute_id character varying(255) NOT NULL
+);
+
+
+ALTER TABLE public.attribute_block OWNER TO postgres;
+
+--
+-- TOC entry 260 (class 1259 OID 25262)
+-- Name: backend_block; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.backend_block (
+                                    block_id integer NOT NULL,
+                                    block_name character varying(255),
+                                    block_type character varying(255)
+);
+
+
+ALTER TABLE public.backend_block OWNER TO postgres;
+
+--
+-- TOC entry 209 (class 1259 OID 16436)
 -- Name: backend_permissions; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -117,29 +173,48 @@ CREATE TABLE public.backend_permissions (
 
 ALTER TABLE public.backend_permissions OWNER TO postgres;
 
-CREATE TABLE public.templates (
-  template_key character varying(100) NOT NULL,
-  template_data text NOT NULL,
-  data_string text NOT NULL
+--
+-- TOC entry 261 (class 1259 OID 25269)
+-- Name: block_attributes; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.block_attributes (
+                                       attribute_id character varying(100) NOT NULL,
+                                       attribute_name character varying(255),
+                                       attribute_type character varying(100)
 );
 
-ALTER TABLE public.templates OWNER TO postgres;
+
+ALTER TABLE public.block_attributes OWNER TO postgres;
+
+--
+-- TOC entry 262 (class 1259 OID 25274)
+-- Name: block_id; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.block_id (
+                               block_id integer NOT NULL,
+                               category_id integer NOT NULL,
+                               product_id integer NOT NULL
+);
+
+
+ALTER TABLE public.block_id OWNER TO postgres;
+
+--
+-- TOC entry 211 (class 1259 OID 16444)
+-- Name: blocks; Type: TABLE; Schema: public; Owner: postgres
+--
 
 CREATE TABLE public.blocks (
                              template_key character varying(100) NOT NULL
 );
 
+
 ALTER TABLE public.blocks OWNER TO postgres;
 
 --
--- Name: blocks_template_key_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
---
--- Name: url_keys; Type: TABLE; Schema: public; Owner: postgres
---
-
---
+-- TOC entry 212 (class 1259 OID 16447)
 -- Name: categories; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -155,6 +230,7 @@ CREATE TABLE public.categories (
 ALTER TABLE public.categories OWNER TO postgres;
 
 --
+-- TOC entry 213 (class 1259 OID 16452)
 -- Name: categories_category_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -167,9 +243,11 @@ CREATE SEQUENCE public.categories_category_id_seq
   CACHE 1;
 
 
-ALTER TABLE public.categories_category_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.categories_category_id_seq OWNER TO postgres;
 
 --
+-- TOC entry 3886 (class 0 OID 0)
+-- Dependencies: 213
 -- Name: categories_category_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -177,6 +255,7 @@ ALTER SEQUENCE public.categories_category_id_seq OWNED BY public.categories.cate
 
 
 --
+-- TOC entry 214 (class 1259 OID 16453)
 -- Name: categories_products; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -189,6 +268,7 @@ CREATE TABLE public.categories_products (
 ALTER TABLE public.categories_products OWNER TO postgres;
 
 --
+-- TOC entry 215 (class 1259 OID 16456)
 -- Name: categories_seo; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -204,6 +284,7 @@ CREATE TABLE public.categories_seo (
 ALTER TABLE public.categories_seo OWNER TO postgres;
 
 --
+-- TOC entry 216 (class 1259 OID 16461)
 -- Name: category_urls; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -217,6 +298,7 @@ CREATE TABLE public.category_urls (
 ALTER TABLE public.category_urls OWNER TO postgres;
 
 --
+-- TOC entry 217 (class 1259 OID 16464)
 -- Name: custom_product_attributes; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -233,6 +315,7 @@ CREATE TABLE public.custom_product_attributes (
 ALTER TABLE public.custom_product_attributes OWNER TO postgres;
 
 --
+-- TOC entry 218 (class 1259 OID 16467)
 -- Name: eav; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -245,6 +328,91 @@ CREATE TABLE public.eav (
 ALTER TABLE public.eav OWNER TO postgres;
 
 --
+-- TOC entry 263 (class 1259 OID 25279)
+-- Name: eav_attribute_bool; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.eav_attribute_bool (
+                                         attribute_id character varying(255) NOT NULL,
+                                         attribute_key character varying(255) NOT NULL,
+                                         value boolean
+);
+
+
+ALTER TABLE public.eav_attribute_bool OWNER TO postgres;
+
+--
+-- TOC entry 264 (class 1259 OID 25286)
+-- Name: eav_attribute_float; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.eav_attribute_float (
+                                          attribute_id character varying(255) NOT NULL,
+                                          attribute_key character varying(255) NOT NULL,
+                                          value double precision
+);
+
+
+ALTER TABLE public.eav_attribute_float OWNER TO postgres;
+
+--
+-- TOC entry 265 (class 1259 OID 25293)
+-- Name: eav_attribute_int; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.eav_attribute_int (
+                                        attribute_id character varying(255) NOT NULL,
+                                        attribute_key character varying(255) NOT NULL,
+                                        value integer
+);
+
+
+ALTER TABLE public.eav_attribute_int OWNER TO postgres;
+
+--
+-- TOC entry 266 (class 1259 OID 25300)
+-- Name: eav_attribute_money; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.eav_attribute_money (
+                                          attribute_id character varying(255) NOT NULL,
+                                          attribute_key character varying(255) NOT NULL,
+                                          value numeric(11,2)
+);
+
+
+ALTER TABLE public.eav_attribute_money OWNER TO postgres;
+
+--
+-- TOC entry 267 (class 1259 OID 25307)
+-- Name: eav_attribute_multi_select; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.eav_attribute_multi_select (
+                                                 attribute_id character varying(255) NOT NULL,
+                                                 attribute_key character varying(255) NOT NULL,
+                                                 value integer
+);
+
+
+ALTER TABLE public.eav_attribute_multi_select OWNER TO postgres;
+
+--
+-- TOC entry 268 (class 1259 OID 25314)
+-- Name: eav_attribute_string; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.eav_attribute_string (
+                                           attribute_id character varying(255) NOT NULL,
+                                           attribute_key character varying(255) NOT NULL,
+                                           value character varying(255)
+);
+
+
+ALTER TABLE public.eav_attribute_string OWNER TO postgres;
+
+--
+-- TOC entry 219 (class 1259 OID 16470)
 -- Name: eav_global_bool; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -258,6 +426,7 @@ CREATE TABLE public.eav_global_bool (
 ALTER TABLE public.eav_global_bool OWNER TO postgres;
 
 --
+-- TOC entry 220 (class 1259 OID 16473)
 -- Name: eav_global_float; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -271,6 +440,7 @@ CREATE TABLE public.eav_global_float (
 ALTER TABLE public.eav_global_float OWNER TO postgres;
 
 --
+-- TOC entry 221 (class 1259 OID 16476)
 -- Name: eav_global_int; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -284,6 +454,7 @@ CREATE TABLE public.eav_global_int (
 ALTER TABLE public.eav_global_int OWNER TO postgres;
 
 --
+-- TOC entry 222 (class 1259 OID 16479)
 -- Name: eav_global_money; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -297,6 +468,7 @@ CREATE TABLE public.eav_global_money (
 ALTER TABLE public.eav_global_money OWNER TO postgres;
 
 --
+-- TOC entry 223 (class 1259 OID 16482)
 -- Name: eav_global_multi_select; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -310,6 +482,7 @@ CREATE TABLE public.eav_global_multi_select (
 ALTER TABLE public.eav_global_multi_select OWNER TO postgres;
 
 --
+-- TOC entry 224 (class 1259 OID 16485)
 -- Name: eav_global_string; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -323,6 +496,7 @@ CREATE TABLE public.eav_global_string (
 ALTER TABLE public.eav_global_string OWNER TO postgres;
 
 --
+-- TOC entry 225 (class 1259 OID 16490)
 -- Name: eav_store_view_bool; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -337,6 +511,7 @@ CREATE TABLE public.eav_store_view_bool (
 ALTER TABLE public.eav_store_view_bool OWNER TO postgres;
 
 --
+-- TOC entry 226 (class 1259 OID 16493)
 -- Name: eav_store_view_float; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -351,6 +526,7 @@ CREATE TABLE public.eav_store_view_float (
 ALTER TABLE public.eav_store_view_float OWNER TO postgres;
 
 --
+-- TOC entry 227 (class 1259 OID 16496)
 -- Name: eav_store_view_int; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -365,6 +541,7 @@ CREATE TABLE public.eav_store_view_int (
 ALTER TABLE public.eav_store_view_int OWNER TO postgres;
 
 --
+-- TOC entry 228 (class 1259 OID 16499)
 -- Name: eav_store_view_money; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -379,6 +556,7 @@ CREATE TABLE public.eav_store_view_money (
 ALTER TABLE public.eav_store_view_money OWNER TO postgres;
 
 --
+-- TOC entry 229 (class 1259 OID 16502)
 -- Name: eav_store_view_multi_select; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -393,6 +571,7 @@ CREATE TABLE public.eav_store_view_multi_select (
 ALTER TABLE public.eav_store_view_multi_select OWNER TO postgres;
 
 --
+-- TOC entry 230 (class 1259 OID 16505)
 -- Name: eav_store_view_string; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -407,6 +586,7 @@ CREATE TABLE public.eav_store_view_string (
 ALTER TABLE public.eav_store_view_string OWNER TO postgres;
 
 --
+-- TOC entry 231 (class 1259 OID 16510)
 -- Name: eav_website_bool; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -421,6 +601,7 @@ CREATE TABLE public.eav_website_bool (
 ALTER TABLE public.eav_website_bool OWNER TO postgres;
 
 --
+-- TOC entry 232 (class 1259 OID 16513)
 -- Name: eav_website_float; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -428,13 +609,14 @@ CREATE TABLE public.eav_website_float (
                                         product_id integer NOT NULL,
                                         website_id integer NOT NULL,
                                         attribute_key character varying(64) NOT NULL,
-                                        value float NOT NULL
+                                        value double precision NOT NULL
 );
 
 
 ALTER TABLE public.eav_website_float OWNER TO postgres;
 
 --
+-- TOC entry 233 (class 1259 OID 16516)
 -- Name: eav_website_int; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -449,6 +631,7 @@ CREATE TABLE public.eav_website_int (
 ALTER TABLE public.eav_website_int OWNER TO postgres;
 
 --
+-- TOC entry 234 (class 1259 OID 16519)
 -- Name: eav_website_money; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -463,6 +646,7 @@ CREATE TABLE public.eav_website_money (
 ALTER TABLE public.eav_website_money OWNER TO postgres;
 
 --
+-- TOC entry 235 (class 1259 OID 16522)
 -- Name: eav_website_multi_select; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -477,6 +661,7 @@ CREATE TABLE public.eav_website_multi_select (
 ALTER TABLE public.eav_website_multi_select OWNER TO postgres;
 
 --
+-- TOC entry 236 (class 1259 OID 16525)
 -- Name: eav_website_string; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -491,6 +676,7 @@ CREATE TABLE public.eav_website_string (
 ALTER TABLE public.eav_website_string OWNER TO postgres;
 
 --
+-- TOC entry 237 (class 1259 OID 16530)
 -- Name: multi_select_attributes_bool; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -504,6 +690,7 @@ CREATE TABLE public.multi_select_attributes_bool (
 ALTER TABLE public.multi_select_attributes_bool OWNER TO postgres;
 
 --
+-- TOC entry 238 (class 1259 OID 16533)
 -- Name: multi_select_attributes_float; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -517,6 +704,7 @@ CREATE TABLE public.multi_select_attributes_float (
 ALTER TABLE public.multi_select_attributes_float OWNER TO postgres;
 
 --
+-- TOC entry 239 (class 1259 OID 16536)
 -- Name: multi_select_attributes_int; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -530,6 +718,7 @@ CREATE TABLE public.multi_select_attributes_int (
 ALTER TABLE public.multi_select_attributes_int OWNER TO postgres;
 
 --
+-- TOC entry 240 (class 1259 OID 16539)
 -- Name: multi_select_attributes_money; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -543,6 +732,7 @@ CREATE TABLE public.multi_select_attributes_money (
 ALTER TABLE public.multi_select_attributes_money OWNER TO postgres;
 
 --
+-- TOC entry 241 (class 1259 OID 16542)
 -- Name: multi_select_attributes_string; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -556,6 +746,7 @@ CREATE TABLE public.multi_select_attributes_string (
 ALTER TABLE public.multi_select_attributes_string OWNER TO postgres;
 
 --
+-- TOC entry 242 (class 1259 OID 16547)
 -- Name: product_urls; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -569,6 +760,7 @@ CREATE TABLE public.product_urls (
 ALTER TABLE public.product_urls OWNER TO postgres;
 
 --
+-- TOC entry 243 (class 1259 OID 16550)
 -- Name: products; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -584,6 +776,7 @@ CREATE TABLE public.products (
 ALTER TABLE public.products OWNER TO postgres;
 
 --
+-- TOC entry 244 (class 1259 OID 16555)
 -- Name: products_pricing; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -598,6 +791,7 @@ CREATE TABLE public.products_pricing (
 ALTER TABLE public.products_pricing OWNER TO postgres;
 
 --
+-- TOC entry 245 (class 1259 OID 16558)
 -- Name: products_product_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -610,9 +804,11 @@ CREATE SEQUENCE public.products_product_id_seq
   CACHE 1;
 
 
-ALTER TABLE public.products_product_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.products_product_id_seq OWNER TO postgres;
 
 --
+-- TOC entry 3887 (class 0 OID 0)
+-- Dependencies: 245
 -- Name: products_product_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -620,6 +816,7 @@ ALTER SEQUENCE public.products_product_id_seq OWNED BY public.products.product_i
 
 
 --
+-- TOC entry 246 (class 1259 OID 16559)
 -- Name: products_seo; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -635,6 +832,7 @@ CREATE TABLE public.products_seo (
 ALTER TABLE public.products_seo OWNER TO postgres;
 
 --
+-- TOC entry 247 (class 1259 OID 16564)
 -- Name: server_data; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -647,6 +845,7 @@ CREATE TABLE public.server_data (
 ALTER TABLE public.server_data OWNER TO postgres;
 
 --
+-- TOC entry 248 (class 1259 OID 16569)
 -- Name: server_version; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -662,6 +861,7 @@ CREATE TABLE public.server_version (
 ALTER TABLE public.server_version OWNER TO postgres;
 
 --
+-- TOC entry 249 (class 1259 OID 16574)
 -- Name: store_view; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -675,6 +875,7 @@ CREATE TABLE public.store_view (
 ALTER TABLE public.store_view OWNER TO postgres;
 
 --
+-- TOC entry 250 (class 1259 OID 16577)
 -- Name: store_view_store_view_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -687,9 +888,11 @@ CREATE SEQUENCE public.store_view_store_view_id_seq
   CACHE 1;
 
 
-ALTER TABLE public.store_view_store_view_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.store_view_store_view_id_seq OWNER TO postgres;
 
 --
+-- TOC entry 3888 (class 0 OID 0)
+-- Dependencies: 250
 -- Name: store_view_store_view_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -697,6 +900,21 @@ ALTER SEQUENCE public.store_view_store_view_id_seq OWNED BY public.store_view.st
 
 
 --
+-- TOC entry 210 (class 1259 OID 16439)
+-- Name: templates; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.templates (
+                                template_key character varying(100) NOT NULL,
+                                template_data text NOT NULL,
+                                data_string text NOT NULL
+);
+
+
+ALTER TABLE public.templates OWNER TO postgres;
+
+--
+-- TOC entry 251 (class 1259 OID 16578)
 -- Name: text_page_urls; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -710,6 +928,7 @@ CREATE TABLE public.text_page_urls (
 ALTER TABLE public.text_page_urls OWNER TO postgres;
 
 --
+-- TOC entry 252 (class 1259 OID 16581)
 -- Name: text_pages; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -724,6 +943,7 @@ CREATE TABLE public.text_pages (
 ALTER TABLE public.text_pages OWNER TO postgres;
 
 --
+-- TOC entry 253 (class 1259 OID 16586)
 -- Name: text_pages_seo; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -739,6 +959,7 @@ CREATE TABLE public.text_pages_seo (
 ALTER TABLE public.text_pages_seo OWNER TO postgres;
 
 --
+-- TOC entry 254 (class 1259 OID 16591)
 -- Name: text_pages_text_pages_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -751,9 +972,11 @@ CREATE SEQUENCE public.text_pages_text_pages_id_seq
   CACHE 1;
 
 
-ALTER TABLE public.text_pages_text_pages_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.text_pages_text_pages_id_seq OWNER TO postgres;
 
 --
+-- TOC entry 3889 (class 0 OID 0)
+-- Dependencies: 254
 -- Name: text_pages_text_pages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -761,6 +984,7 @@ ALTER SEQUENCE public.text_pages_text_pages_id_seq OWNED BY public.text_pages.te
 
 
 --
+-- TOC entry 255 (class 1259 OID 16592)
 -- Name: url_keys; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -774,12 +998,13 @@ CREATE TABLE public.url_keys (
 ALTER TABLE public.url_keys OWNER TO postgres;
 
 --
+-- TOC entry 256 (class 1259 OID 16595)
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE public.users (
                             user_id integer NOT NULL,
-                            email character varying(320) NOT NULL UNIQUE ,
+                            email character varying(320) NOT NULL,
                             password character varying(100) NOT NULL
 );
 
@@ -787,6 +1012,7 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
+-- TOC entry 257 (class 1259 OID 16600)
 -- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -799,9 +1025,11 @@ CREATE SEQUENCE public.users_user_id_seq
   CACHE 1;
 
 
-ALTER TABLE public.users_user_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.users_user_id_seq OWNER TO postgres;
 
 --
+-- TOC entry 3890 (class 0 OID 0)
+-- Dependencies: 257
 -- Name: users_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -809,6 +1037,7 @@ ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
 
 
 --
+-- TOC entry 258 (class 1259 OID 16601)
 -- Name: websites; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -821,6 +1050,7 @@ CREATE TABLE public.websites (
 ALTER TABLE public.websites OWNER TO postgres;
 
 --
+-- TOC entry 259 (class 1259 OID 16604)
 -- Name: websites_website_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -833,9 +1063,11 @@ CREATE SEQUENCE public.websites_website_id_seq
   CACHE 1;
 
 
-ALTER TABLE public.websites_website_id_seq OWNER TO postgres;
+ALTER SEQUENCE public.websites_website_id_seq OWNER TO postgres;
 
 --
+-- TOC entry 3891 (class 0 OID 0)
+-- Dependencies: 259
 -- Name: websites_website_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
@@ -843,6 +1075,7 @@ ALTER SEQUENCE public.websites_website_id_seq OWNED BY public.websites.website_i
 
 
 --
+-- TOC entry 3470 (class 2604 OID 16605)
 -- Name: categories category_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -850,6 +1083,7 @@ ALTER TABLE ONLY public.categories ALTER COLUMN category_id SET DEFAULT nextval(
 
 
 --
+-- TOC entry 3471 (class 2604 OID 16606)
 -- Name: products product_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -857,6 +1091,7 @@ ALTER TABLE ONLY public.products ALTER COLUMN product_id SET DEFAULT nextval('pu
 
 
 --
+-- TOC entry 3472 (class 2604 OID 16607)
 -- Name: store_view store_view_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -864,6 +1099,7 @@ ALTER TABLE ONLY public.store_view ALTER COLUMN store_view_id SET DEFAULT nextva
 
 
 --
+-- TOC entry 3473 (class 2604 OID 16608)
 -- Name: text_pages text_pages_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -871,6 +1107,7 @@ ALTER TABLE ONLY public.text_pages ALTER COLUMN text_pages_id SET DEFAULT nextva
 
 
 --
+-- TOC entry 3474 (class 2604 OID 16609)
 -- Name: users user_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -878,6 +1115,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 
 
 --
+-- TOC entry 3475 (class 2604 OID 16610)
 -- Name: websites website_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -885,6 +1123,28 @@ ALTER TABLE ONLY public.websites ALTER COLUMN website_id SET DEFAULT nextval('pu
 
 
 --
+-- TOC entry 3879 (class 0 OID 25336)
+-- Dependencies: 269
+-- Data for Name: attribute_block; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.attribute_block (block_id, attribute_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3870 (class 0 OID 25262)
+-- Dependencies: 260
+-- Data for Name: backend_block; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.backend_block (block_id, block_name, block_type) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3819 (class 0 OID 16436)
+-- Dependencies: 209
 -- Data for Name: backend_permissions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -893,6 +1153,38 @@ COPY public.backend_permissions (user_id, user_permissions, server_settings, tem
 
 
 --
+-- TOC entry 3871 (class 0 OID 25269)
+-- Dependencies: 261
+-- Data for Name: block_attributes; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.block_attributes (attribute_id, attribute_name, attribute_type) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3872 (class 0 OID 25274)
+-- Dependencies: 262
+-- Data for Name: block_id; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.block_id (block_id, category_id, product_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3821 (class 0 OID 16444)
+-- Dependencies: 211
+-- Data for Name: blocks; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.blocks (template_key) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3822 (class 0 OID 16447)
+-- Dependencies: 212
 -- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -901,6 +1193,8 @@ COPY public.categories (category_id, upper_category, name, short_description, de
 
 
 --
+-- TOC entry 3824 (class 0 OID 16453)
+-- Dependencies: 214
 -- Data for Name: categories_products; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -909,6 +1203,8 @@ COPY public.categories_products (category_id, product_id) FROM stdin;
 
 
 --
+-- TOC entry 3825 (class 0 OID 16456)
+-- Dependencies: 215
 -- Data for Name: categories_seo; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -917,6 +1213,8 @@ COPY public.categories_seo (category_id, meta_title, meta_description, meta_keyw
 
 
 --
+-- TOC entry 3826 (class 0 OID 16461)
+-- Dependencies: 216
 -- Data for Name: category_urls; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -925,6 +1223,8 @@ COPY public.category_urls (url_key, upper_key, category_id) FROM stdin;
 
 
 --
+-- TOC entry 3827 (class 0 OID 16464)
+-- Dependencies: 217
 -- Data for Name: custom_product_attributes; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -933,6 +1233,8 @@ COPY public.custom_product_attributes (attribute_key, scope, name, type, multise
 
 
 --
+-- TOC entry 3828 (class 0 OID 16467)
+-- Dependencies: 218
 -- Data for Name: eav; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -941,6 +1243,68 @@ COPY public.eav (product_id, attribute_key) FROM stdin;
 
 
 --
+-- TOC entry 3873 (class 0 OID 25279)
+-- Dependencies: 263
+-- Data for Name: eav_attribute_bool; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.eav_attribute_bool (attribute_id, attribute_key, value) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3874 (class 0 OID 25286)
+-- Dependencies: 264
+-- Data for Name: eav_attribute_float; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.eav_attribute_float (attribute_id, attribute_key, value) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3875 (class 0 OID 25293)
+-- Dependencies: 265
+-- Data for Name: eav_attribute_int; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.eav_attribute_int (attribute_id, attribute_key, value) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3876 (class 0 OID 25300)
+-- Dependencies: 266
+-- Data for Name: eav_attribute_money; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.eav_attribute_money (attribute_id, attribute_key, value) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3877 (class 0 OID 25307)
+-- Dependencies: 267
+-- Data for Name: eav_attribute_multi_select; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.eav_attribute_multi_select (attribute_id, attribute_key, value) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3878 (class 0 OID 25314)
+-- Dependencies: 268
+-- Data for Name: eav_attribute_string; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.eav_attribute_string (attribute_id, attribute_key, value) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3829 (class 0 OID 16470)
+-- Dependencies: 219
 -- Data for Name: eav_global_bool; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -949,6 +1313,8 @@ COPY public.eav_global_bool (product_id, attribute_key, value) FROM stdin;
 
 
 --
+-- TOC entry 3830 (class 0 OID 16473)
+-- Dependencies: 220
 -- Data for Name: eav_global_float; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -957,6 +1323,8 @@ COPY public.eav_global_float (product_id, attribute_key, value) FROM stdin;
 
 
 --
+-- TOC entry 3831 (class 0 OID 16476)
+-- Dependencies: 221
 -- Data for Name: eav_global_int; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -965,6 +1333,8 @@ COPY public.eav_global_int (product_id, attribute_key, value) FROM stdin;
 
 
 --
+-- TOC entry 3832 (class 0 OID 16479)
+-- Dependencies: 222
 -- Data for Name: eav_global_money; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -973,6 +1343,8 @@ COPY public.eav_global_money (product_id, attribute_key, value) FROM stdin;
 
 
 --
+-- TOC entry 3833 (class 0 OID 16482)
+-- Dependencies: 223
 -- Data for Name: eav_global_multi_select; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -981,6 +1353,8 @@ COPY public.eav_global_multi_select (product_id, attribute_key, value) FROM stdi
 
 
 --
+-- TOC entry 3834 (class 0 OID 16485)
+-- Dependencies: 224
 -- Data for Name: eav_global_string; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -989,6 +1363,8 @@ COPY public.eav_global_string (product_id, attribute_key, value) FROM stdin;
 
 
 --
+-- TOC entry 3835 (class 0 OID 16490)
+-- Dependencies: 225
 -- Data for Name: eav_store_view_bool; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -997,6 +1373,8 @@ COPY public.eav_store_view_bool (product_id, store_view_id, attribute_key, value
 
 
 --
+-- TOC entry 3836 (class 0 OID 16493)
+-- Dependencies: 226
 -- Data for Name: eav_store_view_float; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1005,6 +1383,8 @@ COPY public.eav_store_view_float (product_id, store_view_id, attribute_key, valu
 
 
 --
+-- TOC entry 3837 (class 0 OID 16496)
+-- Dependencies: 227
 -- Data for Name: eav_store_view_int; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1013,6 +1393,8 @@ COPY public.eav_store_view_int (product_id, store_view_id, attribute_key, value)
 
 
 --
+-- TOC entry 3838 (class 0 OID 16499)
+-- Dependencies: 228
 -- Data for Name: eav_store_view_money; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1021,6 +1403,8 @@ COPY public.eav_store_view_money (product_id, store_view_id, attribute_key, valu
 
 
 --
+-- TOC entry 3839 (class 0 OID 16502)
+-- Dependencies: 229
 -- Data for Name: eav_store_view_multi_select; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1029,6 +1413,8 @@ COPY public.eav_store_view_multi_select (product_id, store_view_id, attribute_ke
 
 
 --
+-- TOC entry 3840 (class 0 OID 16505)
+-- Dependencies: 230
 -- Data for Name: eav_store_view_string; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1037,6 +1423,8 @@ COPY public.eav_store_view_string (product_id, store_view_id, attribute_key, val
 
 
 --
+-- TOC entry 3841 (class 0 OID 16510)
+-- Dependencies: 231
 -- Data for Name: eav_website_bool; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1045,22 +1433,28 @@ COPY public.eav_website_bool (product_id, website_id, attribute_key, value) FROM
 
 
 --
+-- TOC entry 3842 (class 0 OID 16513)
+-- Dependencies: 232
 -- Data for Name: eav_website_float; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.eav_website_float (product_id, website_id, attribute_key) FROM stdin;
+COPY public.eav_website_float (product_id, website_id, attribute_key, value) FROM stdin;
 \.
 
 
 --
+-- TOC entry 3843 (class 0 OID 16516)
+-- Dependencies: 233
 -- Data for Name: eav_website_int; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.eav_website_int (product_id, website_id, attribute_key) FROM stdin;
+COPY public.eav_website_int (product_id, website_id, attribute_key, value) FROM stdin;
 \.
 
 
 --
+-- TOC entry 3844 (class 0 OID 16519)
+-- Dependencies: 234
 -- Data for Name: eav_website_money; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1069,14 +1463,18 @@ COPY public.eav_website_money (product_id, website_id, attribute_key, value) FRO
 
 
 --
+-- TOC entry 3845 (class 0 OID 16522)
+-- Dependencies: 235
 -- Data for Name: eav_website_multi_select; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.eav_website_multi_select (product_id, website_id, attribute_key) FROM stdin;
+COPY public.eav_website_multi_select (product_id, website_id, attribute_key, value) FROM stdin;
 \.
 
 
 --
+-- TOC entry 3846 (class 0 OID 16525)
+-- Dependencies: 236
 -- Data for Name: eav_website_string; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1085,6 +1483,8 @@ COPY public.eav_website_string (product_id, website_id, attribute_key, value) FR
 
 
 --
+-- TOC entry 3847 (class 0 OID 16530)
+-- Dependencies: 237
 -- Data for Name: multi_select_attributes_bool; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1093,6 +1493,8 @@ COPY public.multi_select_attributes_bool (attribute_key, option, value) FROM std
 
 
 --
+-- TOC entry 3848 (class 0 OID 16533)
+-- Dependencies: 238
 -- Data for Name: multi_select_attributes_float; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1101,6 +1503,8 @@ COPY public.multi_select_attributes_float (attribute_key, option, value) FROM st
 
 
 --
+-- TOC entry 3849 (class 0 OID 16536)
+-- Dependencies: 239
 -- Data for Name: multi_select_attributes_int; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1109,6 +1513,8 @@ COPY public.multi_select_attributes_int (attribute_key, option, value) FROM stdi
 
 
 --
+-- TOC entry 3850 (class 0 OID 16539)
+-- Dependencies: 240
 -- Data for Name: multi_select_attributes_money; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1117,6 +1523,8 @@ COPY public.multi_select_attributes_money (attribute_key, option, value) FROM st
 
 
 --
+-- TOC entry 3851 (class 0 OID 16542)
+-- Dependencies: 241
 -- Data for Name: multi_select_attributes_string; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1125,6 +1533,8 @@ COPY public.multi_select_attributes_string (attribute_key, option, value) FROM s
 
 
 --
+-- TOC entry 3852 (class 0 OID 16547)
+-- Dependencies: 242
 -- Data for Name: product_urls; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1133,6 +1543,8 @@ COPY public.product_urls (url_key, upper_key, product_id) FROM stdin;
 
 
 --
+-- TOC entry 3853 (class 0 OID 16550)
+-- Dependencies: 243
 -- Data for Name: products; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1141,6 +1553,8 @@ COPY public.products (product_id, name, short_name, description, short_descripti
 
 
 --
+-- TOC entry 3854 (class 0 OID 16555)
+-- Dependencies: 244
 -- Data for Name: products_pricing; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1149,6 +1563,8 @@ COPY public.products_pricing (product_id, price, sale_price, cost_price) FROM st
 
 
 --
+-- TOC entry 3856 (class 0 OID 16559)
+-- Dependencies: 246
 -- Data for Name: products_seo; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1157,6 +1573,8 @@ COPY public.products_seo (product_id, meta_title, meta_description, meta_keyword
 
 
 --
+-- TOC entry 3857 (class 0 OID 16564)
+-- Dependencies: 247
 -- Data for Name: server_data; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1165,6 +1583,8 @@ COPY public.server_data (key, value) FROM stdin;
 
 
 --
+-- TOC entry 3858 (class 0 OID 16569)
+-- Dependencies: 248
 -- Data for Name: server_version; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1173,6 +1593,8 @@ COPY public.server_version (major, minor, patch, version_name, version_descripti
 
 
 --
+-- TOC entry 3859 (class 0 OID 16574)
+-- Dependencies: 249
 -- Data for Name: store_view; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1181,6 +1603,18 @@ COPY public.store_view (store_view_id, website_id, store_view_name) FROM stdin;
 
 
 --
+-- TOC entry 3820 (class 0 OID 16439)
+-- Dependencies: 210
+-- Data for Name: templates; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.templates (template_key, template_data, data_string) FROM stdin;
+\.
+
+
+--
+-- TOC entry 3861 (class 0 OID 16578)
+-- Dependencies: 251
 -- Data for Name: text_page_urls; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1189,6 +1623,8 @@ COPY public.text_page_urls (url_key, upper_key, text_pages_id) FROM stdin;
 
 
 --
+-- TOC entry 3862 (class 0 OID 16581)
+-- Dependencies: 252
 -- Data for Name: text_pages; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1197,6 +1633,8 @@ COPY public.text_pages (text_pages_id, name, short_text, text) FROM stdin;
 
 
 --
+-- TOC entry 3863 (class 0 OID 16586)
+-- Dependencies: 253
 -- Data for Name: text_pages_seo; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1205,6 +1643,8 @@ COPY public.text_pages_seo (text_pages_id, meta_title, meta_description, meta_ke
 
 
 --
+-- TOC entry 3865 (class 0 OID 16592)
+-- Dependencies: 255
 -- Data for Name: url_keys; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1213,6 +1653,8 @@ COPY public.url_keys (url_key, upper_key, page_type) FROM stdin;
 
 
 --
+-- TOC entry 3866 (class 0 OID 16595)
+-- Dependencies: 256
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1221,6 +1663,8 @@ COPY public.users (user_id, email, password) FROM stdin;
 
 
 --
+-- TOC entry 3868 (class 0 OID 16601)
+-- Dependencies: 258
 -- Data for Name: websites; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1229,6 +1673,8 @@ COPY public.websites (website_id, website_name) FROM stdin;
 
 
 --
+-- TOC entry 3892 (class 0 OID 0)
+-- Dependencies: 213
 -- Name: categories_category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1236,6 +1682,8 @@ SELECT pg_catalog.setval('public.categories_category_id_seq', 1, false);
 
 
 --
+-- TOC entry 3893 (class 0 OID 0)
+-- Dependencies: 245
 -- Name: products_product_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1243,6 +1691,8 @@ SELECT pg_catalog.setval('public.products_product_id_seq', 1, false);
 
 
 --
+-- TOC entry 3894 (class 0 OID 0)
+-- Dependencies: 250
 -- Name: store_view_store_view_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1250,6 +1700,8 @@ SELECT pg_catalog.setval('public.store_view_store_view_id_seq', 1, false);
 
 
 --
+-- TOC entry 3895 (class 0 OID 0)
+-- Dependencies: 254
 -- Name: text_pages_text_pages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1257,6 +1709,8 @@ SELECT pg_catalog.setval('public.text_pages_text_pages_id_seq', 1, false);
 
 
 --
+-- TOC entry 3896 (class 0 OID 0)
+-- Dependencies: 257
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1264,6 +1718,8 @@ SELECT pg_catalog.setval('public.users_user_id_seq', 1, false);
 
 
 --
+-- TOC entry 3897 (class 0 OID 0)
+-- Dependencies: 259
 -- Name: websites_website_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -1271,6 +1727,7 @@ SELECT pg_catalog.setval('public.websites_website_id_seq', 1, false);
 
 
 --
+-- TOC entry 3566 (class 2606 OID 16612)
 -- Name: url_keys UK_1; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1279,6 +1736,52 @@ ALTER TABLE ONLY public.url_keys
 
 
 --
+-- TOC entry 3595 (class 2606 OID 25340)
+-- Name: attribute_block attribute_block_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.attribute_block
+  ADD CONSTRAINT attribute_block_pkey PRIMARY KEY (block_id, attribute_id);
+
+
+--
+-- TOC entry 3577 (class 2606 OID 25268)
+-- Name: backend_block backend_block_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.backend_block
+  ADD CONSTRAINT backend_block_pkey PRIMARY KEY (block_id);
+
+
+--
+-- TOC entry 3579 (class 2606 OID 25273)
+-- Name: block_attributes block_attributes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.block_attributes
+  ADD CONSTRAINT block_attributes_pkey PRIMARY KEY (attribute_id);
+
+
+--
+-- TOC entry 3581 (class 2606 OID 25278)
+-- Name: block_id block_id_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.block_id
+  ADD CONSTRAINT block_id_pkey PRIMARY KEY (block_id, category_id, product_id);
+
+
+--
+-- TOC entry 3481 (class 2606 OID 16700)
+-- Name: blocks blocks_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.blocks
+  ADD CONSTRAINT blocks_pkey PRIMARY KEY (template_key);
+
+
+--
+-- TOC entry 3484 (class 2606 OID 16614)
 -- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1287,6 +1790,7 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- TOC entry 3487 (class 2606 OID 16616)
 -- Name: categories_products categories_products_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1295,6 +1799,7 @@ ALTER TABLE ONLY public.categories_products
 
 
 --
+-- TOC entry 3489 (class 2606 OID 16618)
 -- Name: categories_seo categories_seo_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1303,6 +1808,7 @@ ALTER TABLE ONLY public.categories_seo
 
 
 --
+-- TOC entry 3492 (class 2606 OID 16620)
 -- Name: category_urls category_urls_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1311,6 +1817,7 @@ ALTER TABLE ONLY public.category_urls
 
 
 --
+-- TOC entry 3494 (class 2606 OID 16622)
 -- Name: custom_product_attributes custom_product_attributes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1319,6 +1826,61 @@ ALTER TABLE ONLY public.custom_product_attributes
 
 
 --
+-- TOC entry 3583 (class 2606 OID 25285)
+-- Name: eav_attribute_bool eav_attribute_bool_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_bool
+  ADD CONSTRAINT eav_attribute_bool_pkey PRIMARY KEY (attribute_id, attribute_key);
+
+
+--
+-- TOC entry 3585 (class 2606 OID 25292)
+-- Name: eav_attribute_float eav_attribute_float_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_float
+  ADD CONSTRAINT eav_attribute_float_pkey PRIMARY KEY (attribute_id, attribute_key);
+
+
+--
+-- TOC entry 3587 (class 2606 OID 25299)
+-- Name: eav_attribute_int eav_attribute_int_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_int
+  ADD CONSTRAINT eav_attribute_int_pkey PRIMARY KEY (attribute_id, attribute_key);
+
+
+--
+-- TOC entry 3589 (class 2606 OID 25306)
+-- Name: eav_attribute_money eav_attribute_money_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_money
+  ADD CONSTRAINT eav_attribute_money_pkey PRIMARY KEY (attribute_id, attribute_key);
+
+
+--
+-- TOC entry 3591 (class 2606 OID 25313)
+-- Name: eav_attribute_multi_select eav_attribute_multi_select_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_multi_select
+  ADD CONSTRAINT eav_attribute_multi_select_pkey PRIMARY KEY (attribute_id, attribute_key);
+
+
+--
+-- TOC entry 3593 (class 2606 OID 25320)
+-- Name: eav_attribute_string eav_attribute_string_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_string
+  ADD CONSTRAINT eav_attribute_string_pkey PRIMARY KEY (attribute_id, attribute_key);
+
+
+--
+-- TOC entry 3499 (class 2606 OID 16624)
 -- Name: eav_global_bool eav_global_bool_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1327,6 +1889,7 @@ ALTER TABLE ONLY public.eav_global_bool
 
 
 --
+-- TOC entry 3501 (class 2606 OID 16626)
 -- Name: eav_global_float eav_global_float_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1335,6 +1898,7 @@ ALTER TABLE ONLY public.eav_global_float
 
 
 --
+-- TOC entry 3503 (class 2606 OID 16628)
 -- Name: eav_global_int eav_global_int_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1343,6 +1907,7 @@ ALTER TABLE ONLY public.eav_global_int
 
 
 --
+-- TOC entry 3505 (class 2606 OID 16630)
 -- Name: eav_global_money eav_global_money_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1351,6 +1916,7 @@ ALTER TABLE ONLY public.eav_global_money
 
 
 --
+-- TOC entry 3507 (class 2606 OID 16632)
 -- Name: eav_global_multi_select eav_global_multi_select_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1359,6 +1925,7 @@ ALTER TABLE ONLY public.eav_global_multi_select
 
 
 --
+-- TOC entry 3509 (class 2606 OID 16634)
 -- Name: eav_global_string eav_global_string_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1367,6 +1934,7 @@ ALTER TABLE ONLY public.eav_global_string
 
 
 --
+-- TOC entry 3496 (class 2606 OID 16636)
 -- Name: eav eav_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1375,6 +1943,7 @@ ALTER TABLE ONLY public.eav
 
 
 --
+-- TOC entry 3511 (class 2606 OID 16638)
 -- Name: eav_store_view_bool eav_store_view_bool_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1383,6 +1952,7 @@ ALTER TABLE ONLY public.eav_store_view_bool
 
 
 --
+-- TOC entry 3514 (class 2606 OID 16640)
 -- Name: eav_store_view_float eav_store_view_float_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1391,6 +1961,7 @@ ALTER TABLE ONLY public.eav_store_view_float
 
 
 --
+-- TOC entry 3516 (class 2606 OID 16642)
 -- Name: eav_store_view_int eav_store_view_int_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1399,6 +1970,7 @@ ALTER TABLE ONLY public.eav_store_view_int
 
 
 --
+-- TOC entry 3518 (class 2606 OID 16644)
 -- Name: eav_store_view_money eav_store_view_money_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1407,6 +1979,7 @@ ALTER TABLE ONLY public.eav_store_view_money
 
 
 --
+-- TOC entry 3520 (class 2606 OID 16646)
 -- Name: eav_store_view_multi_select eav_store_view_multi_select_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1415,6 +1988,7 @@ ALTER TABLE ONLY public.eav_store_view_multi_select
 
 
 --
+-- TOC entry 3522 (class 2606 OID 16648)
 -- Name: eav_store_view_string eav_store_view_string_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1423,6 +1997,7 @@ ALTER TABLE ONLY public.eav_store_view_string
 
 
 --
+-- TOC entry 3524 (class 2606 OID 16650)
 -- Name: eav_website_bool eav_website_bool_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1431,6 +2006,7 @@ ALTER TABLE ONLY public.eav_website_bool
 
 
 --
+-- TOC entry 3526 (class 2606 OID 16652)
 -- Name: eav_website_float eav_website_float_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1439,6 +2015,7 @@ ALTER TABLE ONLY public.eav_website_float
 
 
 --
+-- TOC entry 3528 (class 2606 OID 16654)
 -- Name: eav_website_int eav_website_int_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1447,6 +2024,7 @@ ALTER TABLE ONLY public.eav_website_int
 
 
 --
+-- TOC entry 3530 (class 2606 OID 16656)
 -- Name: eav_website_money eav_website_money_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1455,6 +2033,7 @@ ALTER TABLE ONLY public.eav_website_money
 
 
 --
+-- TOC entry 3532 (class 2606 OID 16658)
 -- Name: eav_website_multi_select eav_website_multi_select_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1463,6 +2042,7 @@ ALTER TABLE ONLY public.eav_website_multi_select
 
 
 --
+-- TOC entry 3534 (class 2606 OID 16660)
 -- Name: eav_website_string eav_website_string_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1471,6 +2051,7 @@ ALTER TABLE ONLY public.eav_website_string
 
 
 --
+-- TOC entry 3536 (class 2606 OID 16662)
 -- Name: multi_select_attributes_bool multi_select_attributes_bool_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1479,6 +2060,7 @@ ALTER TABLE ONLY public.multi_select_attributes_bool
 
 
 --
+-- TOC entry 3538 (class 2606 OID 16664)
 -- Name: multi_select_attributes_float multi_select_attributes_float_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1487,6 +2069,7 @@ ALTER TABLE ONLY public.multi_select_attributes_float
 
 
 --
+-- TOC entry 3540 (class 2606 OID 16666)
 -- Name: multi_select_attributes_int multi_select_attributes_int_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1495,6 +2078,7 @@ ALTER TABLE ONLY public.multi_select_attributes_int
 
 
 --
+-- TOC entry 3542 (class 2606 OID 16668)
 -- Name: multi_select_attributes_money multi_select_attributes_money_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1503,6 +2087,7 @@ ALTER TABLE ONLY public.multi_select_attributes_money
 
 
 --
+-- TOC entry 3544 (class 2606 OID 16670)
 -- Name: multi_select_attributes_string multi_select_attributes_string_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1511,6 +2096,7 @@ ALTER TABLE ONLY public.multi_select_attributes_string
 
 
 --
+-- TOC entry 3546 (class 2606 OID 16672)
 -- Name: product_urls product_urls_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1519,6 +2105,7 @@ ALTER TABLE ONLY public.product_urls
 
 
 --
+-- TOC entry 3548 (class 2606 OID 16674)
 -- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1527,6 +2114,7 @@ ALTER TABLE ONLY public.products
 
 
 --
+-- TOC entry 3550 (class 2606 OID 16676)
 -- Name: products_pricing products_pricing_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1535,6 +2123,7 @@ ALTER TABLE ONLY public.products_pricing
 
 
 --
+-- TOC entry 3552 (class 2606 OID 16678)
 -- Name: products_seo products_seo_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1543,6 +2132,7 @@ ALTER TABLE ONLY public.products_seo
 
 
 --
+-- TOC entry 3554 (class 2606 OID 16680)
 -- Name: server_data server_data_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1551,6 +2141,7 @@ ALTER TABLE ONLY public.server_data
 
 
 --
+-- TOC entry 3556 (class 2606 OID 16682)
 -- Name: server_version server_version_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1559,6 +2150,7 @@ ALTER TABLE ONLY public.server_version
 
 
 --
+-- TOC entry 3558 (class 2606 OID 16684)
 -- Name: store_view store_view_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1567,6 +2159,16 @@ ALTER TABLE ONLY public.store_view
 
 
 --
+-- TOC entry 3479 (class 2606 OID 16698)
+-- Name: templates templates_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.templates
+  ADD CONSTRAINT templates_pkey PRIMARY KEY (template_key);
+
+
+--
+-- TOC entry 3560 (class 2606 OID 16686)
 -- Name: text_page_urls text_page_urls_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1575,6 +2177,7 @@ ALTER TABLE ONLY public.text_page_urls
 
 
 --
+-- TOC entry 3562 (class 2606 OID 16688)
 -- Name: text_pages text_pages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1583,6 +2186,7 @@ ALTER TABLE ONLY public.text_pages
 
 
 --
+-- TOC entry 3564 (class 2606 OID 16690)
 -- Name: text_pages_seo text_pages_seo_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1591,6 +2195,7 @@ ALTER TABLE ONLY public.text_pages_seo
 
 
 --
+-- TOC entry 3569 (class 2606 OID 16692)
 -- Name: url_keys url_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1599,6 +2204,16 @@ ALTER TABLE ONLY public.url_keys
 
 
 --
+-- TOC entry 3571 (class 2606 OID 16599)
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+  ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- TOC entry 3573 (class 2606 OID 16694)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1607,24 +2222,16 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- TOC entry 3575 (class 2606 OID 16696)
 -- Name: websites websites_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.websites
   ADD CONSTRAINT websites_pkey PRIMARY KEY (website_id);
 
-ALTER TABLE ONLY public.templates
-  ADD CONSTRAINT templates_pkey PRIMARY KEY (template_key);
-
-ALTER TABLE ONLY public.blocks
-  ADD CONSTRAINT blocks_pkey PRIMARY KEY (template_key);
-
-CREATE INDEX "fki_FK_72" ON public.templates USING btree (template_key);
-
-CREATE INDEX "fki_FK_73" ON public.blocks USING btree (template_key);
-
 
 --
+-- TOC entry 3476 (class 1259 OID 16703)
 -- Name: fki_FK_1; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1632,6 +2239,7 @@ CREATE INDEX "fki_FK_1" ON public.backend_permissions USING btree (user_id);
 
 
 --
+-- TOC entry 3497 (class 1259 OID 16704)
 -- Name: fki_FK_2; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1639,6 +2247,7 @@ CREATE INDEX "fki_FK_2" ON public.eav USING btree (attribute_key);
 
 
 --
+-- TOC entry 3512 (class 1259 OID 16705)
 -- Name: fki_FK_3; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1646,6 +2255,7 @@ CREATE INDEX "fki_FK_3" ON public.eav_store_view_bool USING btree (attribute_key
 
 
 --
+-- TOC entry 3490 (class 1259 OID 16706)
 -- Name: fki_FK_61; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1653,6 +2263,7 @@ CREATE INDEX "fki_FK_61" ON public.categories_seo USING btree (category_id);
 
 
 --
+-- TOC entry 3567 (class 1259 OID 16707)
 -- Name: fki_FK_62; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1660,6 +2271,7 @@ CREATE INDEX "fki_FK_62" ON public.url_keys USING btree (upper_key);
 
 
 --
+-- TOC entry 3485 (class 1259 OID 16708)
 -- Name: fki_FK_67; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1667,6 +2279,23 @@ CREATE INDEX "fki_FK_67" ON public.categories USING btree (upper_category);
 
 
 --
+-- TOC entry 3477 (class 1259 OID 16701)
+-- Name: fki_FK_72; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "fki_FK_72" ON public.templates USING btree (template_key);
+
+
+--
+-- TOC entry 3482 (class 1259 OID 16702)
+-- Name: fki_FK_73; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "fki_FK_73" ON public.blocks USING btree (template_key);
+
+
+--
+-- TOC entry 3679 (class 2620 OID 16709)
 -- Name: url_keys after_insert_url_keys; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1674,6 +2303,7 @@ CREATE TRIGGER after_insert_url_keys AFTER INSERT ON public.url_keys FOR EACH RO
 
 
 --
+-- TOC entry 3596 (class 2606 OID 16710)
 -- Name: backend_permissions FK_1; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1682,6 +2312,7 @@ ALTER TABLE ONLY public.backend_permissions
 
 
 --
+-- TOC entry 3657 (class 2606 OID 16715)
 -- Name: multi_select_attributes_money FK_10; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1690,6 +2321,7 @@ ALTER TABLE ONLY public.multi_select_attributes_money
 
 
 --
+-- TOC entry 3654 (class 2606 OID 16720)
 -- Name: multi_select_attributes_bool FK_11; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1698,6 +2330,7 @@ ALTER TABLE ONLY public.multi_select_attributes_bool
 
 
 --
+-- TOC entry 3616 (class 2606 OID 16725)
 -- Name: eav_global_string FK_12; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1706,6 +2339,7 @@ ALTER TABLE ONLY public.eav_global_string
 
 
 --
+-- TOC entry 3617 (class 2606 OID 16730)
 -- Name: eav_global_string FK_13; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1714,6 +2348,7 @@ ALTER TABLE ONLY public.eav_global_string
 
 
 --
+-- TOC entry 3610 (class 2606 OID 16735)
 -- Name: eav_global_int FK_14; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1722,6 +2357,7 @@ ALTER TABLE ONLY public.eav_global_int
 
 
 --
+-- TOC entry 3611 (class 2606 OID 16740)
 -- Name: eav_global_int FK_15; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1730,6 +2366,7 @@ ALTER TABLE ONLY public.eav_global_int
 
 
 --
+-- TOC entry 3608 (class 2606 OID 16745)
 -- Name: eav_global_float FK_16; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1738,6 +2375,7 @@ ALTER TABLE ONLY public.eav_global_float
 
 
 --
+-- TOC entry 3609 (class 2606 OID 16750)
 -- Name: eav_global_float FK_17; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1746,6 +2384,7 @@ ALTER TABLE ONLY public.eav_global_float
 
 
 --
+-- TOC entry 3612 (class 2606 OID 16755)
 -- Name: eav_global_money FK_18; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1754,6 +2393,7 @@ ALTER TABLE ONLY public.eav_global_money
 
 
 --
+-- TOC entry 3613 (class 2606 OID 16760)
 -- Name: eav_global_money FK_19; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1762,6 +2402,7 @@ ALTER TABLE ONLY public.eav_global_money
 
 
 --
+-- TOC entry 3604 (class 2606 OID 16765)
 -- Name: eav FK_2; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1770,6 +2411,7 @@ ALTER TABLE ONLY public.eav
 
 
 --
+-- TOC entry 3606 (class 2606 OID 16770)
 -- Name: eav_global_bool FK_20; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1778,6 +2420,7 @@ ALTER TABLE ONLY public.eav_global_bool
 
 
 --
+-- TOC entry 3607 (class 2606 OID 16775)
 -- Name: eav_global_bool FK_21; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1786,6 +2429,7 @@ ALTER TABLE ONLY public.eav_global_bool
 
 
 --
+-- TOC entry 3614 (class 2606 OID 16780)
 -- Name: eav_global_multi_select FK_22; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1794,6 +2438,7 @@ ALTER TABLE ONLY public.eav_global_multi_select
 
 
 --
+-- TOC entry 3663 (class 2606 OID 16785)
 -- Name: store_view FK_22_1; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1802,6 +2447,7 @@ ALTER TABLE ONLY public.store_view
 
 
 --
+-- TOC entry 3615 (class 2606 OID 16790)
 -- Name: eav_global_multi_select FK_23; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1810,6 +2456,7 @@ ALTER TABLE ONLY public.eav_global_multi_select
 
 
 --
+-- TOC entry 3636 (class 2606 OID 16795)
 -- Name: eav_website_bool FK_23_1; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1818,6 +2465,7 @@ ALTER TABLE ONLY public.eav_website_bool
 
 
 --
+-- TOC entry 3637 (class 2606 OID 16800)
 -- Name: eav_website_bool FK_24; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1826,6 +2474,7 @@ ALTER TABLE ONLY public.eav_website_bool
 
 
 --
+-- TOC entry 3638 (class 2606 OID 16805)
 -- Name: eav_website_bool FK_25; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1834,6 +2483,7 @@ ALTER TABLE ONLY public.eav_website_bool
 
 
 --
+-- TOC entry 3639 (class 2606 OID 16810)
 -- Name: eav_website_float FK_26; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1842,6 +2492,7 @@ ALTER TABLE ONLY public.eav_website_float
 
 
 --
+-- TOC entry 3640 (class 2606 OID 16815)
 -- Name: eav_website_float FK_27; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1850,6 +2501,7 @@ ALTER TABLE ONLY public.eav_website_float
 
 
 --
+-- TOC entry 3641 (class 2606 OID 16820)
 -- Name: eav_website_float FK_28; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1858,6 +2510,7 @@ ALTER TABLE ONLY public.eav_website_float
 
 
 --
+-- TOC entry 3642 (class 2606 OID 16825)
 -- Name: eav_website_int FK_29; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1866,6 +2519,7 @@ ALTER TABLE ONLY public.eav_website_int
 
 
 --
+-- TOC entry 3605 (class 2606 OID 16830)
 -- Name: eav FK_3; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1874,6 +2528,7 @@ ALTER TABLE ONLY public.eav
 
 
 --
+-- TOC entry 3643 (class 2606 OID 16835)
 -- Name: eav_website_int FK_30; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1882,6 +2537,7 @@ ALTER TABLE ONLY public.eav_website_int
 
 
 --
+-- TOC entry 3644 (class 2606 OID 16840)
 -- Name: eav_website_int FK_31; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1890,6 +2546,7 @@ ALTER TABLE ONLY public.eav_website_int
 
 
 --
+-- TOC entry 3645 (class 2606 OID 16845)
 -- Name: eav_website_money FK_32; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1898,6 +2555,7 @@ ALTER TABLE ONLY public.eav_website_money
 
 
 --
+-- TOC entry 3646 (class 2606 OID 16850)
 -- Name: eav_website_money FK_33; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1906,6 +2564,7 @@ ALTER TABLE ONLY public.eav_website_money
 
 
 --
+-- TOC entry 3647 (class 2606 OID 16855)
 -- Name: eav_website_money FK_34; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1914,6 +2573,7 @@ ALTER TABLE ONLY public.eav_website_money
 
 
 --
+-- TOC entry 3648 (class 2606 OID 16860)
 -- Name: eav_website_multi_select FK_35; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1922,6 +2582,7 @@ ALTER TABLE ONLY public.eav_website_multi_select
 
 
 --
+-- TOC entry 3649 (class 2606 OID 16865)
 -- Name: eav_website_multi_select FK_36; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1930,6 +2591,7 @@ ALTER TABLE ONLY public.eav_website_multi_select
 
 
 --
+-- TOC entry 3650 (class 2606 OID 16870)
 -- Name: eav_website_multi_select FK_37; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1938,6 +2600,7 @@ ALTER TABLE ONLY public.eav_website_multi_select
 
 
 --
+-- TOC entry 3651 (class 2606 OID 16875)
 -- Name: eav_website_string FK_38; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1946,6 +2609,7 @@ ALTER TABLE ONLY public.eav_website_string
 
 
 --
+-- TOC entry 3652 (class 2606 OID 16880)
 -- Name: eav_website_string FK_39; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1954,6 +2618,7 @@ ALTER TABLE ONLY public.eav_website_string
 
 
 --
+-- TOC entry 3653 (class 2606 OID 16885)
 -- Name: eav_website_string FK_40; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1962,6 +2627,7 @@ ALTER TABLE ONLY public.eav_website_string
 
 
 --
+-- TOC entry 3618 (class 2606 OID 16890)
 -- Name: eav_store_view_bool FK_41; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1970,6 +2636,7 @@ ALTER TABLE ONLY public.eav_store_view_bool
 
 
 --
+-- TOC entry 3619 (class 2606 OID 16895)
 -- Name: eav_store_view_bool FK_42; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1978,6 +2645,7 @@ ALTER TABLE ONLY public.eav_store_view_bool
 
 
 --
+-- TOC entry 3620 (class 2606 OID 16900)
 -- Name: eav_store_view_bool FK_43; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1986,6 +2654,7 @@ ALTER TABLE ONLY public.eav_store_view_bool
 
 
 --
+-- TOC entry 3621 (class 2606 OID 16905)
 -- Name: eav_store_view_float FK_44; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1994,6 +2663,7 @@ ALTER TABLE ONLY public.eav_store_view_float
 
 
 --
+-- TOC entry 3622 (class 2606 OID 16910)
 -- Name: eav_store_view_float FK_45; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2002,6 +2672,7 @@ ALTER TABLE ONLY public.eav_store_view_float
 
 
 --
+-- TOC entry 3623 (class 2606 OID 16915)
 -- Name: eav_store_view_float FK_46; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2010,6 +2681,7 @@ ALTER TABLE ONLY public.eav_store_view_float
 
 
 --
+-- TOC entry 3624 (class 2606 OID 16920)
 -- Name: eav_store_view_int FK_47; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2018,6 +2690,7 @@ ALTER TABLE ONLY public.eav_store_view_int
 
 
 --
+-- TOC entry 3625 (class 2606 OID 16925)
 -- Name: eav_store_view_int FK_48; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2026,6 +2699,7 @@ ALTER TABLE ONLY public.eav_store_view_int
 
 
 --
+-- TOC entry 3626 (class 2606 OID 16930)
 -- Name: eav_store_view_int FK_49; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2034,6 +2708,7 @@ ALTER TABLE ONLY public.eav_store_view_int
 
 
 --
+-- TOC entry 3627 (class 2606 OID 16935)
 -- Name: eav_store_view_money FK_50; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2042,6 +2717,7 @@ ALTER TABLE ONLY public.eav_store_view_money
 
 
 --
+-- TOC entry 3628 (class 2606 OID 16940)
 -- Name: eav_store_view_money FK_51; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2050,6 +2726,7 @@ ALTER TABLE ONLY public.eav_store_view_money
 
 
 --
+-- TOC entry 3629 (class 2606 OID 16945)
 -- Name: eav_store_view_money FK_52; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2058,6 +2735,7 @@ ALTER TABLE ONLY public.eav_store_view_money
 
 
 --
+-- TOC entry 3630 (class 2606 OID 16950)
 -- Name: eav_store_view_multi_select FK_53; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2066,6 +2744,7 @@ ALTER TABLE ONLY public.eav_store_view_multi_select
 
 
 --
+-- TOC entry 3631 (class 2606 OID 16955)
 -- Name: eav_store_view_multi_select FK_54; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2074,6 +2753,7 @@ ALTER TABLE ONLY public.eav_store_view_multi_select
 
 
 --
+-- TOC entry 3632 (class 2606 OID 16960)
 -- Name: eav_store_view_multi_select FK_55; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2082,6 +2762,7 @@ ALTER TABLE ONLY public.eav_store_view_multi_select
 
 
 --
+-- TOC entry 3633 (class 2606 OID 16965)
 -- Name: eav_store_view_string FK_56; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2090,6 +2771,7 @@ ALTER TABLE ONLY public.eav_store_view_string
 
 
 --
+-- TOC entry 3634 (class 2606 OID 16970)
 -- Name: eav_store_view_string FK_57; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2098,6 +2780,7 @@ ALTER TABLE ONLY public.eav_store_view_string
 
 
 --
+-- TOC entry 3635 (class 2606 OID 16975)
 -- Name: eav_store_view_string FK_58; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2106,6 +2789,7 @@ ALTER TABLE ONLY public.eav_store_view_string
 
 
 --
+-- TOC entry 3599 (class 2606 OID 16980)
 -- Name: categories_products FK_59; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2114,6 +2798,7 @@ ALTER TABLE ONLY public.categories_products
 
 
 --
+-- TOC entry 3658 (class 2606 OID 16985)
 -- Name: multi_select_attributes_string FK_6; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2122,6 +2807,7 @@ ALTER TABLE ONLY public.multi_select_attributes_string
 
 
 --
+-- TOC entry 3600 (class 2606 OID 16990)
 -- Name: categories_products FK_60; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2130,6 +2816,7 @@ ALTER TABLE ONLY public.categories_products
 
 
 --
+-- TOC entry 3601 (class 2606 OID 16995)
 -- Name: categories_seo FK_61; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2138,6 +2825,7 @@ ALTER TABLE ONLY public.categories_seo
 
 
 --
+-- TOC entry 3667 (class 2606 OID 17000)
 -- Name: url_keys FK_62; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2146,6 +2834,7 @@ ALTER TABLE ONLY public.url_keys
 
 
 --
+-- TOC entry 3659 (class 2606 OID 17005)
 -- Name: product_urls FK_63; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2154,6 +2843,7 @@ ALTER TABLE ONLY public.product_urls
 
 
 --
+-- TOC entry 3660 (class 2606 OID 17010)
 -- Name: product_urls FK_64; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2162,6 +2852,7 @@ ALTER TABLE ONLY public.product_urls
 
 
 --
+-- TOC entry 3602 (class 2606 OID 17015)
 -- Name: category_urls FK_65; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2170,6 +2861,7 @@ ALTER TABLE ONLY public.category_urls
 
 
 --
+-- TOC entry 3603 (class 2606 OID 17020)
 -- Name: category_urls FK_66; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2178,6 +2870,7 @@ ALTER TABLE ONLY public.category_urls
 
 
 --
+-- TOC entry 3598 (class 2606 OID 17025)
 -- Name: categories FK_67; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2186,6 +2879,7 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- TOC entry 3662 (class 2606 OID 17030)
 -- Name: products_seo FK_68; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2194,6 +2888,7 @@ ALTER TABLE ONLY public.products_seo
 
 
 --
+-- TOC entry 3666 (class 2606 OID 17035)
 -- Name: text_pages_seo FK_69; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2202,6 +2897,7 @@ ALTER TABLE ONLY public.text_pages_seo
 
 
 --
+-- TOC entry 3661 (class 2606 OID 17040)
 -- Name: products_pricing FK_7; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2210,6 +2906,7 @@ ALTER TABLE ONLY public.products_pricing
 
 
 --
+-- TOC entry 3664 (class 2606 OID 17045)
 -- Name: text_page_urls FK_70; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2218,6 +2915,7 @@ ALTER TABLE ONLY public.text_page_urls
 
 
 --
+-- TOC entry 3665 (class 2606 OID 17050)
 -- Name: text_page_urls FK_71; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2226,6 +2924,79 @@ ALTER TABLE ONLY public.text_page_urls
 
 
 --
+-- TOC entry 3597 (class 2606 OID 17065)
+-- Name: blocks FK_72; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.blocks
+  ADD CONSTRAINT "FK_72" FOREIGN KEY (template_key) REFERENCES public.templates(template_key);
+
+
+--
+-- TOC entry 3668 (class 2606 OID 25321)
+-- Name: block_id FK_73; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.block_id
+  ADD CONSTRAINT "FK_73" FOREIGN KEY (block_id) REFERENCES public.backend_block(block_id) NOT VALID;
+
+
+--
+-- TOC entry 3669 (class 2606 OID 25326)
+-- Name: block_id FK_74; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.block_id
+  ADD CONSTRAINT "FK_74" FOREIGN KEY (category_id) REFERENCES public.categories(category_id) NOT VALID;
+
+
+--
+-- TOC entry 3670 (class 2606 OID 25331)
+-- Name: block_id FK_75; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.block_id
+  ADD CONSTRAINT "FK_75" FOREIGN KEY (product_id) REFERENCES public.products(product_id) NOT VALID;
+
+
+--
+-- TOC entry 3677 (class 2606 OID 25341)
+-- Name: attribute_block FK_76; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.attribute_block
+  ADD CONSTRAINT "FK_76" FOREIGN KEY (block_id) REFERENCES public.backend_block(block_id);
+
+
+--
+-- TOC entry 3678 (class 2606 OID 25346)
+-- Name: attribute_block FK_77; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.attribute_block
+  ADD CONSTRAINT "FK_77" FOREIGN KEY (attribute_id) REFERENCES public.block_attributes(attribute_id);
+
+
+--
+-- TOC entry 3671 (class 2606 OID 25351)
+-- Name: eav_attribute_bool FK_78; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_bool
+  ADD CONSTRAINT "FK_78" FOREIGN KEY (attribute_id) REFERENCES public.block_attributes(attribute_id) NOT VALID;
+
+
+--
+-- TOC entry 3672 (class 2606 OID 25356)
+-- Name: eav_attribute_float FK_79; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_float
+  ADD CONSTRAINT "FK_79" FOREIGN KEY (attribute_id) REFERENCES public.block_attributes(attribute_id) NOT VALID;
+
+
+--
+-- TOC entry 3656 (class 2606 OID 17055)
 -- Name: multi_select_attributes_int FK_8; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -2234,19 +3005,62 @@ ALTER TABLE ONLY public.multi_select_attributes_int
 
 
 --
+-- TOC entry 3673 (class 2606 OID 25361)
+-- Name: eav_attribute_int FK_80; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_int
+  ADD CONSTRAINT "FK_80" FOREIGN KEY (attribute_id) REFERENCES public.block_attributes(attribute_id) NOT VALID;
+
+
+--
+-- TOC entry 3674 (class 2606 OID 25366)
+-- Name: eav_attribute_money FK_81; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_money
+  ADD CONSTRAINT "FK_81" FOREIGN KEY (attribute_id) REFERENCES public.block_attributes(attribute_id) NOT VALID;
+
+
+--
+-- TOC entry 3675 (class 2606 OID 25371)
+-- Name: eav_attribute_multi_select FK_82; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_multi_select
+  ADD CONSTRAINT "FK_82" FOREIGN KEY (attribute_id) REFERENCES public.block_attributes(attribute_id) NOT VALID;
+
+
+--
+-- TOC entry 3676 (class 2606 OID 25376)
+-- Name: eav_attribute_string FK_83; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.eav_attribute_string
+  ADD CONSTRAINT "FK_83" FOREIGN KEY (attribute_id) REFERENCES public.block_attributes(attribute_id) NOT VALID;
+
+
+--
+-- TOC entry 3655 (class 2606 OID 17060)
 -- Name: multi_select_attributes_float FK_9; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.multi_select_attributes_float
   ADD CONSTRAINT "FK_9" FOREIGN KEY (attribute_key) REFERENCES public.custom_product_attributes(attribute_key);
 
-ALTER TABLE ONLY public.blocks
-  ADD CONSTRAINT "FK_72" FOREIGN KEY (template_key) REFERENCES public.templates(template_key);
 
 --
+-- TOC entry 3885 (class 0 OID 0)
+-- Dependencies: 4
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
+--
 
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2025-03-17 14:06:28
 
 --
 -- PostgreSQL database dump complete
 --
-
