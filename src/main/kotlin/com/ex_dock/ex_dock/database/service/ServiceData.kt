@@ -7,7 +7,8 @@ fun getAllStandardTemplates(): List<Template> {
 
   templates.add(Template(
     "testKey",
-    "<test>testData</test>"
+    "<test>testData</test>",
+    ""
   ))
   return templates.toList()
 }
