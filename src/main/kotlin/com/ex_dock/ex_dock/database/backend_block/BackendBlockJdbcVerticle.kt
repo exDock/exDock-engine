@@ -79,6 +79,8 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
 
     // Initialize all eventbus connections for getting Full Block Information
     getFullBlockInfoById()
+    getFullBackendBlock()
+    getFullBackendBlockByBlockNames()
   }
 
   /**
@@ -908,10 +910,10 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
       val query = """
       SELECT bb.block_id, bb.block_name, bb.block_type,
              ba.attribute_id, ba.attribute_name, ba.attribute_type
-      FROM backend_block bb
-      LEFT JOIN attribute_block bab ON bb.block_id = bab.block_id
+      FROM attribute_block bab
+      LEFT JOIN backend_block bb ON bb.block_id = bab.block_id
       LEFT JOIN block_attributes ba ON bab.attribute_id = ba.attribute_id
-      WHERE bb.block_id = ?
+      WHERE bab.block_id = ?
     """
 
       val rowsFuture = client.preparedQuery(query).execute(Tuple.of(blockId))
@@ -969,7 +971,116 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
             }
           }
         } else {
-          message.reply("No block found with ID: $blockId")
+          message.reply(mutableListOf<FullBlockInfo>(), listDeliveryOptions)
+        }
+      }
+    }
+  }
+
+  private fun getFullBackendBlockByBlockNames() {
+    val getFullBackendBlockConsumer = eventBus.localConsumer<List<String>>("process.backend_block.getAllFullInfoByBlockNames")
+    getFullBackendBlockConsumer.handler { message ->
+      val query = """
+      SELECT bb.block_id, bb.block_name, bb.block_type,
+             ba.attribute_id, ba.attribute_name, ba.attribute_type
+      FROM backend_block bb
+      LEFT JOIN attribute_block bab ON bb.block_id = bab.block_id
+      LEFT JOIN block_attributes ba ON bab.attribute_id = ba.attribute_id
+      WHERE bb.block_name = ANY (?)
+    """
+
+      val blockNames: List<String> = message.body()
+      val rowsFuture = client.preparedQuery(query).execute(Tuple.of(blockNames.toTypedArray()))
+      val blockInfoMap = mutableMapOf<Int, MutableList<Pair<BackendBlock, BlockAttribute>>>()
+
+      rowsFuture.onFailure { res ->
+        println("Failed to execute query: $res")
+        message.reply("Failed to execute query: $res")
+      }.onSuccess { res: RowSet<Row> ->
+        if (res.size() > 0) {
+          res.forEach { row ->
+            val blockId = row.getInteger("block_id")
+            val backendBlock = makeBackendBlock(row)
+
+            // Check if the attribute_id is null (in case of LEFT JOIN with no match)
+            val attributeId = row.getString("attribute_id")
+            val blockAttribute = if (attributeId != null) {
+              makeBlockAttribute(row)
+            } else {
+              null
+            }
+
+            val pair = if (blockAttribute != null) {
+              Pair(backendBlock, blockAttribute)
+            } else {
+              null
+            }
+
+            if (blockInfoMap.containsKey(blockId)) {
+              if (pair != null) {
+                blockInfoMap[blockId]?.add(pair)
+              }
+            } else {
+              blockInfoMap[blockId] = mutableListOf()
+              if (pair != null) {
+                blockInfoMap[blockId]?.add(pair)
+              }
+            }
+          }
+        }
+
+        // Now fetch EAV attributes for each block
+        val fullBlockInfoList = mutableListOf<FullBlockInfo>()
+
+        for ((blockId, blockInfoList) in blockInfoMap) {
+          // Get the first pair to extract the BackendBlock
+          val backendBlock = blockInfoList.firstOrNull()?.first ?: continue
+
+          // Extract all block attributes
+          val blockAttributes = blockInfoList.mapNotNull { it.second }
+
+          // Create a BlockId object (assuming it's constructed with defaults)
+          val blockIdObj = BlockId(blockId = blockId, productId = 0, categoryId = 0)
+
+          // Fetch EAV attributes for this block
+          fetchEavAttributes(blockId).onComplete { ar ->
+            if (ar.succeeded()) {
+              val result = ar.result()
+              val eavBool = result.eavAttributeBool
+              val eavFloat = result.eavAttributeFloat
+              val eavInt = result.eavAttributeInt
+              val eavMoney = result.eavAttributeMoney
+              val eavMultiSelect = result.eavAttributeMultiSelect
+              val eavString = result.eavAttributeString
+
+              val fullBlockInfo = FullBlockInfo(
+                blockId = blockIdObj,
+                backendBlock = backendBlock,
+                blockAttributes = blockAttributes,
+                eavAttributeBool = eavBool,
+                eavAttributeFloat = eavFloat,
+                eavAttributeInt = eavInt,
+                eavAttributeMoney = eavMoney,
+                eavAttributeMultiSelect = eavMultiSelect,
+                eavAttributeString = eavString
+              )
+
+              fullBlockInfoList.add(fullBlockInfo)
+
+              // If we've processed all blocks, send the reply
+              if (fullBlockInfoList.size == blockInfoMap.size) {
+                message.reply(fullBlockInfoList, listDeliveryOptions)
+              }
+            } else {
+              println("Failed to fetch EAV attributes: ${ar.cause()}")
+              message.reply("Failed to fetch EAV attributes: ${ar.cause()}")
+            }
+          }
+        }
+
+        // If no blocks were found, send an empty list
+        if (blockInfoMap.isEmpty()) {
+          message.reply(fullBlockInfoList, listDeliveryOptions)
         }
       }
     }
@@ -1006,7 +1117,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
     val stringFuture = client.preparedQuery(stringQuery).execute(Tuple.of(blockId))
 
     // Compose all futures
-    CompositeFuture.all(booleanFuture, floatFuture, intFuture, moneyFuture, multiSelectFuture, stringFuture).onComplete { ar ->
+    Future.all(booleanFuture, floatFuture, intFuture, moneyFuture, multiSelectFuture, stringFuture).onComplete { ar ->
       if (ar.succeeded()) {
         val booleanList = mutableListOf<EavAttributeBool>()
         booleanFuture.result().forEach { row -> booleanList.add(makeEavAttributeBool(row)) }
