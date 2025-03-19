@@ -705,6 +705,9 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         shortName = row.getString("short_name"),
         description = row.getString("description"),
         shortDescription = row.getString("short_description"),
+        sku = row.getString("sku"),
+        ean = row.getString("ean"),
+        manufacturer = row.getString("manufacturer")
       ),
       row.getString("attribute_key"),
       row.getBoolean("bool_value"),

@@ -956,6 +956,9 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         row.getString("short_name"),
         row.getString("description"),
         row.getString("short_description"),
+        row.getString("sku"),
+        row.getString("ean"),
+        row.getString("manufacturer")
       ),
       row.getString("attribute_key"),
       row.getBoolean("bool_value"),
