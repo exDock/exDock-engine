@@ -1,13 +1,17 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.category.PageIndex
+import com.ex_dock.ex_dock.database.image.Image
 
 data class Products(
   var productId: Int,
   var name: String,
   var shortName: String,
   var description: String,
-  var shortDescription: String
+  var shortDescription: String,
+  var sku: String,
+  var ean: String,
+  var manufacturer: String
 )
 
 data class ProductsSeo(
@@ -22,7 +26,8 @@ data class ProductsPricing(
   var productId: Int,
   var price: Double,
   var salePrice: Double,
-  var costPrice: Double
+  var costPrice: Double,
+  var taxClass: String
 )
 
 data class CustomProductAttributes(
@@ -224,7 +229,15 @@ data class MultiSelectInfo(
 data class FullProduct(
   var product: Products,
   var productsSeo: ProductsSeo,
-  var productsPricing: ProductsPricing
+  var productsPricing: ProductsPricing,
+  var images: MutableList<Image>
+)
+
+data class FullProductEntry(
+  var product: Products,
+  var productsSeo: ProductsSeo,
+  var productsPricing: ProductsPricing,
+  var images: Image,
 )
 
 data class EavGlobalInfo(
