@@ -3,6 +3,7 @@ package com.ex_dock.ex_dock.database.product
 import com.ex_dock.ex_dock.database.connection.getConnection
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.kotlin.core.json.obj
 import io.vertx.sqlclient.Pool
@@ -347,10 +348,35 @@ class ProductCompleteEavJdbcVerticle: AbstractVerticle() {
     val iterator = eavAttributesJson.iterator()
 
     while (iterator.hasNext()) {
-      val value = iterator.next().value
-      val key = iterator.next().value
-      if (key == "images")
-      if (key != null) newJsonObject.put(key as String, value)
+      val currentValue: MutableMap.MutableEntry<String, Any>? = iterator.next()
+      val value = currentValue?.value
+      val key = currentValue?.key
+      if (value != null) {
+        if (key == "image_url") {
+          var currentImages: JsonArray? = null
+
+          try {
+              currentImages = newJsonObject.getJsonArray("images")
+          } catch (_: Exception) {}
+
+          if (currentImages == null) {
+              currentImages = JsonArray()
+          } else {
+            newJsonObject.remove("images")
+          }
+
+          val newImage = JsonObject()
+          newImage.put("image_url", value)
+          newImage.put("image_name", iterator.next().value)
+          newImage.put("extensions", iterator.next().value)
+
+          currentImages.add(newImage)
+          newJsonObject.put("images", currentImages)
+
+        } else {
+          newJsonObject.put(key, value)
+        }
+      }
     }
 
     return newJsonObject
