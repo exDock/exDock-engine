@@ -101,7 +101,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val createProductConsumer = eventBus.localConsumer<Products>("process.products.createProduct")
     createProductConsumer.handler { message ->
       val product = message.body()
-      val rowsFuture = client.preparedQuery("INSERT INTO products (name, short_name, description, short_description) VALUES (?,?,?,?)")
+      val rowsFuture = client.preparedQuery("INSERT INTO products (name, short_name, description, short_description, sku, ean, manufacturer) VALUES (?,?,?,?,?,?,?)")
        .execute(makeProductTuple(product, false))
 
       rowsFuture.onFailure{ res ->
@@ -119,7 +119,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val updateProductConsumer = eventBus.localConsumer<Products>("process.products.updateProduct")
     updateProductConsumer.handler { message ->
       val product = message.body()
-      val rowsFuture = client.preparedQuery("UPDATE products SET name =?, short_name =?, description =?, short_description =? WHERE product_id =?")
+      val rowsFuture = client.preparedQuery("UPDATE products SET name =?, short_name =?, description =?, " +
+        "short_description =?, sku=?, ean=?, manufacturer=? WHERE product_id =?")
        .execute(makeProductTuple(product, true))
 
       rowsFuture.onFailure{ res ->
@@ -293,7 +294,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val createProductPricingConsumer = eventBus.localConsumer<ProductsPricing>("process.products.createProductPricing")
     createProductPricingConsumer.handler { message ->
       val productPricing = message.body()
-      val rowsFuture = client.preparedQuery("INSERT INTO products_pricing (product_id, price, sale_price, cost_price) VALUES (?,?,?,?)")
+      val rowsFuture = client.preparedQuery("INSERT INTO products_pricing (product_id, price, sale_price, " +
+        "cost_price, tax_class, sale_date_start, sale_date_end) VALUES (?,?,?,?,?,?,?)")
        .execute(makeProductsPricingTuple(productPricing, false))
 
       rowsFuture.onFailure { res ->
@@ -309,7 +311,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val updateProductPricingConsumer = eventBus.localConsumer<ProductsPricing>("process.products.updateProductPricing")
     updateProductPricingConsumer.handler { message ->
       val productPricing = message.body()
-      val rowsFuture = client.preparedQuery("UPDATE products_pricing SET price =?, sale_price =?, cost_price =? WHERE product_id =?")
+      val rowsFuture = client.preparedQuery("UPDATE products_pricing SET price =?, sale_price =?, " +
+        "cost_price =?, tax_class=?, sale_date_start=?, sale_date_end=? WHERE product_id =?")
        .execute(makeProductsPricingTuple(productPricing, true))
 
       rowsFuture.onFailure { res ->
@@ -384,8 +387,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
       val rowsFuture = client.preparedQuery("SELECT * FROM products " +
         "JOIN public.products_pricing pp on products.product_id = pp.product_id " +
         "JOIN public.products_seo ps on products.product_id = ps.product_id " +
-        "JOIN public.image_product ip ON products.product_id = ip.product_id " +
-        "JOIN public.image i ON ip.image_url = i.image_url " +
+        "LEFT JOIN public.image_product ip ON products.product_id = ip.product_id " +
+        "LEFT JOIN public.image i ON ip.image_url = i.image_url " +
         "WHERE products.product_id =?")
        .execute(Tuple.of(productId))
 
@@ -482,6 +485,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
         body.shortName,
         body.description,
         body.shortDescription,
+        body.sku,
+        body.ean,
+        body.manufacturer,
         body.productId
       )
     } else {
@@ -490,6 +496,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
         body.shortName,
         body.description,
         body.shortDescription,
+        body.sku,
+        body.ean,
+        body.manufacturer,
       )
     }
 
@@ -524,7 +533,10 @@ class ProductJdbcVerticle: AbstractVerticle() {
         body.price,
         body.salePrice,
         body.costPrice,
-        body.productId
+        body.taxClass,
+        body.saleDateStart,
+        body.saleDateEnd,
+        body.productId,
       )
     } else {
       Tuple.of(
@@ -532,6 +544,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
         body.price,
         body.salePrice,
         body.costPrice,
+        body.taxClass,
+        body.saleDateStart,
+        body.saleDateEnd
       )
     }
 

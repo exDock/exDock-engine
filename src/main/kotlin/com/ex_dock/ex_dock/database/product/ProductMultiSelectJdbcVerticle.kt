@@ -590,6 +590,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, msab.value AS bool_value, " +
         "msaf.value AS float_value, msas.value AS string_value, " +
         "msai.value AS int_value, msam.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "cpa.attribute_key FROM products " +
         "Left Join public.eav e on products.product_id = e.product_id " +
         "LEFT JOIN public.custom_product_attributes cpa on cpa.attribute_key = e.attribute_key " +
@@ -627,6 +628,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, msab.value AS bool_value, " +
         "msaf.value AS float_value, msas.value AS string_value, " +
         "msai.value AS int_value, msam.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "cpa.attribute_key FROM products " +
         "Left Join public.eav e on products.product_id = e.product_id " +
         "LEFT JOIN public.custom_product_attributes cpa on cpa.attribute_key = e.attribute_key " +
@@ -698,6 +700,32 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
   }
 
   private fun makeMultiSelectAttributesInfo(row: Row): MultiSelectInfo {
+    var boolValue: Boolean? = null
+    var floatValue: Float? = null
+    var intValue: Int? = null
+    var stringValue: String? = null
+    var moneyValue: Double? = null
+
+    try {
+      boolValue = row.getBoolean("bool_value")
+    } catch (_: Exception) {}
+
+    try {
+      floatValue = row.getFloat("float_value")
+    } catch (_: Exception) {}
+
+    try {
+      intValue = row.getInteger("int_value")
+    } catch (_: Exception) {}
+
+    try {
+      stringValue = row.getString("string_value")
+    } catch (_: Exception) {}
+
+    try {
+      moneyValue = row.getDouble("money_value")
+    } catch (_: Exception) {}
+
     return MultiSelectInfo(
       Products(
         productId = row.getInteger("product_id"),
@@ -710,11 +738,11 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         manufacturer = row.getString("manufacturer")
       ),
       row.getString("attribute_key"),
-      row.getBoolean("bool_value"),
-      row.getFloat("float_value"),
-      row.getString("string_value"),
-      row.getInteger("int_value"),
-      row.getDouble("money_value")
+      boolValue,
+      floatValue,
+      stringValue,
+      intValue,
+      moneyValue,
     )
   }
 

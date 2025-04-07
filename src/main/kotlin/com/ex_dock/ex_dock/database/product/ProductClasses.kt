@@ -126,12 +126,12 @@ data class EavWebsiteMultiSelect(
 data class EavWebsiteInfo(
   val products: Products,
   val attributeKey: String,
-  val eavWebsiteBool: Boolean,
-  val eavWebsiteFloat: Float,
-  val eavWebsiteString: String,
-  val eavWebsiteInt: Int,
-  val eavWebsiteMoney: Double,
-  val eavWebsiteMultiSelect: Int
+  val eavWebsiteBool: Boolean?,
+  val eavWebsiteFloat: Float?,
+  val eavWebsiteString: String?,
+  val eavWebsiteInt: Int?,
+  val eavWebsiteMoney: Double?,
+  val eavWebsiteMultiSelect: Int?
 )
 
 data class EavStoreViewBool(
@@ -178,13 +178,13 @@ data class EavStoreViewMoney(
 
 data class EavStoreViewInfo(
   val product: Products,
-  val attributeKey: String,
-  val eavStoreViewBool: Boolean,
-  val eavStoreViewFloat: Float,
-  val eavStoreViewInt: Int,
-  val eavStoreViewString: String,
-  val eavStoreViewMultiSelect: Int,
-  val eavStoreViewMoney: Double
+  val attributeKey: String?,
+  val eavStoreViewBool: Boolean?,
+  val eavStoreViewFloat: Float?,
+  val eavStoreViewInt: Int?,
+  val eavStoreViewString: String?,
+  val eavStoreViewMultiSelect: Int?,
+  val eavStoreViewMoney: Double?
 )
 
 data class MultiSelectString(
@@ -220,11 +220,11 @@ data class MultiSelectFloat(
 data class MultiSelectInfo(
   val product: Products,
   val attributeKey: String,
-  val multiSelectBool: Boolean,
-  val multiSelectFloat: Float,
-  val multiSelectString: String,
-  val multiSelectInt: Int,
-  val multiSelectMoney: Double,
+  val multiSelectBool: Boolean?,
+  val multiSelectFloat: Float?,
+  val multiSelectString: String?,
+  val multiSelectInt: Int?,
+  val multiSelectMoney: Double?,
 )
 
 data class FullProduct(
@@ -243,12 +243,12 @@ data class FullProductEntry(
 
 data class EavGlobalInfo(
   val eav: Eav,
-  val eavGlobalBool: Boolean,
-  val eavGlobalFloat: Float,
-  val eavGlobalString: String,
-  val eavGlobalInt: Int,
-  val eavGlobalMoney: Double,
-  val eavGlobalMultiSelect: Int
+  val eavGlobalBool: Boolean?,
+  val eavGlobalFloat: Float?,
+  val eavGlobalString: String?,
+  val eavGlobalInt: Int?,
+  val eavGlobalMoney: Double?,
+  val eavGlobalMultiSelect: Int?
 )
 
 enum class Type(name: String) {

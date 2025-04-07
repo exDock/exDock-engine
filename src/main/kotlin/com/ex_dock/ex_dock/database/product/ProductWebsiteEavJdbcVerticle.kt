@@ -815,7 +815,8 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       "products.description, products.short_name, products.short_description, egb.value AS bool_value, " +
         "egf.value AS float_value, egs.value AS string_value, " +
         "egi.value AS int_value, egm.value AS money_value, " +
-        "egms.value AS multi_select_value, cpa.attribute_key, w.website_id AS website_id FROM products " +
+        "products.sku, products.ean, products.manufacturer, " +
+        "egms.value AS multi_select_value, cpa.attribute_key AS attribute_key, w.website_id AS website_id FROM products " +
         "LEFT JOIN public.eav_website_bool egb on products.product_id = egb.product_id " +
         "LEFT JOIN public.eav_website_float egf on products.product_id = egf.product_id " +
         "LEFT JOIN public.eav_website_int egi on products.product_id = egi.product_id " +
@@ -854,6 +855,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, egb.value AS bool_value, " +
         "egf.value AS float_value, egs.value AS string_value, " +
         "egi.value AS int_value, egm.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "egms.value AS multi_select_value, cpa.attribute_key, w.website_id AS website_id FROM products " +
         "LEFT JOIN public.eav_website_bool egb on products.product_id = egb.product_id " +
         "LEFT JOIN public.eav_website_float egf on products.product_id = egf.product_id " +
@@ -948,6 +950,37 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
   }
 
   private fun makeEavWebsiteInfo(row: Row): EavWebsiteInfo {
+    var boolValue: Boolean? = null
+    var floatValue: Float? = null
+    var intValue: Int? = null
+    var stringValue: String? = null
+    var moneyValue: Double? = null
+    var multiSelectValue: Int? = null
+
+    try {
+      boolValue = row.getBoolean("bool_value")
+    } catch (_: Exception) {}
+
+    try {
+      floatValue = row.getFloat("float_value")
+    } catch (_: Exception) {}
+
+    try {
+      intValue = row.getInteger("int_value")
+    } catch (_: Exception) {}
+
+    try {
+      stringValue = row.getString("string_value")
+    } catch (_: Exception) {}
+
+    try {
+      moneyValue = row.getDouble("money_value")
+    } catch (_: Exception) {}
+
+    try {
+      multiSelectValue = row.getInteger("multi_select_value")
+    } catch (_: Exception) {}
+
     return EavWebsiteInfo(
       Products(
         row.getInteger("product_id"),
@@ -960,12 +993,12 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         row.getString("manufacturer")
       ),
       row.getString("attribute_key"),
-      row.getBoolean("bool_value"),
-      row.getFloat("float_value"),
-      row.getString("string_value"),
-      row.getInteger("int_value"),
-      row.getDouble("money_value"),
-      row.getInteger("multi_select_value"),
+      boolValue,
+      floatValue,
+      stringValue,
+      intValue,
+      moneyValue,
+      multiSelectValue,
     )
   }
 
