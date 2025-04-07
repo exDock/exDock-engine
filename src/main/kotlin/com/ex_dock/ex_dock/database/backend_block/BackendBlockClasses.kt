@@ -1,7 +1,7 @@
 package com.ex_dock.ex_dock.database.backend_block
 
 class BackendBlock(
-  var blockId: Int,
+  var blockId: Int?,
   var blockName: String,
   var blockType: String,
 )
@@ -58,6 +58,11 @@ class EavAttributeMultiSelect(
   var value: Int,
 )
 
+class EavAttributeList(
+  var attributeId: String,
+  var attributeKey: String,
+)
+
 class FullBlockInfo(
   var blockId: BlockId,
   var backendBlock: BackendBlock,
@@ -68,6 +73,7 @@ class FullBlockInfo(
   var eavAttributeMoney: List<EavAttributeMoney>,
   var eavAttributeMultiSelect: List<EavAttributeMultiSelect>,
   var eavAttributeString: List<EavAttributeString>,
+  var eavAttributeList: List<EavAttributeList>,
 )
 
 class FullEavAttribute(
@@ -77,4 +83,5 @@ class FullEavAttribute(
   var eavAttributeMoney: List<EavAttributeMoney>,
   var eavAttributeMultiSelect: List<EavAttributeMultiSelect>,
   var eavAttributeString: List<EavAttributeString>,
+  var eavAttributeList: List<EavAttributeList>,
 )

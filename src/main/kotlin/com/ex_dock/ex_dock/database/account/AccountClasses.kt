@@ -36,7 +36,7 @@ enum class Permission(name: String) {
     }
 
     fun toString(permission: Permission): String {
-      return permission.name
+      return permission.name.lowercase().replace("_", "-")
     }
   }
 }
