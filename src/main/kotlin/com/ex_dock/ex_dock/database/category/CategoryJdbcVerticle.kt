@@ -338,6 +338,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       val query =
         "SELECT p.product_id, p.name AS product_name, p.short_name AS product_short_name, " +
           "p.description AS product_description, p.short_description AS product_short_description, " +
+          "p.sku AS product_sku, p.ean AS product_ean, p.manufacturer AS product_manufacturer, " +
           "c.category_id, c.upper_category, c.name, c.short_description, c.description " +
           "FROM products p JOIN categories_products cp ON cp.product_id = p.product_id " +
           "JOIN categories c ON cp.category_id = c.category_id WHERE c.category_id = ?"
@@ -415,7 +416,10 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         name = row.getString("product_name"),
         shortName = row.getString("product_short_name"),
         description = row.getString("product_description"),
-        shortDescription = row.getString("product_short_description")
+        shortDescription = row.getString("product_short_description"),
+        sku = row.getString("product_sku"),
+        ean = row.getString("product_ean"),
+        manufacturer = row.getString("product_manufacturer")
       )
     )
   }

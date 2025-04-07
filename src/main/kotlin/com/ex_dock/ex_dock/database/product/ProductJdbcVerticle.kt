@@ -443,12 +443,22 @@ class ProductJdbcVerticle: AbstractVerticle() {
   }
 
   private fun makeProductsPricing(row: Row): ProductsPricing {
+    var saleDateStart: String? = null
+    var saleDateEnd: String? = null
+
+    try {
+      saleDateStart = row.getString("sale_date_start")
+      saleDateEnd = row.getString("sale_date_end")
+    } catch (_: Exception) {}
+
     return ProductsPricing(
       productId = row.getInteger("product_id"),
       price = row.getDouble("price"),
       salePrice = row.getDouble("sale_price"),
       costPrice = row.getDouble("cost_price"),
       taxClass = row.getString("tax_class"),
+      saleDateStart = saleDateStart,
+      saleDateEnd = saleDateEnd
     )
   }
 
