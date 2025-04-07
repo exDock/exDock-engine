@@ -2,7 +2,6 @@ package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.category.PageIndex
 import com.ex_dock.ex_dock.database.image.Image
-
 data class Products(
   var productId: Int,
   var name: String,
@@ -27,7 +26,9 @@ data class ProductsPricing(
   var price: Double,
   var salePrice: Double,
   var costPrice: Double,
-  var taxClass: String
+  var taxClass: String,
+  var saleDateStart: String?,
+  var saleDateEnd: String?
 )
 
 data class CustomProductAttributes(
