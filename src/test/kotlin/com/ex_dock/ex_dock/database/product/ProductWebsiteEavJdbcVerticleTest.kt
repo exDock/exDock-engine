@@ -51,7 +51,10 @@ class ProductWebsiteEavJdbcVerticleTest {
     name = "Test Product",
     shortName = "TProduct",
     description = "Test Product Description",
-    shortDescription = "TPDescription"
+    shortDescription = "TPDescription",
+    sku = "sku",
+    ean = "ean",
+    manufacturer = "manufacturer",
   )
 
   private var customProductAttribute = CustomProductAttributes(

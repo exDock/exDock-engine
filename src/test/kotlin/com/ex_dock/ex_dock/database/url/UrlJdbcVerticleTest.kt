@@ -64,7 +64,10 @@ class UrlJdbcVerticleTest {
     name = "test name",
     shortName = "test name",
     description = "test description",
-    shortDescription = "test description"
+    shortDescription = "test description",
+    sku = "sku",
+    ean = "ean",
+    manufacturer = "manufacturer",
   )
 
   private var textPageUrl = TextPageUrls(

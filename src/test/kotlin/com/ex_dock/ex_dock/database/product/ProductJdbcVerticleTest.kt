@@ -46,13 +46,17 @@ class ProductJdbcVerticleTest {
     productId = productId,
     price = 10.0,
     salePrice = 10.0,
-    costPrice = 4.0
+    costPrice = 4.0,
+    taxClass = "tax_class",
+    saleDateStart = null,
+    saleDateEnd = null,
   )
 
   private var fullProduct = FullProduct(
     product = product,
     productsSeo = productSeo,
-    productsPricing = productPricing
+    productsPricing = productPricing,
+    images = mutableListOf()
   )
 
   private val productDeliveryOptions = DeliveryOptions().setCodecName("ProductsCodec")
@@ -242,7 +246,10 @@ class ProductJdbcVerticleTest {
       productId = productId,
       price = 10.99,
       salePrice = 10.99,
-      costPrice = 20.99
+      costPrice = 20.99,
+      taxClass = "standard",
+      saleDateStart = null,
+      saleDateEnd = null,
     )
 
     eventBus.request<ProductsPricing>("process.products.updateProductPricing", updatedProductPricing, productPricingDeliveryOptions).onFailure {
