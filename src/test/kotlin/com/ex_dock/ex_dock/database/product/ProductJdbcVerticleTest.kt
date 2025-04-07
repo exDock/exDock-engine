@@ -28,7 +28,10 @@ class ProductJdbcVerticleTest {
     name = "test name",
     shortName = "test short name",
     description = "test description",
-    shortDescription = "test short description"
+    shortDescription = "test short description",
+    ean = "123",
+    sku = "123",
+    manufacturer = "test manufacturer"
   )
 
   private var productSeo = ProductsSeo(
@@ -135,7 +138,10 @@ class ProductJdbcVerticleTest {
       name = "updated test name",
       shortName = "updated test short name",
       description = "updated test description",
-      shortDescription = "updated test short description"
+      shortDescription = "updated test short description",
+      sku = "456",
+      ean = "456",
+      manufacturer = "updated test manufacturer"
     )
 
     eventBus.request<Products>("process.products.updateProduct", updatedProduct, productDeliveryOptions).onFailure {
