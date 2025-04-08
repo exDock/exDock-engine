@@ -22,7 +22,7 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
     eventBus = vertx.eventBus()
 
     getAllCompleteProductEavData()
-    getAllCompleteProductEavDataByProductId()
+//    getAllCompleteProductEavDataByProductId()
     getAllCompleteProductEavDataByProductIdNew()
   }
 
@@ -119,6 +119,11 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
     }
   }
 
+  @Deprecated(
+    "Use the new getAllCompleteProductEavDataByProductIdNew() method instead",
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("getAllCompleteProductEavDataByProductIdNew()")
+  )
   private fun getAllCompleteProductEavDataByProductId() {
     val consumer = eventBus.consumer<Int>("process.completeEav.getById")
     consumer.handler { message ->
