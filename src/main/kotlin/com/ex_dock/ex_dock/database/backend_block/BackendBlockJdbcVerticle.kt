@@ -1093,10 +1093,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
             }
           }
 
-          // If no blocks were found, send an empty list
-          if (blockInfoMap.isEmpty()) {
-            message.reply(fullBlockInfoList, listDeliveryOptions)
-          }
+//          message.reply(fullBlockInfoList, listDeliveryOptions)
         }
       }
     }

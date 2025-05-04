@@ -67,7 +67,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
 
         ctx.response().putHeader("Content-Type", "text/plain").end(token)
       } else {
-        ctx.response().setStatusCode(401).end("Authentication failed")
+        ctx.response().setStatusCode(403).end("Invalid credentials")
       }
     }
   }
@@ -85,7 +85,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
 //    }
 //  }
 
-  backendV1Router.post("/getBlockData").handler { ctx ->
+  backendV1Router.post("/product/getBlockData").handler { ctx ->
     val body = ctx.body().asJsonObject()
     val pageName = body.getString("page_name")
     val productId = body.getInteger("product_id")
@@ -142,6 +142,56 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
             ctx.end(jsonResponse.toString())
           }
         }
+//      } else {
+//        ctx.end(it.getString("message"))
+//      }
+//    }
+  }
+
+  backendV1Router["/product/getHomeBlockData"].handler { ctx ->
+    val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
+//    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
+//      if (it.getBoolean("success")) {
+    eventBus.request<MutableList<FullBlockInfo>>("process.backend_block.getAllFullInfoByBlockNames", "product_home", listDeliveryOptions).onFailure {
+      println("Failed to get block info")
+      ctx.end("Failed to get block info")
+    }.onComplete {
+      eventBus.request<JsonObject>("process.products.getAllFullProductsJson", "").onFailure {
+        println("Failed to get product info")
+        ctx.end("Failed to get product info")
+      }.onComplete { product ->
+        val allProducts = product.result().body()
+        println(allProducts.toString())
+        val jsonElement = JsonParser.parseString(allProducts.toString()).asJsonObject
+        val blocks = it.result().body()
+        val jsonResponse = JsonObject()
+        blocks.reverse()
+
+        blocks.forEach { block ->
+          val blockInformationJson = JsonObject()
+          val blockAttributesList = mutableListOf<JsonObject>()
+
+          block.blockAttributes.forEach { blockAttribute ->
+              val attributeJson = JsonObject()
+              attributeJson.put("attribute_id", blockAttribute.attributeId)
+              attributeJson.put("attribute_name", blockAttribute.attributeName)
+              attributeJson.put("attribute_type", blockAttribute.attributeType)
+              attributeJson.put(
+                "current_attribute_value", convertJsonElement(
+                  findValueByFieldName(jsonElement, blockAttribute.attributeId)
+                )
+              )
+              blockAttributesList.add(attributeJson)
+          }
+          blockInformationJson.put("block_type", block.backendBlock.blockType)
+          blockInformationJson.put("attributes", blockAttributesList)
+
+          jsonResponse.put(block.backendBlock.blockName, blockInformationJson)
+        }
+
+        ctx.end(jsonResponse.toString())
+      }
+    }
 //      } else {
 //        ctx.end(it.getString("message"))
 //      }

@@ -50,6 +50,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
 
     // Initialize all eventbus connections to the full products info tables
     getAllFullProducts()
+    getAllFullProductsJson()
     getFullProductById()
   }
 
@@ -343,11 +344,15 @@ class ProductJdbcVerticle: AbstractVerticle() {
   private fun getAllFullProducts() {
     val allProductInfoConsumer = eventBus.localConsumer<JsonObject>("process.products.getAllFullProducts")
     allProductInfoConsumer.handler { message ->
-      val rowsFuture = client.preparedQuery("SELECT * FROM products " +
-        "JOIN public.products_pricing pp on products.product_id = pp.product_id " +
-        "JOIN public.products_seo ps on products.product_id = ps.product_id " +
-        "JOIN public.image_product ip ON products.product_id = ip.product_id " +
-        "JOIN public.image i ON ip.image_url = i.image_url").execute()
+      val rowsFuture = client.preparedQuery(
+        """
+        SELECT * FROM products
+        JOIN public.products_pricing pp on products.product_id = pp.product_id
+        JOIN public.products_seo ps on products.product_id = ps.product_id
+        LEFT JOIN public.image_product ip ON products.product_id = ip.product_id
+        LEFT JOIN public.image i ON ip.image_url = i.image_url
+        """
+      ).execute()
       val fullProducts: MutableList<FullProduct> = emptyList<FullProduct>().toMutableList()
 
       rowsFuture.onFailure { res ->
@@ -376,6 +381,58 @@ class ProductJdbcVerticle: AbstractVerticle() {
         if (product!= null) fullProducts.add(product!!)
 
         message.reply(fullProducts, listDeliveryOptions)
+      }
+    }
+  }
+
+  private fun getAllFullProductsJson() {
+    val allProductInfoConsumer = eventBus.localConsumer<JsonObject>("process.products.getAllFullProductsJson")
+    allProductInfoConsumer.handler { message ->
+      val rowsFuture = client.preparedQuery(
+        """
+        SELECT * FROM products
+        JOIN public.products_pricing pp on products.product_id = pp.product_id
+        JOIN public.products_seo ps on products.product_id = ps.product_id
+        """
+      ).execute()
+      val fullProducts = JsonObject()
+      val productList: MutableList<JsonObject> = mutableListOf()
+
+      rowsFuture.onFailure { res ->
+        println("Failed to execute query: $res")
+        message.reply(failedMessage)
+      }.onSuccess { res ->
+        val rows: RowSet<Row> = res
+        if (rows.size() > 0) {
+          rows.forEach { row ->
+            val product = JsonObject()
+            product.put("product_id", row.getInteger("product_id"))
+            product.put("product_name", row.getString("name"))
+            product.put("product_short_name", row.getString("short_name"))
+            product.put("product_description", row.getString("description"))
+            product.put("product_short_description", row.getString("short_description"))
+            product.put("product_sku", row.getString("sku"))
+            product.put("product_ean", row.getString("ean"))
+            product.put("product_manufacturer", row.getString("manufacturer"))
+            product.put("product_location", row.getString("location"))
+            product.put("product_price", row.getDouble("price"))
+            product.put("product_sale_price", row.getDouble("sale_price"))
+            product.put("product_cost_price", row.getDouble("cost_price"))
+            product.put("product_tax_class", row.getString("tax_class"))
+            product.put("product_meta_title", row.getString("meta_title"))
+            product.put("product_meta_description", row.getString("meta_description"))
+            product.put("product_meta_keywords", row.getString("meta_keywords"))
+            product.put("product_page_index", row.getString("page_index"))
+            productList.add(product)
+          }
+        }
+        fullProducts.put("products", productList)
+        fullProducts.put("info_names", listOf("id", "name", "short_name", "description", "short_description", "sku",
+          "ean", "manufacturer", "location", "price", "sale_price", "cost_price", "tax_class", "meta_title",
+          "meta_description", "meta_keywords", "page_index"))
+        fullProducts.put("list_size",  productList.size)
+
+        message.reply(fullProducts)
       }
     }
   }
