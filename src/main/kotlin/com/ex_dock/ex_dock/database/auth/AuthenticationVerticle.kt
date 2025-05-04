@@ -73,4 +73,16 @@ class AuthenticationVerticle: AbstractVerticle() {
 
     return jwtAuth.generateToken(claims, JWTOptions().setAlgorithm("RS256"))
   }
+
+  private fun generateRefreshToken(userId: String): String {
+    val now: Instant = Instant.now()
+
+    val claims: JsonObject = JsonObject()
+      .put("sub", userId)
+      .put("iat", now.epochSecond)
+      .put("exp", now.plusSeconds(604800).epochSecond)
+      .put("type", "refresh")
+
+    return jwtAuth.generateToken(claims, JWTOptions().setAlgorithm("RS256"))
+  }
 }
