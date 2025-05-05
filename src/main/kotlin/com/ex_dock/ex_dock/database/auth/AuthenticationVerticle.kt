@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.JWTOptions
 import io.vertx.ext.auth.PubSecKeyOptions
+import io.vertx.ext.auth.authentication.TokenCredentials
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
@@ -85,6 +86,19 @@ class AuthenticationVerticle: AbstractVerticle() {
             .encode())
         } else {
           message.fail(401, "invalid credentials")
+        }
+      }
+    }
+  }
+
+  private fun handleRefresh() {
+    eventBus.consumer<String>("process.authentication.refresh").handler { message ->
+      val refreshToken = message.body()
+
+      jwtAuth.authenticate(TokenCredentials().setToken(refreshToken)) { user ->
+        if (user.succeeded()) {
+          val user = user.result()
+          val userId = user.principal().getString("sub")
         }
       }
     }
