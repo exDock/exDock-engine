@@ -33,6 +33,8 @@ class AuthenticationVerticle: AbstractVerticle() {
     setupJwtAuth()
 
     eventBus = vertx.eventBus()
+
+    handleLogin()
   }
 
   private fun setupJwtAuth() {
@@ -57,32 +59,34 @@ class AuthenticationVerticle: AbstractVerticle() {
 
   private fun handleLogin() {
     eventBus.consumer<UsernamePasswordCredentials>("process.authentication.login").handler { message ->
-      val credentials = message.body()
-      authHandler.authenticate(credentials)
+      val usernamePasswordCredentials = message.body()
+
+      authHandler.authenticate(usernamePasswordCredentials) { result ->
+        if (result.succeeded()) {
+          val user = result.result()
+          val accessTokenOptions = JWTOptions()
+            .setAlgorithm("RS256")
+            .setExpiresInMinutes(15)
+            .setSubject(user.principal().getString("id"))
+          val claims = JsonObject().put("permissions", user.principal().getJsonArray("authorizations"))
+          val accessToken = jwtAuth.generateToken(claims, accessTokenOptions)
+
+          val refreshTokenOptions = JWTOptions()
+            .setAlgorithm("RS256")
+            .setExpiresInMinutes(60 * 24 * 7)
+            .setSubject(user.principal().getString("id"))
+          val refreshClaims = JsonObject()
+          refreshClaims.put("jti", "jti-" + UUID.randomUUID().toString())
+          val refreshToken = jwtAuth.generateToken(refreshClaims, refreshTokenOptions)
+
+          message.reply(JsonObject()
+            .put("access_token", accessToken)
+            .put("refresh_token", refreshToken)
+            .encode())
+        } else {
+          message.fail(401, "invalid credentials")
+        }
+      }
     }
-  }
-
-  private fun generateAccessToken(userId: String, permissions: JsonArray): String {
-    val now: Instant = Instant.now()
-
-    val claims: JsonObject = JsonObject()
-      .put("sub", userId)
-      .put("iat", now.epochSecond)
-      .put("exp", now.plusSeconds(900).epochSecond)
-      .put("permissions", permissions)
-
-    return jwtAuth.generateToken(claims, JWTOptions().setAlgorithm("RS256"))
-  }
-
-  private fun generateRefreshToken(userId: String): String {
-    val now: Instant = Instant.now()
-
-    val claims: JsonObject = JsonObject()
-      .put("sub", userId)
-      .put("iat", now.epochSecond)
-      .put("exp", now.plusSeconds(604800).epochSecond)
-      .put("type", "refresh")
-
-    return jwtAuth.generateToken(claims, JWTOptions().setAlgorithm("RS256"))
   }
 }
