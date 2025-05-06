@@ -21,44 +21,34 @@ class AuthenticationVerticle: AbstractVerticle() {
   private lateinit var eventBus: EventBus
   private lateinit var jwtAuth: JWTAuth
   private lateinit var authHandler: ExDockAuthHandler
-  private val generator: KeyPairGenerator = KeyPairGenerator.getInstance("RSA")
-  private val keyPair: KeyPair = generator.generateKeyPair()
-
-  private companion object {
-    const val BEGIN_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n"
-    const val END_PRIVATE_KEY = "\n-----END PRIVATE KEY-----"
-    const val BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----\n"
-    const val END_PUBLIC_KEY = "\n-----END PUBLIC KEY-----"
-  }
 
   override fun start() {
-    setupJwtAuth()
-
     eventBus = vertx.eventBus()
     authHandler = ExDockAuthHandler(vertx)
+
+    setupJwtAuth()
 
     handleLogin()
     handleRefresh()
   }
 
   private fun setupJwtAuth() {
-    val privateKey = BEGIN_PRIVATE_KEY +
-      Base64.getMimeEncoder().encodeToString(keyPair.private.encoded) +
-      END_PRIVATE_KEY
-    val publicKey = BEGIN_PUBLIC_KEY +
-      Base64.getMimeEncoder().encodeToString(keyPair.public.encoded) +
-      END_PUBLIC_KEY
+    eventBus.consumer<Pair<String, String>>("process.authentication.registerKeys").handler { message ->
+      val privateKey = message.body().first
+      val publicKey = message.body().second
 
-    val config: JWTAuthOptions = JWTAuthOptions()
-      .addPubSecKey(PubSecKeyOptions()
-        .setAlgorithm("RS256")
-        .setBuffer(privateKey))
-      .addPubSecKey(PubSecKeyOptions()
-        .setAlgorithm("RS256")
-        .setBuffer(publicKey)
-      )
+      val config: JWTAuthOptions = JWTAuthOptions()
+        .addPubSecKey(PubSecKeyOptions()
+          .setAlgorithm("RS256")
+          .setBuffer(privateKey))
+        .addPubSecKey(PubSecKeyOptions()
+          .setAlgorithm("RS256")
+          .setBuffer(publicKey)
+        )
 
-    jwtAuth = JWTAuth.create(vertx, config)
+      jwtAuth = JWTAuth.create(vertx, config)
+      message.reply("")
+    }
   }
 
   private fun handleLogin() {
