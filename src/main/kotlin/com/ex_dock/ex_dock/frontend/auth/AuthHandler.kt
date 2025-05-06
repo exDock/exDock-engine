@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.frontend.auth
 
 import com.ex_dock.ex_dock.database.account.FullUser
 import com.ex_dock.ex_dock.database.account.Permission
+import com.ex_dock.ex_dock.database.account.convertUser
 import io.vertx.core.AsyncResult
 import io.vertx.core.Future
 import io.vertx.core.Handler
@@ -74,7 +75,7 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
         val user = it.result().body()
         // Check if the password matches the hashed password in the database
         if (BCrypt.checkpw(password, user.user.password)) {
-          resultHandler?.handle(Future.succeededFuture(convertUser(user)))
+          resultHandler?.handle(Future.succeededFuture(user.convertUser(this)))
         } else {
           resultHandler?.handle(Future.failedFuture("Invalid password"))
         }
@@ -84,26 +85,10 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
     }
   }
 
-  fun authenticateToken(token: String?, resultHandler: Handler<AsyncResult<User>>?) {
-
-    if (token == null) {
-      resultHandler?.handle(Future.failedFuture("Missing token"))
-      return
-    }
-
-    val decoder = Base64.getUrlDecoder()
-    val chunks = token.split(".")
-    val payload = String(decoder.decode(chunks[1]))
-    val authorizations = payload.split("[")[1].split("]")[0]
-
-    if (authorizations.isNotEmpty()) {
-
-    }
-  }
-
   /**
    * Converts the full User from the database to a vertx user
    */
+  @Deprecated("function is now an extension function of FullUser")
   private fun convertUser(fullUser: FullUser): User {
     // Clear previous conversion
     authorizationsObject.clear()
@@ -133,6 +118,7 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
   /**
    * Adds permissions to the user account based on full user permissions
    */
+  @Deprecated("function is now an extension function of user")
   private fun addPermission(permission: Permission, task: String, user: User): User {
     return when (permission) {
       Permission.NONE -> user
@@ -148,6 +134,7 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
   /**
    * Adds unknown authorizations to the list of authorizations
    */
+  @Deprecated("function is now an extension function of user")
   private fun addAuth(name: String, user: User): User {
     if (saveAuthorization.contains(PermissionBasedAuthorization.create(name))) {
       user.authorizations().add(
