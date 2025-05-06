@@ -63,7 +63,7 @@ class AuthenticationVerticle: AbstractVerticle() {
             .setExpiresInMinutes(15)
             .setSubject(user.principal().getString("id"))
             .setIssuer("exDock")
-          val claims = JsonObject().put("permissions", user.principal().getJsonArray("authorizations"))
+          val claims = JsonObject().put("authorizations", user.principal().getJsonArray("authorizations"))
           val accessToken = jwtAuth.generateToken(claims, accessTokenOptions)
 
           val refreshTokenOptions = JWTOptions()
@@ -98,7 +98,7 @@ class AuthenticationVerticle: AbstractVerticle() {
             if (userResult.succeeded()) {
               val fullUser = userResult.result().body()
               val convertedUser = fullUser.convertUser(authHandler)
-              val permissions = convertedUser.principal().getJsonArray("permissions")
+              val permissions = convertedUser.principal().getJsonArray("authorizations")
 
               val newTokenOptions = JWTOptions()
                 .setAlgorithm("RS256")
