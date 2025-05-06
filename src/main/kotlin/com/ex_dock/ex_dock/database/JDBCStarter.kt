@@ -149,6 +149,8 @@ class JDBCStarter : AbstractVerticle() {
       .registerGenericCodec(Block::class)
       .registerGenericCodec(Map::class)
       .registerGenericCodec(UsernamePasswordCredentials::class)
+      .registerGenericCodec(Pair::class)
+
       .registerGenericListCodec(FullUser::class)
   }
 
