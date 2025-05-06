@@ -115,9 +115,9 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
                   attributeJson.put("attribute_name", blockAttribute.attributeName)
                   attributeJson.put("attribute_type", blockAttribute.attributeType)
                   attributeJson.put(
-                    "current_attribute_value", convertJsonElement(
-                      findValueByFieldName(jsonElement, blockAttribute.attributeId)
-                    )
+                    "current_attribute_value",
+                    jsonElement.get(blockAttribute.attributeId).convertJsonElement()
+
                   )
                   blockAttributesList.add(attributeJson)
                 }
@@ -125,15 +125,19 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
 
               blockInformationJson.put("block_type", block.backendBlock.blockType)
               if (block.backendBlock.blockName == "Images") {
-                blockInformationJson.put("images", convertJsonElement(
-                  findValueByFieldName(jsonElement, "images")))
+                blockInformationJson.put(
+                  "images",
+                  jsonElement.findValueByFieldName("images").convertJsonElement()
+                )
               } else {
                 blockInformationJson.put("attributes", blockAttributesList)
               }
 
               block.eavAttributeList.forEach { eavAttributeList ->
-                blockInformationJson.put(eavAttributeList.attributeKey, convertJsonElement(
-                  findValueByFieldName(jsonElement, eavAttributeList.attributeKey)))
+                blockInformationJson.put(
+                  eavAttributeList.attributeKey,
+                  jsonElement.findValueByFieldName(eavAttributeList.attributeKey).convertJsonElement()
+                )
               }
 
               jsonResponse.put(block.backendBlock.blockName, blockInformationJson)
