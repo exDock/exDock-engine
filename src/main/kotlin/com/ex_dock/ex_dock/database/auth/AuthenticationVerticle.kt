@@ -1,5 +1,8 @@
 package com.ex_dock.ex_dock.database.auth
 
+import com.ex_dock.ex_dock.database.account.BackendPermissions
+import com.ex_dock.ex_dock.database.account.FullUser
+import com.ex_dock.ex_dock.database.account.convertUser
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.EventBus
@@ -101,18 +104,25 @@ class AuthenticationVerticle: AbstractVerticle() {
         if (result.succeeded()) {
           val user = result.result()
           val userId = user.principal().getString("sub")
-          val permissions = user.principal().getJsonArray("permissions")
+          eventBus.request<FullUser>("process.account.getFullUserByUserId", userId.toInt()).onComplete { userResult ->
+            if (userResult.succeeded()) {
+              val fullUser = userResult.result().body()
+              val convertedUser = fullUser.convertUser(authHandler)
+              val permissions = convertedUser.principal().getJsonArray("permissions")
 
-          val newTokenOptions = JWTOptions()
-            .setAlgorithm("RS256")
-            .setExpiresInMinutes(15)
-            .setSubject(userId)
-            .setIssuer("exDock")
-          val newClaims = JsonObject()
-            .put("permissions", permissions)
-          val newToken = jwtAuth.generateToken(newClaims, newTokenOptions)
-
-          message.reply(newToken)
+              val newTokenOptions = JWTOptions()
+                .setAlgorithm("RS256")
+                .setExpiresInMinutes(15)
+                .setSubject(convertedUser.principal().getString("sub"))
+                .setIssuer("exDock")
+              val newClaims = JsonObject()
+                .put("permissions", permissions)
+              val newToken = jwtAuth.generateToken(newClaims, newTokenOptions)
+              message.reply(newToken)
+            } else {
+              message.fail(500, "internal server error")
+            }
+          }
         } else {
           message.fail(401, "invalid refresh token")
         }
