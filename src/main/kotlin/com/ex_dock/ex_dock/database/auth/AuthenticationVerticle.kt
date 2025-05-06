@@ -3,7 +3,6 @@ package com.ex_dock.ex_dock.database.auth
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.EventBus
-import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.JWTOptions
 import io.vertx.ext.auth.PubSecKeyOptions
@@ -13,7 +12,6 @@ import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
 import java.security.KeyPair
 import java.security.KeyPairGenerator
-import java.time.Instant
 import java.util.*
 
 class AuthenticationVerticle: AbstractVerticle() {
@@ -36,6 +34,7 @@ class AuthenticationVerticle: AbstractVerticle() {
     eventBus = vertx.eventBus()
 
     handleLogin()
+    handleRefresh()
   }
 
   private fun setupJwtAuth() {
@@ -69,6 +68,7 @@ class AuthenticationVerticle: AbstractVerticle() {
             .setAlgorithm("RS256")
             .setExpiresInMinutes(15)
             .setSubject(user.principal().getString("id"))
+            .setIssuer("exDock")
           val claims = JsonObject().put("permissions", user.principal().getJsonArray("authorizations"))
           val accessToken = jwtAuth.generateToken(claims, accessTokenOptions)
 
@@ -76,6 +76,7 @@ class AuthenticationVerticle: AbstractVerticle() {
             .setAlgorithm("RS256")
             .setExpiresInMinutes(60 * 24 * 7)
             .setSubject(user.principal().getString("id"))
+            .setIssuer("exDock")
           val refreshClaims = JsonObject()
           refreshClaims.put("jti", "jti-" + UUID.randomUUID().toString())
           val refreshToken = jwtAuth.generateToken(refreshClaims, refreshTokenOptions)
@@ -99,12 +100,22 @@ class AuthenticationVerticle: AbstractVerticle() {
         if (user.succeeded()) {
           val user = user.result()
           val userId = user.principal().getString("sub")
+          val permissions = user.principal().getJsonArray("permissions")
+
+          val newTokenOptions = JWTOptions()
+            .setAlgorithm("RS256")
+            .setExpiresInMinutes(15)
+            .setSubject(userId)
+            .setIssuer("exDock")
+          val newClaims = JsonObject()
+            .put("permissions", permissions)
+          val newToken = jwtAuth.generateToken(newClaims, newTokenOptions)
+
+          message.reply(newToken)
+        } else {
+          message.fail(401, "invalid refresh token")
         }
       }
     }
-  }
-
-  private fun fetchUserPermissions(userId: String) {
-
   }
 }
