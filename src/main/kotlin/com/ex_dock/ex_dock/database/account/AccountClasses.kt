@@ -37,7 +37,17 @@ fun FullUser.convertUser(authHandler: ExDockAuthHandler): io.vertx.ext.auth.User
     .put("email", exDockUser.email)
     .put("password", exDockUser.password)
     .put("authorizations", authorizations)
-  val user = io.vertx.ext.auth.User.create(principal)
+  var user = io.vertx.ext.auth.User.create(principal)
+
+  user = user.addPermission(this.backendPermissions.userPermission, "user", authHandler)
+  user = user.addPermission(this.backendPermissions.serverSettings, "server", authHandler)
+  user = user.addPermission(this.backendPermissions.template, "template", authHandler)
+  user = user.addPermission(this.backendPermissions.categoryContent, "categoryContent", authHandler)
+  user = user.addPermission(this.backendPermissions.categoryProducts, "categoryProducts", authHandler)
+  user = user.addPermission(this.backendPermissions.productContent, "productContent", authHandler)
+  user = user.addPermission(this.backendPermissions.productPrice, "productPrice", authHandler)
+  user = user.addPermission(this.backendPermissions.productWarehouse, "productWarehouse", authHandler)
+  user = user.addPermission(this.backendPermissions.textPages, "textPages", authHandler)
 
   return user
 }

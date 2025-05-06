@@ -25,7 +25,7 @@ import java.util.function.Consumer
 class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
   private val eventBus: EventBus = vertx.eventBus()
   private val authorizationsObject = JsonArray()
-  private val saveAuthorization: MutableSet<Authorization> = setOf(
+  val saveAuthorization: MutableSet<Authorization> = setOf(
     PermissionBasedAuthorization.create("userRead"),
     PermissionBasedAuthorization.create("userWrite"),
     PermissionBasedAuthorization.create("serverRead"),
@@ -81,6 +81,23 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
       } else {
         resultHandler?.handle(Future.failedFuture("User not found"))
       }
+    }
+  }
+
+  fun authenticateToken(token: String?, resultHandler: Handler<AsyncResult<User>>?) {
+
+    if (token == null) {
+      resultHandler?.handle(Future.failedFuture("Missing token"))
+      return
+    }
+
+    val decoder = Base64.getUrlDecoder()
+    val chunks = token.split(".")
+    val payload = String(decoder.decode(chunks[1]))
+    val authorizations = payload.split("[")[1].split("]")[0]
+
+    if (authorizations.isNotEmpty()) {
+
     }
   }
 

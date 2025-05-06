@@ -103,4 +103,8 @@ class AuthenticationVerticle: AbstractVerticle() {
       }
     }
   }
+
+  private fun fetchUserPermissions(userId: String) {
+
+  }
 }
