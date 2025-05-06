@@ -62,8 +62,6 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
 //    }
 //  }
 
-//  backendV1Router.route().handler(JWTAuthHandler.create(jwtAuth))
-
   backendV1Router["/test"].handler { ctx ->
     val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
     exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
