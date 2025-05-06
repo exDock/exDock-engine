@@ -31,6 +31,7 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
 import io.vertx.core.eventbus.EventBus
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 
 class JDBCStarter : AbstractVerticle() {
 
@@ -147,7 +148,7 @@ class JDBCStarter : AbstractVerticle() {
       .registerGenericCodec(Template::class)
       .registerGenericCodec(Block::class)
       .registerGenericCodec(Map::class)
-
+      .registerGenericCodec(UsernamePasswordCredentials::class)
       .registerGenericListCodec(FullUser::class)
   }
 
