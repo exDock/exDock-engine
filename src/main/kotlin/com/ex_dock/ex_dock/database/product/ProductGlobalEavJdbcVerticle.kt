@@ -935,45 +935,14 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
   }
 
   private fun makeEavGlobalInfo(row: Row): EavGlobalInfo {
-    var boolValue: Boolean? = null
-    var floatValue: Float? = null
-    var intValue: Int? = null
-    var stringValue: String? = null
-    var moneyValue: Double? = null
-    var multiSelectValue: Int? = null
-
-    try {
-      boolValue = row.getBoolean("bool_value")
-    } catch (_: Exception) {}
-
-    try {
-      floatValue = row.getFloat("float_value")
-    } catch (_: Exception) {}
-
-    try {
-      intValue = row.getInteger("int_value")
-    } catch (_: Exception) {}
-
-    try {
-      stringValue = row.getString("string_value")
-    } catch (_: Exception) {}
-
-    try {
-      moneyValue = row.getDouble("money_value")
-    } catch (_: Exception) {}
-
-    try {
-      multiSelectValue = row.getInteger("multi_select_value")
-    } catch (_: Exception) {}
-
     return EavGlobalInfo(
       eav = makeEavGlobal(row),
-      eavGlobalBool = boolValue,
-      eavGlobalFloat = floatValue,
-      eavGlobalString = stringValue,
-      eavGlobalInt = intValue,
-      eavGlobalMoney = moneyValue,
-      eavGlobalMultiSelect = multiSelectValue
+      eavGlobalBool = try {row.getBoolean("bool_value")} catch (_: Exception) {null},
+      eavGlobalFloat = try {row.getFloat("float_value")} catch (_: Exception) {null},
+      eavGlobalString = try {row.getString("string_value")} catch (_: Exception) {null},
+      eavGlobalInt = try {row.getInteger("int_value")} catch (_: Exception) {null},
+      eavGlobalMoney = try {row.getDouble("money_value")} catch (_: Exception) {null},
+      eavGlobalMultiSelect = try {row.getInteger("multi_select_value")} catch (_: Exception) {null}
     )
   }
 
