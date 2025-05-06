@@ -22,8 +22,8 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
     eventBus = vertx.eventBus()
 
     getAllCompleteProductEavData()
+    getAllCompleteProductEavDataByProductIdOld()
     getAllCompleteProductEavDataByProductId()
-    getAllCompleteProductEavDataByProductIdNew()
   }
 
   private fun getAllCompleteProductEavData() {
@@ -119,8 +119,9 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
     }
   }
 
-  private fun getAllCompleteProductEavDataByProductId() {
-    val consumer = eventBus.consumer<Int>("process.completeEav.getById")
+  @Deprecated("Use the newer function below")
+  private fun getAllCompleteProductEavDataByProductIdOld() {
+    val consumer = eventBus.consumer<Int>("process.completeEav.getByIdOld")
     consumer.handler { message ->
       val query = "SELECT " +
         "products.product_id AS product_id, " +
@@ -213,8 +214,8 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
     }
   }
 
-  private fun getAllCompleteProductEavDataByProductIdNew() {
-    val consumer = eventBus.consumer<Int>("process.completeEav.getByIdNew")
+  private fun getAllCompleteProductEavDataByProductId() {
+    val consumer = eventBus.consumer<Int>("process.completeEav.getById")
     consumer.handler { message ->
       val query = """
             SELECT
