@@ -2,25 +2,25 @@ package com.ex_dock.ex_dock.helper
 
 import com.google.gson.JsonElement
 
-fun findValueByFieldName(jsonElement: JsonElement, fieldName: String): JsonElement? {
+fun JsonElement.findValueByFieldName(fieldName: String): JsonElement? {
   when {
-    jsonElement.isJsonObject -> {
-      val jsonObject = jsonElement.asJsonObject
+    this.isJsonObject -> {
+      val jsonObject = this.asJsonObject
       // If this object contains the field, return its value
       if (jsonObject.has(fieldName)) {
         return jsonObject.get(fieldName)
       }
       // Otherwise, recursively search in nested objects
       for ((_, value) in jsonObject.entrySet()) {
-        val foundValue = findValueByFieldName(value, fieldName)
+        val foundValue = this.findValueByFieldName(fieldName)
         if (foundValue != null) return foundValue
       }
     }
-    jsonElement.isJsonArray -> {
-      val jsonArray = jsonElement.asJsonArray
+    this.isJsonArray -> {
+      val jsonArray = this.asJsonArray
       // If it's an array, check each element
       for (element in jsonArray) {
-        val foundValue = findValueByFieldName(element, fieldName)
+        val foundValue = element.findValueByFieldName(fieldName)
         if (foundValue != null) return foundValue
       }
     }
@@ -28,11 +28,11 @@ fun findValueByFieldName(jsonElement: JsonElement, fieldName: String): JsonEleme
   return null // Not found
 }
 
-fun convertJsonElement(jsonElement: JsonElement?): Any? {
+fun JsonElement?.convertJsonElement(): Any? {
   return when {
-    jsonElement == null || jsonElement.isJsonNull -> null
-    jsonElement.isJsonPrimitive -> {
-      val primitive = jsonElement.asJsonPrimitive
+    this == null || this.isJsonNull -> null
+    this.isJsonPrimitive -> {
+      val primitive = this.asJsonPrimitive
       when {
         primitive.isBoolean -> primitive.asBoolean
         primitive.isNumber -> primitive.asNumber
@@ -40,8 +40,8 @@ fun convertJsonElement(jsonElement: JsonElement?): Any? {
         else -> primitive.toString() // Fallback (shouldn’t happen)
       }
     }
-    jsonElement.isJsonObject -> io.vertx.core.json.JsonObject(jsonElement.asJsonObject.toString()) // Convert to Vert.x JsonObject
-    jsonElement.isJsonArray -> io.vertx.core.json.JsonArray(jsonElement.asJsonArray.toString()) // Convert to Vert.x JsonArray
+    this.isJsonObject -> io.vertx.core.json.JsonObject(this.asJsonObject.toString()) // Convert to Vert.x JsonObject
+    this.isJsonArray -> io.vertx.core.json.JsonArray(this.asJsonArray.toString()) // Convert to Vert.x JsonArray
     else -> null
   }
 }
