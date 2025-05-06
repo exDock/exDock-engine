@@ -97,9 +97,9 @@ class AuthenticationVerticle: AbstractVerticle() {
     eventBus.consumer<String>("process.authentication.refresh").handler { message ->
       val refreshToken = message.body()
 
-      jwtAuth.authenticate(TokenCredentials().setToken(refreshToken)) { user ->
-        if (user.succeeded()) {
-          val user = user.result()
+      jwtAuth.authenticate(TokenCredentials().setToken(refreshToken)) { result ->
+        if (result.succeeded()) {
+          val user = result.result()
           val userId = user.principal().getString("sub")
           val permissions = user.principal().getJsonArray("permissions")
 
