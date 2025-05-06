@@ -36,33 +36,33 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
 
   backendV1Router.route().handler(BodyHandler.create())
 
-  backendV1Router.post("/token").handler { ctx ->
-    val requestBody = ctx.body().asJsonObject()
-    val credentials = UsernamePasswordCredentials(
-      requestBody.getString("email"),
-      requestBody.getString("password")
-    )
+//  backendV1Router.post("/token").handler { ctx ->
+//    val requestBody = ctx.body().asJsonObject()
+//    val credentials = UsernamePasswordCredentials(
+//      requestBody.getString("email"),
+//      requestBody.getString("password")
+//    )
+//
+//    exDockAuthHandler.authenticate(credentials) {
+//      if (it.succeeded()) {
+//        val user = it.result()
+//        val token = jwtAuth.generateToken(
+//          JsonObject().apply {
+//            put("userId", user.principal().getString("id"))
+//            put("email", user.principal().getString("email"))
+//            put("authorizations", user.principal().getJsonArray("authorizations"))
+//          },
+//          JWTOptions().setAlgorithm("RS256")
+//        )
+//
+//        ctx.response().putHeader("Content-Type", "text/plain").end(token)
+//      } else {
+//        ctx.response().setStatusCode(401).end("Authentication failed")
+//      }
+//    }
+//  }
 
-    exDockAuthHandler.authenticate(credentials) {
-      if (it.succeeded()) {
-        val user = it.result()
-        val token = jwtAuth.generateToken(
-          JsonObject().apply {
-            put("userId", user.principal().getString("id"))
-            put("email", user.principal().getString("email"))
-            put("authorizations", user.principal().getJsonArray("authorizations"))
-          },
-          JWTOptions().setAlgorithm("RS256")
-        )
-
-        ctx.response().putHeader("Content-Type", "text/plain").end(token)
-      } else {
-        ctx.response().setStatusCode(401).end("Authentication failed")
-      }
-    }
-  }
-
-  backendV1Router.route().handler(JWTAuthHandler.create(jwtAuth))
+//  backendV1Router.route().handler(JWTAuthHandler.create(jwtAuth))
 
   backendV1Router["/test"].handler { ctx ->
     val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
