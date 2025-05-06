@@ -951,37 +951,6 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
   }
 
   private fun makeEavStoreViewInfo(row: Row): EavStoreViewInfo {
-    var boolValue: Boolean? = null
-    var floatValue: Float? = null
-    var intValue: Int? = null
-    var stringValue: String? = null
-    var moneyValue: Double? = null
-    var multiSelectValue: Int? = null
-
-    try {
-        boolValue = row.getBoolean("bool_value")
-    } catch (_: Exception) {}
-
-    try {
-        floatValue = row.getFloat("float_value")
-    } catch (_: Exception) {}
-
-    try {
-        intValue = row.getInteger("int_value")
-    } catch (_: Exception) {}
-
-    try {
-        stringValue = row.getString("string_value")
-    } catch (_: Exception) {}
-
-    try {
-        moneyValue = row.getDouble("money_value")
-    } catch (_: Exception) {}
-
-    try {
-        multiSelectValue = row.getInteger("multi_select_value")
-    } catch (_: Exception) {}
-
     return EavStoreViewInfo(
       Products(
         row.getInteger("product_id"),
@@ -994,12 +963,12 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         row.getString("manufacturer")
       ),
       row.getString("attribute_key"),
-      boolValue,
-      floatValue,
-      intValue,
-      stringValue,
-      multiSelectValue,
-      moneyValue,
+      try {row.getBoolean("bool_value")} catch (_: Exception) {null},
+      try {row.getFloat("float_value")} catch (_: Exception) {null},
+      try {row.getInteger("int_value")} catch (_: Exception) {null},
+      try {row.getString("string_value")} catch (_: Exception) {null},
+      try {row.getInteger("multi_select_value")} catch (_: Exception) {null},
+      try {row.getDouble("money_value")} catch (_: Exception) {null},
     )
   }
 
