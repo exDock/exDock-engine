@@ -1,69 +1,70 @@
 package com.ex_dock.ex_dock.database.backend_block
 
-class BackendBlock(
+data class BackendBlock(
   var blockId: Int?,
   var blockName: String,
   var blockType: String,
 )
 
-class BlockAttribute(
+data class BlockAttribute(
   var attributeId: String,
   var attributeName: String,
   var attributeType: String,
 )
 
-class AttributeBlock(
+data class AttributeBlock(
   var backendBlock: BackendBlock,
   var blockAttribute: BlockAttribute,
 )
-class BlockId(
+
+data class BlockId(
   var blockId: Int,
   var productId: Int,
   var categoryId: Int,
 )
 
-class EavAttributeBool(
+data class EavAttributeBool(
   var attributeId: String,
   var attributeKey: String,
   var value: Boolean,
 )
 
-class EavAttributeFloat(
+data class EavAttributeFloat(
   var attributeId: String,
   var attributeKey: String,
   var value: Float,
 )
 
-class EavAttributeString(
+data class EavAttributeString(
   var attributeId: String,
   var attributeKey: String,
   var value: String,
 )
 
-class EavAttributeInt(
+data class EavAttributeInt(
   var attributeId: String,
   var attributeKey: String,
   var value: Int,
 )
 
-class EavAttributeMoney(
+data class EavAttributeMoney(
   var attributeId: String,
   var attributeKey: String,
   var value: Double,
 )
 
-class EavAttributeMultiSelect(
+data class EavAttributeMultiSelect(
   var attributeId: String,
   var attributeKey: String,
   var value: Int,
 )
 
-class EavAttributeList(
+data class EavAttributeList(
   var attributeId: String,
   var attributeKey: String,
 )
 
-class FullBlockInfo(
+data class FullBlockInfo(
   var blockId: BlockId,
   var backendBlock: BackendBlock,
   var blockAttributes: List<BlockAttribute>,
@@ -76,7 +77,7 @@ class FullBlockInfo(
   var eavAttributeList: List<EavAttributeList>,
 )
 
-class FullEavAttribute(
+data class FullEavAttribute(
   var eavAttributeBool: List<EavAttributeBool>,
   var eavAttributeFloat: List<EavAttributeFloat>,
   var eavAttributeInt: List<EavAttributeInt>,
