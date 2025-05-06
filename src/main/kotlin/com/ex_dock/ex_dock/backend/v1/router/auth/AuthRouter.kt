@@ -38,6 +38,25 @@ fun Router.enableAuthRouter(vertx: Vertx, absoluteMounting: Boolean = false) {
       }
   }
 
+  authRouter.post("/refresh").handler { ctx ->
+    val body = ctx.body().asJsonObject()
+    val refreshToken = body.getString("refresh_token")
+    eventBus.request<String>("process.authentication.refresh", refreshToken)
+      .onFailure { exception ->
+        if (exception.message == "invalid refresh token") {
+          ctx.fail(401, Error("invalid refresh token"))
+        } else {
+          ctx.fail(500, Error("internal server error"))
+        }
+      }.onSuccess { message ->
+        ctx.response().putHeader("content-type", "application/json")
+          .end(JsonObject()
+            .put("access_token", message.body())
+            .encode()
+          )
+      }
+  }
+
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
   ).subRouter(authRouter)
