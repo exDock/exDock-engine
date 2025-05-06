@@ -17,9 +17,9 @@ import java.util.*
 class AuthenticationVerticle: AbstractVerticle() {
   private lateinit var eventBus: EventBus
   private lateinit var jwtAuth: JWTAuth
+  private lateinit var authHandler: ExDockAuthHandler
   private val generator: KeyPairGenerator = KeyPairGenerator.getInstance("RSA")
   private val keyPair: KeyPair = generator.generateKeyPair()
-  private val authHandler = ExDockAuthHandler(vertx)
 
   private companion object {
     const val BEGIN_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n"
@@ -32,6 +32,7 @@ class AuthenticationVerticle: AbstractVerticle() {
     setupJwtAuth()
 
     eventBus = vertx.eventBus()
+    authHandler = ExDockAuthHandler(vertx)
 
     handleLogin()
     handleRefresh()
@@ -47,10 +48,10 @@ class AuthenticationVerticle: AbstractVerticle() {
 
     val config: JWTAuthOptions = JWTAuthOptions()
       .addPubSecKey(PubSecKeyOptions()
-        .setAlgorithm("HS256")
+        .setAlgorithm("RS256")
         .setBuffer(privateKey))
       .addPubSecKey(PubSecKeyOptions()
-        .setAlgorithm("HS256")
+        .setAlgorithm("RS256")
         .setBuffer(publicKey)
       )
 
