@@ -67,7 +67,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
 
         ctx.response().putHeader("Content-Type", "text/plain").end(token)
       } else {
-        ctx.response().setStatusCode(401).end("Authentication failed")
+        ctx.response().setStatusCode(403).end("Authentication failed")
       }
     }
   }
@@ -96,7 +96,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
           println("Failed to get block info")
           ctx.end("Failed to get block info")
         }.onComplete {
-          eventBus.request<JsonObject>("process.completeEav.getByIdNew", productId).onFailure {
+          eventBus.request<JsonObject>("process.completeEav.getById", productId).onFailure {
             println("Failed to get product info")
             ctx.end("Failed to get product info")
           }.onComplete { product ->
@@ -149,7 +149,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   }
 
   backendV1Router["/test"].handler { ctx ->
-    eventBus.request<String>("process.completeEav.getByIdNew", 1).onFailure {
+    eventBus.request<String>("process.completeEav.getById", 1).onFailure {
       println("Failed to get completeEav data")
       ctx.end("Failed to get completeEav data")
     }.onComplete {
