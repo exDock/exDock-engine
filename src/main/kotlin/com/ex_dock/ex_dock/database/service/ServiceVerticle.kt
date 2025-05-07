@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.service
 
 import com.ex_dock.ex_dock.database.account.Permission
+import com.ex_dock.ex_dock.database.account.hash
 import com.ex_dock.ex_dock.database.connection.getConnection
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
@@ -17,7 +18,7 @@ class ServiceVerticle: AbstractVerticle() {
   private lateinit var eventBus: EventBus
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     populateTemplateTable()
@@ -138,7 +139,7 @@ class ServiceVerticle: AbstractVerticle() {
         " NOT EXISTS (SELECT * FROM users WHERE email =?)"
       val rowsFuture = client.preparedQuery(query).execute(Tuple.of(
         "test@test.com",
-        hashPassword("123456"),
+        "123456".hash(),
         "test@test.com"
       ))
 
@@ -441,9 +442,5 @@ class ServiceVerticle: AbstractVerticle() {
       }
 
     }
-  }
-
-  private fun hashPassword(password: String): String {
-    return BCrypt.hashpw(password, BCrypt.gensalt(12))
   }
 }
