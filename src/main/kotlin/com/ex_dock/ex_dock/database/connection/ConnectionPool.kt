@@ -9,7 +9,7 @@ import io.vertx.sqlclient.PoolOptions
 import java.util.Properties
 
 
-fun getConnection(vertx: Vertx): Pool {
+fun Vertx.getConnection(): Pool {
   val connection: Pool
   val connectOptions = JDBCConnectOptions()
 
@@ -43,7 +43,7 @@ fun getConnection(vertx: Vertx): Pool {
     .setMaxSize(16)
     .setName("ex-dock")
 
-  connection = JDBCPool.pool(vertx, connectOptions, poolOptions)
+  connection = JDBCPool.pool(this, connectOptions, poolOptions)
 
   return connection
 }
