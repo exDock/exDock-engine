@@ -473,27 +473,4 @@ class AccountJdbcVerticle: AbstractVerticle() {
 
     return backendPermissionsTuple
   }
-
-  fun String.hash(): String {
-    return BCrypt.hashpw(this, BCrypt.gensalt(12))
-  }
-
-  fun String.convertToPermission(): Permission {
-    when (this) {
-      "read" -> return Permission.READ
-      "write" -> return Permission.WRITE
-      "read-write" -> return Permission.READ_WRITE
-    }
-
-    return Permission.NONE
-  }
-
-  fun Permission.convertToString(): String {
-    return when (this) {
-      Permission.READ -> "read"
-      Permission.WRITE -> "write"
-      Permission.READ_WRITE -> "read-write"
-      Permission.NONE -> "none"
-    }
-  }
 }
