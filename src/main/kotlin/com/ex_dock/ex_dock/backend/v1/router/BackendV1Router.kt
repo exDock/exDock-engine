@@ -3,6 +3,7 @@ package com.ex_dock.ex_dock.backend.v1.router
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
+import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.JWTOptions
@@ -76,6 +77,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   }
 
   // TODO: routing
+  backendV1Router.initImage(vertx)
 
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
