@@ -1,8 +1,8 @@
 package com.ex_dock.ex_dock.database
 
 import com.ex_dock.ex_dock.database.account.*
-import com.ex_dock.ex_dock.database.backend_block.*
 import com.ex_dock.ex_dock.database.auth.AuthenticationVerticle
+import com.ex_dock.ex_dock.database.backend_block.*
 import com.ex_dock.ex_dock.database.category.*
 import com.ex_dock.ex_dock.database.checkout.CheckoutJdbcVerticle
 import com.ex_dock.ex_dock.database.home.HomeJdbcVerticle
