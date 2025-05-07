@@ -1,5 +1,7 @@
 package com.ex_dock.ex_dock.database.account
 
+import org.mindrot.jbcrypt.BCrypt
+
 data class User(var userId: Int, var email: String, var password: String)
 
 data class UserCreation(var email: String, var password: String)
@@ -38,5 +40,28 @@ enum class Permission(name: String) {
     fun toString(permission: Permission): String {
       return permission.name.lowercase().replace("_", "-")
     }
+  }
+}
+
+fun String.hash(): String {
+  return BCrypt.hashpw(this, BCrypt.gensalt(12))
+}
+
+fun String.convertToPermission(): Permission {
+  when (this) {
+    "read" -> return Permission.READ
+    "write" -> return Permission.WRITE
+    "read-write" -> return Permission.READ_WRITE
+  }
+
+  return Permission.NONE
+}
+
+fun Permission.convertToString(): String {
+  return when (this) {
+    Permission.READ -> "read"
+    Permission.WRITE -> "write"
+    Permission.READ_WRITE -> "read-write"
+    Permission.NONE -> "none"
   }
 }
