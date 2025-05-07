@@ -21,7 +21,7 @@ class ExtensionsLauncher: AbstractVerticle() {
  *
  * @param startPromise A Promise object that will be completed when the verticle has started successfully or failed.
  */
-override  fun start(startPromise: Promise<Void>) {
+override fun start(startPromise: Promise<Void>) {
     // Load properties from the 'secret.properties' file
     props = javaClass.classLoader.getResourceAsStream("secret.properties").use {
       Properties().apply { load(it) }
