@@ -28,7 +28,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
   private val eavStringDeliveryOptions = DeliveryOptions().setCodecName("EavAttributeStringCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections for backend blocks

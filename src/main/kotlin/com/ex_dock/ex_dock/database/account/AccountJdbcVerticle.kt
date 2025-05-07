@@ -10,7 +10,6 @@ import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
-import org.mindrot.jbcrypt.BCrypt
 
 class AccountJdbcVerticle: AbstractVerticle() {
 
@@ -40,7 +39,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections for user management
