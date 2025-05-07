@@ -99,7 +99,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            blockList.add(makeBackendBlock(row))
+            blockList.add(row.makeBackendBlock())
           }
         }
         message.reply(blockList, listDeliveryOptions)
@@ -122,7 +122,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
         message.reply("Failed to execute query: $res")
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
-          message.reply(makeBackendBlock(res.first()), backendBlockDeliveryOptions)
+          message.reply(res.first().makeBackendBlock(), backendBlockDeliveryOptions)
         } else {
           message.reply("No backend block found")
         }
@@ -219,7 +219,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            attributeList.add(makeBlockAttribute(row))
+            attributeList.add(row.makeBlockAttribute())
           }
         }
         message.reply(attributeList, listDeliveryOptions)
@@ -242,7 +242,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
         message.reply("Failed to execute query: $res")
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
-          message.reply(makeBlockAttribute(res.first()), blockAttributeDeliveryOptions)
+          message.reply(res.first().makeBlockAttribute(), blockAttributeDeliveryOptions)
         } else {
           message.reply("No block attribute found")
         }
@@ -339,7 +339,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            attributeList.add(makeEavAttributeBool(row))
+            attributeList.add(row.makeEavAttributeBool())
           }
         }
         message.reply(attributeList, listDeliveryOptions)
@@ -362,7 +362,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
         message.reply("Failed to execute query: $res")
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
-          message.reply(makeEavAttributeBool(res.first()), eavBoolDeliveryOptions)
+          message.reply(res.first().makeEavAttributeBool(), eavBoolDeliveryOptions)
         } else {
           message.reply("No EAV boolean attribute found")
         }
@@ -813,12 +813,12 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
         if (res.size() > 0) {
           res.forEach { row ->
             val blockId = row.getInteger("block_id")
-            val backendBlock = makeBackendBlock(row)
+            val backendBlock = row.makeBackendBlock()
 
             // Check if the attribute_id is null (in case of LEFT JOIN with no match)
             val attributeId = row.getString("attribute_id")
             val blockAttribute = if (attributeId != null) {
-              makeBlockAttribute(row)
+              row.makeBlockAttribute()
             } else {
               null
             }
@@ -930,13 +930,13 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
           res.forEach { row ->
             // Initialize the backendBlock if it's null
             if (backendBlock == null) {
-              backendBlock = makeBackendBlock(row)
+              backendBlock = row.makeBackendBlock()
             }
 
             // Check if the attribute_id is null (in case of LEFT JOIN with no match)
             val attributeId = row.getString("attribute_id")
             if (attributeId != null) {
-              blockAttributes.add(makeBlockAttribute(row))
+              blockAttributes.add(row.makeBlockAttribute())
             }
           }
 
@@ -1014,12 +1014,12 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
           if (res.size() > 0) {
             res.forEach { row ->
               val blockId = row.getInteger("block_id")
-              val backendBlock = makeBackendBlock(row)
+              val backendBlock = row.makeBackendBlock()
 
               // Check if the attribute_id is null (in case of LEFT JOIN with no match)
               val attributeId = row.getString("attribute_id")
               val blockAttribute = if (attributeId != null) {
-                makeBlockAttribute(row)
+                row.makeBlockAttribute()
               } else {
                 null
               }
@@ -1139,26 +1139,26 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
     Future.all(booleanFuture, floatFuture, intFuture, moneyFuture, multiSelectFuture, stringFuture).onComplete { ar ->
       if (ar.succeeded()) {
         val booleanList = mutableListOf<EavAttributeBool>()
-        booleanFuture.result().forEach { row -> booleanList.add(makeEavAttributeBool(row)) }
+        booleanFuture.result().forEach { row -> booleanList.add(row.makeEavAttributeBool()) }
 
         val floatList = mutableListOf<EavAttributeFloat>()
-        floatFuture.result().forEach { row -> floatList.add(makeEavAttributeFloat(row)) }
+        floatFuture.result().forEach { row -> floatList.add(row.makeEavAttributeFloat()) }
 
         val intList = mutableListOf<EavAttributeInt>()
-        intFuture.result().forEach { row -> intList.add(makeEavAttributeInt(row)) }
+        intFuture.result().forEach { row -> intList.add(row.makeEavAttributeInt()) }
 
         val moneyList = mutableListOf<EavAttributeMoney>()
-        moneyFuture.result().forEach { row -> moneyList.add(makeEavAttributeMoney(row)) }
+        moneyFuture.result().forEach { row -> moneyList.add(row.makeEavAttributeMoney()) }
 
         val multiSelectList = mutableListOf<EavAttributeMultiSelect>()
-        multiSelectFuture.result().forEach { row -> multiSelectList.add(makeEavAttributeMultiSelect(row)) }
+        multiSelectFuture.result().forEach { row -> multiSelectList.add(row.makeEavAttributeMultiSelect()) }
 
         val stringList = mutableListOf<EavAttributeString>()
-        stringFuture.result().forEach { row -> stringList.add(makeEavAttributeString(row)) }
+        stringFuture.result().forEach { row -> stringList.add(row.makeEavAttributeString()) }
 
         listFuture.onComplete {
           val listList = mutableListOf<EavAttributeList>()
-          listFuture.result().forEach { row -> listList.add(makeAttributeList(row)) }
+          listFuture.result().forEach { row -> listList.add(row.makeAttributeList()) }
 
           promise.complete(
             FullEavAttribute(
@@ -1183,95 +1183,95 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
   /**
    * Creates a BackendBlock object from a database row
    */
-  private fun makeBackendBlock(row: Row): BackendBlock {
+  private fun Row.makeBackendBlock(): BackendBlock {
     return BackendBlock(
-      blockId = row.getInteger("block_id"),
-      blockName = row.getString("block_name"),
-      blockType = row.getString("block_type")
+      blockId = this.getInteger("block_id"),
+      blockName = this.getString("block_name"),
+      blockType = this.getString("block_type")
     )
   }
 
   /**
    * Creates a BlockAttribute object from a database row
    */
-  private fun makeBlockAttribute(row: Row): BlockAttribute {
+  private fun Row.makeBlockAttribute(): BlockAttribute {
     return BlockAttribute(
-      attributeId = row.getString("attribute_id"),
-      attributeName = row.getString("attribute_name"),
-      attributeType = row.getString("attribute_type")
+      attributeId = this.getString("attribute_id"),
+      attributeName = this.getString("attribute_name"),
+      attributeType = this.getString("attribute_type")
     )
   }
 
   /**
    * Creates an EavAttributeBool object from a database row
    */
-  private fun makeEavAttributeBool(row: Row): EavAttributeBool {
+  private fun Row.makeEavAttributeBool(): EavAttributeBool {
     return EavAttributeBool(
-      attributeId = row.getString("attribute_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getBoolean("value")
+      attributeId = this.getString("attribute_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getBoolean("value")
     )
   }
 
   /**
    * Creates an EavAttributeFloat object from a database row
    */
-  private fun makeEavAttributeFloat(row: Row): EavAttributeFloat {
+  private fun Row.makeEavAttributeFloat(): EavAttributeFloat {
     return EavAttributeFloat(
-      attributeId = row.getString("attribute_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getFloat("value")
+      attributeId = this.getString("attribute_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getFloat("value")
     )
   }
 
   /**
    * Creates an EavAttributeInt object from a database row
    */
-  private fun makeEavAttributeInt(row: Row): EavAttributeInt {
+  private fun Row.makeEavAttributeInt(): EavAttributeInt {
     return EavAttributeInt(
-      attributeId = row.getString("attribute_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getInteger("value")
+      attributeId = this.getString("attribute_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getInteger("value")
     )
   }
 
   /**
    * Creates an EavAttributeMoney object from a database row
    */
-  private fun makeEavAttributeMoney(row: Row): EavAttributeMoney {
+  private fun Row.makeEavAttributeMoney(): EavAttributeMoney {
     return EavAttributeMoney(
-      attributeId = row.getString("attribute_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getDouble("value")
+      attributeId = this.getString("attribute_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getDouble("value")
     )
   }
 
   /**
    * Creates an EavAttributeMultiSelect object from a database row
    */
-  private fun makeEavAttributeMultiSelect(row: Row): EavAttributeMultiSelect {
+  private fun Row.makeEavAttributeMultiSelect(): EavAttributeMultiSelect {
     return EavAttributeMultiSelect(
-      attributeId = row.getString("attribute_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getInteger("value")
+      attributeId = this.getString("attribute_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getInteger("value")
     )
   }
 
   /**
    * Creates an EavAttributeString object from a database row
    */
-  private fun makeEavAttributeString(row: Row): EavAttributeString {
+  private fun Row.makeEavAttributeString(): EavAttributeString {
     return EavAttributeString(
-      attributeId = row.getString("attribute_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getString("value")
+      attributeId = this.getString("attribute_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getString("value")
     )
   }
 
-  private fun makeAttributeList(row: Row): EavAttributeList {
+  private fun Row.makeAttributeList(): EavAttributeList {
     return EavAttributeList(
-      attributeId = row.getString("attribute_id"),
-      attributeKey = row.getString("list_name")
+      attributeId = this.getString("attribute_id"),
+      attributeKey = this.getString("list_name")
     )
   }
 }
