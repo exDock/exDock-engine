@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.database.account
 
 import com.ex_dock.ex_dock.database.codec.GenericCodec
 import com.ex_dock.ex_dock.database.codec.GenericListCodec
+import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
@@ -17,11 +18,11 @@ import org.mindrot.jbcrypt.BCrypt
 
 @ExtendWith(VertxExtension::class)
 class AccountJdbcVerticleTest {
-  private val userCodec: MessageCodec<User, User> = GenericCodec(User::class.java)
-  private val userCreationCodec: MessageCodec<UserCreation, UserCreation> = GenericCodec(UserCreation::class.java)
+  private val userCodec: MessageCodec<User, User> = GenericCodec(User::class)
+  private val userCreationCodec: MessageCodec<UserCreation, UserCreation> = GenericCodec(UserCreation::class)
   private val backendPermissionsCodec: MessageCodec<BackendPermissions, BackendPermissions> =
-    GenericCodec(BackendPermissions::class.java)
-  private val fullUserCodec: MessageCodec<FullUser, FullUser> = GenericCodec(FullUser::class.java)
+    GenericCodec(BackendPermissions::class)
+  private val fullUserCodec: MessageCodec<FullUser, FullUser> = GenericCodec(FullUser::class)
   private val userListCodec: MessageCodec<List<User>, List<User>> = GenericListCodec(User::class)
   private val backendPermissionsListCodec: MessageCodec<List<BackendPermissions>, List<BackendPermissions>> =
     GenericListCodec(BackendPermissions::class)
@@ -50,36 +51,54 @@ class AccountJdbcVerticleTest {
       .registerCodec(fullUserCodec)
       .registerCodec(fullUserListCodec)
 
+    val deployAccountCheckpoint = testContext.checkpoint()
+    val deployServiceCheckpoint = testContext.checkpoint()
+
     deployWorkerVerticleHelper(
       vertx,
       AccountJdbcVerticle::class.qualifiedName.toString(), 5, 5
-    ).onComplete {
-      testContext.completeNow()
+    ).onFailure { err ->
+      testContext.failNow("failure with AccountJdbcVerticle deployment: ${err.message}")
+    }.onSuccess {
+      deployAccountCheckpoint.flag()
+    }
+
+    deployWorkerVerticleHelper(
+      vertx,
+      ServiceVerticle::class.qualifiedName.toString(), 1, 1
+    ).onFailure { err ->
+      testContext.failNow("failure with ServiceVerticle deployment: ${err.message}")
+    }.onSuccess {
+      deployServiceCheckpoint.flag()
     }
   }
 
   @Test
-  fun getAllUsersEmpty(vertx: Vertx, testContext: VertxTestContext) {
-    val request = eventBus.request<String>("process.account.getAllUsers", "")
+  fun getAllUsers(vertx: Vertx, testContext: VertxTestContext) {
+    eventBus.request<String>("process.service.addAdminUser", null).onFailure { err ->
+      testContext.failNow("failure with \"process.service.addAdminUser\": ${err.message}")
+    }.onSuccess {
+      val request = eventBus.request<List<User>>("process.account.getAllUsers", "")
 
-    request.onFailure { testContext.failNow(it) }
-    request.onComplete { msg ->
-      if (msg.failed()) testContext.failNow(msg.result().toString())
-      var body: List<User> = msg.result().body() as List<User>
-      if (body!= emptyList<User>()) testContext.failNow(
-        "result is not equal to emptyList<User>()\nmsg.result().toString(): ${msg.result().body()}\n" +
-            "msg.result()::class: ${msg.result()::class}\n" +
-            "msg.result().body()::class: ${msg.result().body()::class}\n" +
-            "body: $body\nbody::class: ${body::class}"
-      )
-      testContext.completeNow()
+      request.onFailure { testContext.failNow(it) }
+      request.onComplete { msg ->
+        if (msg.failed()) testContext.failNow(msg.result().toString())
+        var body: List<User> = msg.result().body()
+        if (body[0].email != "test@test.com") testContext.failNow(
+          "user is not as expected.\n" +
+              "body[0]:\n" +
+              "- expected: \"test@test.com\"" +
+              "- actual: \"${body[0].email}\""
+        )
+        testContext.completeNow()
+      }
     }
   }
 
   @Test
   fun testUserData(vertx: Vertx, testContext: VertxTestContext) {
     val processAccountCreateUserCheckpoint = testContext.checkpoint()
-    val processAccountGetAllUsersCheckpoint = testContext.checkpoint(2)
+    val processAccountGetAllUsersCheckpoint = testContext.checkpoint()
     val processAccountGetUserByIdCheckpoint = testContext.checkpoint(2)
     val processAccountUpdateUserCheckpoint = testContext.checkpoint()
     val processAccountDeleteUserCheckpoint = testContext.checkpoint()
@@ -121,14 +140,13 @@ class AccountJdbcVerticleTest {
 
         eventBus.request<List<User>>("process.account.getAllUsers", "").onFailure {
           testContext.failNow(it)
-        }.onComplete { getAllMsg ->
+        }.onSuccess { getAllMsg ->
           try {
-            assert(getAllMsg.succeeded())
-            assertNotEquals(emptyList<User>(), getAllMsg.result().body())
+            assertNotEquals(emptyList<User>(), getAllMsg.body())
             assertTrue(
               BCrypt.checkpw(
-                "password",
-                getAllMsg.result().body()[0].password
+                "123456",
+                getAllMsg.body()[0].password
               )
             )
           } catch (e: Exception) {
@@ -212,19 +230,6 @@ class AccountJdbcVerticleTest {
                   }
 
                   processAccountDeleteUserCheckpoint.flag()
-
-                  eventBus.request<MutableList<User>>("process.account.getAllUsers", "").onFailure {
-                    testContext.failNow(it)
-                  }.onComplete { emptyMsg ->
-                    try {
-                      assert(emptyMsg.succeeded())
-                      assertEquals(emptyMsg.result().body(), emptyList<User>().toMutableList())
-                    } catch (e: Exception) {
-                      testContext.failNow(e)
-                    }
-
-                    processAccountGetAllUsersCheckpoint.flag()
-                  }
                 }
               }
             }
@@ -395,7 +400,7 @@ class AccountJdbcVerticleTest {
     val processAccountDeleteUserCheckpoint = testContext.checkpoint()
 
     var userId = -1
-    val FullUserList: MutableList<FullUser> = emptyList<FullUser>().toMutableList()
+    val fullUserList: MutableList<FullUser> = emptyList<FullUser>().toMutableList()
 
     var testUserCreation = UserCreation(
       email = "test@example.com",
@@ -437,7 +442,7 @@ class AccountJdbcVerticleTest {
         )
         allInfoResult.user.password = ""
 
-        FullUserList.add(allInfoResult)
+        fullUserList.add(allInfoResult)
 
         assertEquals(createUserMsg.result().body(), testUser)
 
@@ -458,7 +463,7 @@ class AccountJdbcVerticleTest {
           }.onComplete { getAllFullMsg ->
             val fullBody = getAllFullMsg.result().body()
             fullBody[0].user.password = ""
-            assertEquals(fullBody, FullUserList)
+            assertEquals(fullBody, fullUserList)
 
             processAccountGetAllFullUserInfoCheckpoint.flag()
 

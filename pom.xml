@@ -143,6 +143,17 @@
       <artifactId>webp-imageio</artifactId>
       <version>0.1.6</version>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-jwt</artifactId>
+      <version>4.5.11</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-common</artifactId>
+      <version>4.5.11</version>
+    </dependency>
   </dependencies>
 
   <build>

@@ -12,7 +12,12 @@ class TestMainVerticle {
 
   @BeforeEach
   fun deploy_verticle(vertx: Vertx, testContext: VertxTestContext) {
-    vertx.deployVerticle(MainVerticle()).onComplete(testContext.succeeding<String> { _ -> testContext.completeNow() })
+    vertx.deployVerticle(MainVerticle()).onFailure {
+      testContext.failNow(it)
+    }.onSuccess {
+      println("MainVerticle deployed successfully")
+      testContext.completeNow()
+    }
   }
 
   @Test

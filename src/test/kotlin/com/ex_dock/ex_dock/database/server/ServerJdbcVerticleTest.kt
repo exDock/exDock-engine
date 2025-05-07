@@ -38,9 +38,9 @@ class ServerJdbcVerticleTest {
   @BeforeEach
   fun setUp(vertx: Vertx, testContext: VertxTestContext) {
     eventBus = vertx.eventBus()
-      .registerCodec(GenericCodec(ServerDataData::class.java))
-      .registerCodec(GenericCodec(MutableList::class.java))
-      .registerCodec(GenericCodec(ServerVersionData::class.java))
+      .registerCodec(GenericCodec(ServerDataData::class))
+      .registerCodec(GenericCodec(MutableList::class))
+      .registerCodec(GenericCodec(ServerVersionData::class))
     serverDataList.add(serverData)
     serverVersionList.add(serverVersion)
 

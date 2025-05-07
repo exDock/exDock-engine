@@ -2,13 +2,12 @@ package com.ex_dock.ex_dock
 
 import com.ex_dock.ex_dock.database.JDBCStarter
 import com.ex_dock.ex_dock.frontend.FrontendVerticle
-import com.ex_dock.ex_dock.helper.VerticleDeployHelper
 import com.ex_dock.ex_dock.helper.deployVerticleHelper
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
 import io.vertx.ext.web.client.WebClient
-import java.util.Properties
+import java.util.*
 
 class ExtensionsLauncher: AbstractVerticle() {
 

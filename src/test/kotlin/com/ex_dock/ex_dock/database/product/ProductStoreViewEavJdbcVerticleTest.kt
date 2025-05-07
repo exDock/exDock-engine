@@ -10,11 +10,8 @@ import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
-import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.kotlin.core.json.json
-import io.vertx.kotlin.core.json.obj
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -101,19 +98,19 @@ class ProductStoreViewEavJdbcVerticleTest {
   @BeforeEach
   fun setUp(vertx: Vertx, testContext: VertxTestContext) {
     eventBus = vertx.eventBus()
-      .registerCodec(GenericCodec(MutableList::class.java))
-      .registerCodec(GenericCodec(Products::class.java))
-      .registerCodec(GenericCodec(Websites::class.java))
-      .registerCodec(GenericCodec(StoreView::class.java))
-      .registerCodec(GenericCodec(CustomProductAttributes::class.java))
-      .registerCodec(GenericCodec(Eav::class.java))
-      .registerCodec(GenericCodec(EavStoreViewBool::class.java))
-      .registerCodec(GenericCodec(EavStoreViewFloat::class.java))
-      .registerCodec(GenericCodec(EavStoreViewString::class.java))
-      .registerCodec(GenericCodec(EavStoreViewInt::class.java))
-      .registerCodec(GenericCodec(EavStoreViewMoney::class.java))
-      .registerCodec(GenericCodec(EavStoreViewInfo::class.java))
-      .registerCodec(GenericCodec(EavStoreViewMultiSelect::class.java))
+      .registerCodec(GenericCodec(MutableList::class))
+      .registerCodec(GenericCodec(Products::class))
+      .registerCodec(GenericCodec(Websites::class))
+      .registerCodec(GenericCodec(StoreView::class))
+      .registerCodec(GenericCodec(CustomProductAttributes::class))
+      .registerCodec(GenericCodec(Eav::class))
+      .registerCodec(GenericCodec(EavStoreViewBool::class))
+      .registerCodec(GenericCodec(EavStoreViewFloat::class))
+      .registerCodec(GenericCodec(EavStoreViewString::class))
+      .registerCodec(GenericCodec(EavStoreViewInt::class))
+      .registerCodec(GenericCodec(EavStoreViewMoney::class))
+      .registerCodec(GenericCodec(EavStoreViewInfo::class))
+      .registerCodec(GenericCodec(EavStoreViewMultiSelect::class))
     Future.all(deployVerticles(vertx)).onFailure {
       testContext.failNow(it)
     }.onComplete {

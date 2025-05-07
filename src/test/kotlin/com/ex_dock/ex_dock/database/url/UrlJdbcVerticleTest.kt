@@ -12,15 +12,11 @@ import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
-import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.kotlin.core.json.json
-import io.vertx.kotlin.core.json.obj
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -111,17 +107,17 @@ class UrlJdbcVerticleTest {
   @BeforeEach
   fun setUp(vertx: Vertx, testContext: VertxTestContext) {
     eventBus = vertx.eventBus()
-      .registerCodec(GenericCodec(MutableList::class.java))
-      .registerCodec(GenericCodec(UrlKeys::class.java))
-      .registerCodec(GenericCodec(TextPages::class.java))
-      .registerCodec(GenericCodec(Categories::class.java))
-      .registerCodec(GenericCodec(Products::class.java))
-      .registerCodec(GenericCodec(TextPageUrls::class.java))
-      .registerCodec(GenericCodec(ProductUrls::class.java))
-      .registerCodec(GenericCodec(CategoryUrls::class.java))
-      .registerCodec(GenericCodec(FullUrlKeys::class.java))
-      .registerCodec(GenericCodec(FullUrlRequestInfo::class.java))
-      .registerCodec(GenericCodec(JoinList::class.java))
+      .registerCodec(GenericCodec(MutableList::class))
+      .registerCodec(GenericCodec(UrlKeys::class))
+      .registerCodec(GenericCodec(TextPages::class))
+      .registerCodec(GenericCodec(Categories::class))
+      .registerCodec(GenericCodec(Products::class))
+      .registerCodec(GenericCodec(TextPageUrls::class))
+      .registerCodec(GenericCodec(ProductUrls::class))
+      .registerCodec(GenericCodec(CategoryUrls::class))
+      .registerCodec(GenericCodec(FullUrlKeys::class))
+      .registerCodec(GenericCodec(FullUrlRequestInfo::class))
+      .registerCodec(GenericCodec(JoinList::class))
     Future.all(deployNeededVerticles(vertx)).onComplete {
       eventBus.request<UrlKeys>("process.url.createUrlKey", url, urlKeysDeliveryOptions).onFailure {
         testContext.failNow(it)

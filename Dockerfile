@@ -1,6 +1,6 @@
 # -- V4 --
 # 1st Docker build stage: build the project with Maven
-FROM maven:3.6.3-openjdk-11 as builder
+FROM maven:3.6.3-openjdk-11 AS builder
 WORKDIR /project
 COPY . /project/
 RUN mvn package -DskipTests -B

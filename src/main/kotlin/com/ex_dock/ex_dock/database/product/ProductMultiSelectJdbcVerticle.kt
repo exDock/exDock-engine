@@ -1,4 +1,4 @@
-package com.ex_dock.ex_dock.database.product;
+package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
 import io.vertx.core.AbstractVerticle

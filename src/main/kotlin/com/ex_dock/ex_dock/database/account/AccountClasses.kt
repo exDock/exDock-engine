@@ -32,7 +32,11 @@ enum class Permission(name: String) {
 
   companion object {
     fun fromString(value: String): Permission {
-      return values().find { it.name == value } ?: NONE
+      return values().find { it.name == value.lowercase() } ?: NONE
+    }
+
+    fun toString(permission: Permission): String {
+      return permission.name
     }
   }
 }

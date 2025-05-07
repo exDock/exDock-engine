@@ -1,14 +1,11 @@
 package com.ex_dock.ex_dock.frontend.template_engine
 
-import com.ex_dock.ex_dock.database.connection.Connection
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateDataCodec
 import io.pebbletemplates.pebble.PebbleEngine
 import io.pebbletemplates.pebble.loader.StringLoader
 import io.vertx.core.AbstractVerticle
-import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
-import io.vertx.sqlclient.Pool
 import java.io.StringWriter
 
 class TemplateEngineVerticle: AbstractVerticle() {

@@ -5,6 +5,7 @@ import io.vertx.core.Promise
 import io.vertx.core.ThreadingModel
 import io.vertx.core.Vertx
 import io.vertx.core.DeploymentOptions
+import kotlin.reflect.KClass
 
 class VerticleDeployHelper {
   companion object {
@@ -53,6 +54,10 @@ fun deployVerticleHelper(vertx: Vertx, name: String): Future<Void> {
   return promise.future()
 }
 
+fun Vertx.deployVerticleHelper(name: KClass<*>): Future<Void> {
+  return deployVerticleHelper(this, name.qualifiedName.toString())
+}
+
 
 fun deployWorkerVerticleHelper(vertx: Vertx, name: String, workerPoolSize: Int, instances: Int): Future<Void> {
   val promise: Promise<Void> = Promise.promise<Void>()
@@ -92,6 +97,10 @@ fun deployWorkerVerticleHelper(vertx: Vertx, name: String, workerPoolSize: Int, 
   return promise.future()
 }
 
+fun Vertx.deployWorkerVerticleHelper(name: KClass<*>, workerPoolSize: Int = 1, instances: Int = workerPoolSize): Future<Void> {
+  return deployWorkerVerticleHelper(this, name.qualifiedName.toString(), workerPoolSize, instances)
+}
+
 
 fun deployVirtualVerticleHelper(vertx: Vertx, name: String): Future<Void> {
   val promise: Promise<Void> = Promise.promise<Void>()
@@ -118,4 +127,8 @@ fun deployVirtualVerticleHelper(vertx: Vertx, name: String): Future<Void> {
     }
 
   return promise.future()
+}
+
+fun Vertx.deployVirtualVerticleHelper(name: KClass<*>): Future<Void> {
+  return deployVirtualVerticleHelper(this, name.qualifiedName.toString())
 }

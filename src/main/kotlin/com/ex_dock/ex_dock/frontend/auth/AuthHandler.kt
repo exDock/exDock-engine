@@ -7,6 +7,7 @@ import io.vertx.core.Future
 import io.vertx.core.Handler
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.User
 import io.vertx.ext.auth.authentication.AuthenticationProvider
@@ -14,14 +15,16 @@ import io.vertx.ext.auth.authentication.Credentials
 import io.vertx.ext.auth.authorization.Authorization
 import io.vertx.ext.auth.authorization.PermissionBasedAuthorization
 import org.mindrot.jbcrypt.BCrypt
+import java.util.Base64
 import java.util.function.Consumer
 
 /**
  * Custom implementation of the authentication provider.
  * All authentication methods are in this class
  */
-class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider{
+class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
   private val eventBus: EventBus = vertx.eventBus()
+  private val authorizationsObject = JsonArray()
   private val saveAuthorization: MutableSet<Authorization> = setOf(
     PermissionBasedAuthorization.create("userRead"),
     PermissionBasedAuthorization.create("userWrite"),
@@ -85,6 +88,9 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider{
    * Converts the full User from the database to a vertx user
    */
   private fun convertUser(fullUser: FullUser): User {
+    // Clear previous conversion
+    authorizationsObject.clear()
+
     val exDockUser = fullUser.user
     val principal = JsonObject()
       .put("id", exDockUser.userId)
@@ -101,6 +107,8 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider{
     user = addPermission(fullUser.backendPermissions.productPrice, "productPrice", user)
     user = addPermission(fullUser.backendPermissions.productWarehouse, "productWarehouse", user)
     user = addPermission(fullUser.backendPermissions.textPages, "textPages", user)
+
+    user.principal().put("authorizations", authorizationsObject)
 
     return user
   }
@@ -125,12 +133,18 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider{
    */
   private fun addAuth(name: String, user: User): User {
     if (saveAuthorization.contains(PermissionBasedAuthorization.create(name))) {
-      user.authorizations().add(name,
-        PermissionBasedAuthorization.create(name))
+      user.authorizations().add(
+        name,
+        PermissionBasedAuthorization.create(name)
+      )
+      authorizationsObject.add(name)
     } else {
       saveAuthorization.add(PermissionBasedAuthorization.create(name))
-      user.authorizations().add(name,
-        PermissionBasedAuthorization.create(name))
+      user.authorizations().add(
+        name,
+        PermissionBasedAuthorization.create(name)
+      )
+      authorizationsObject.add(name)
     }
 
     return user
@@ -140,17 +154,35 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider{
    * Verify if the user is authorized to view the requested resource
    */
   fun verifyPermissionAuthorization(user: User, task: String, callBack: Consumer<JsonObject>) {
-          if (saveAuthorization.contains(PermissionBasedAuthorization.create(task))
-            && saveAuthorization.first { authorization -> authorization == PermissionBasedAuthorization.create(task) }
-              .match(user)) {
-            callBack.accept(JsonObject().apply {
-              put("success", true)
-            })
-          } else {
-            callBack.accept(JsonObject().apply {
-              put("success", false)
-              put("message", "Permission denied for task: $task")
-            })
-          }
-   }
+    if (saveAuthorization.contains(PermissionBasedAuthorization.create(task))
+      && saveAuthorization.first { authorization -> authorization == PermissionBasedAuthorization.create(task) }
+        .match(user)
+    ) {
+      callBack.accept(JsonObject().apply {
+        put("success", true)
+      })
+    } else {
+      callBack.accept(JsonObject().apply {
+        put("success", false)
+        put("message", "Permission denied for task: $task")
+      })
+    }
+  }
+
+  fun verifyPermissionAuthorization(token: String, task: String, callBack: Consumer<JsonObject>) {
+    val decoder = Base64.getUrlDecoder()
+    val chunks = token.split(".")
+    val payload = String(decoder.decode(chunks[1]))
+    val authorizations = payload.split("[")[1].split("]")[0]
+    if (authorizations.contains(task)) {
+      callBack.accept(JsonObject().apply {
+        put("success", true)
+      })
+    } else {
+      callBack.accept(JsonObject().apply {
+        put("success", false)
+        put("message", "Permission denied for task: $task")
+      })
+    }
+  }
 }

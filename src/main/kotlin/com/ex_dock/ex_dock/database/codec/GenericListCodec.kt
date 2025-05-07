@@ -36,11 +36,11 @@ class GenericListCodec<T : Any>(private val codecClass: KClass<T>) : MessageCode
   }
 
   override fun decodeFromWire(pos: Int, buffer: Buffer): List<T>? {
-    var _pos: Int = pos
-    val length = buffer.getInt(_pos)
+    var effectivePos: Int = pos
+    val length = buffer.getInt(effectivePos)
 
-    val bytes: ByteArray = buffer.getBytes(_pos + 4, _pos + 4 + length)
-    _pos += 4 + length
+    val bytes: ByteArray = buffer.getBytes(effectivePos + 4, effectivePos + 4 + length)
+    effectivePos += 4 + length
     val bis = ByteArrayInputStream(bytes)
 
     return try {

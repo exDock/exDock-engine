@@ -40,11 +40,11 @@ class CategoryJdbcVerticleTest {
   @BeforeEach
   fun setUp(vertx: Vertx, testContext: VertxTestContext) {
     eventBus = vertx.eventBus()
-      .registerCodec(GenericCodec(MutableList::class.java))
-      .registerCodec(GenericCodec(Categories::class.java))
-      .registerCodec(GenericCodec(CategoriesSeo::class.java))
-      .registerCodec(GenericCodec(CategoriesProducts::class.java))
-      .registerCodec(GenericCodec(FullCategoryInfo::class.java))
+      .registerCodec(GenericCodec(MutableList::class))
+      .registerCodec(GenericCodec(Categories::class))
+      .registerCodec(GenericCodec(CategoriesSeo::class))
+      .registerCodec(GenericCodec(CategoriesProducts::class))
+      .registerCodec(GenericCodec(FullCategoryInfo::class))
     deployWorkerVerticleHelper(
       vertx,
       CategoryJdbcVerticle::class.qualifiedName.toString(), 5, 5

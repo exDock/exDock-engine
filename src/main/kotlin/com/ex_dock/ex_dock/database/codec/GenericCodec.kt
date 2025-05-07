@@ -10,7 +10,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutput
 import java.io.ObjectOutputStream
 
-class GenericCodec<T: Any>(private val codecClass: Class<T>): MessageCodec<T, T> {
+class GenericCodec<T: Any>(private val codecClass: KClass<T>): MessageCodec<T, T> {
   override fun encodeToWire(buffer: Buffer, s: T) {
     val bos = ByteArrayOutputStream()
     var out: ObjectOutput? = null
@@ -35,12 +35,12 @@ class GenericCodec<T: Any>(private val codecClass: Class<T>): MessageCodec<T, T>
   }
 
   override fun decodeFromWire(pos: Int, buffer: Buffer): T? {
-    var _pos: Int = pos
+    var effectivePos: Int = pos
 
-    var length = buffer.getInt(_pos)
+    var length = buffer.getInt(effectivePos)
 
-    val bytes: ByteArray = buffer.getBytes(_pos + 4, _pos + 4 + length)
-    _pos += 4 + length
+    val bytes: ByteArray = buffer.getBytes(effectivePos + 4, effectivePos + 4 + length)
+    effectivePos += 4 + length
     val bis = ByteArrayInputStream(bytes)
 
     try {

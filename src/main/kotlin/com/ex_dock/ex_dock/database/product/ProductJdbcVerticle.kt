@@ -1,7 +1,6 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.category.PageIndex
-import com.ex_dock.ex_dock.database.connection.Connection
 import com.ex_dock.ex_dock.database.connection.getConnection
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions

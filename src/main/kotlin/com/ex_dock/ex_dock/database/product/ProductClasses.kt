@@ -1,7 +1,6 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.category.PageIndex
-import com.sun.org.apache.xpath.internal.operations.Bool
 
 data class Products(
   var productId: Int,
