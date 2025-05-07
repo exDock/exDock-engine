@@ -29,66 +29,10 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   val eventBus: EventBus = vertx.eventBus()
   val authProvider = AuthProvider()
   val exDockAuthHandler = ExDockAuthHandler(vertx)
-  val jwtAuth = JWTAuth.create(
-    vertx,
-    JWTAuthOptions()
-      .addPubSecKey(
-        PubSecKeyOptions()
-          .setAlgorithm("RS256")
-          .setBuffer(authProvider.publicKey)
-      )
-      .addPubSecKey(
-        PubSecKeyOptions()
-         .setAlgorithm("RS256")
-         .setBuffer(authProvider.privateKey)
-      )
-  )
 
   backendV1Router.route().handler(BodyHandler.create())
 
-  backendV1Router.post("/token").handler { ctx ->
-    val requestBody = ctx.body().asJsonObject()
-    val credentials = UsernamePasswordCredentials(
-      requestBody.getString("email"),
-      requestBody.getString("password")
-    )
-
-    exDockAuthHandler.authenticate(credentials) {
-      if (it.succeeded()) {
-        val user = it.result()
-        val token = jwtAuth.generateToken(
-          JsonObject().apply {
-            put("userId", user.principal().getString("id"))
-            put("email", user.principal().getString("email"))
-            put("authorizations", user.principal().getJsonArray("authorizations"))
-          },
-          JWTOptions().setAlgorithm("RS256")
-        )
-
-        ctx.response().putHeader("Content-Type", "text/plain").end(token)
-      } else {
-        ctx.response().setStatusCode(403).end("Authentication failed")
-      }
-    }
-  }
-
-  backendV1Router.route().handler(JWTAuthHandler.create(jwtAuth))
-
-//  backendV1Router["/test"].handler { ctx ->
-//    val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
-//    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
-//      if (it.getBoolean("success")) {
-//        ctx.end()
-//      } else {
-//        ctx.response().setStatusCode(403).end("User does not have the permission for this")
-//      }
-//    }
-//  }
-
-  backendV1Router.post("/getBlockData").handler { ctx ->
-    val body = ctx.body().asJsonObject()
-    val pageName = body.getString("page_name")
-    val productId = body.getInteger("product_id")
+  backendV1Router["/test"].handler { ctx ->
     val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
 //    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
 //      if (it.getBoolean("success")) {

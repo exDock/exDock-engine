@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.database
 
 import com.ex_dock.ex_dock.database.account.*
 import com.ex_dock.ex_dock.database.backend_block.*
+import com.ex_dock.ex_dock.database.auth.AuthenticationVerticle
 import com.ex_dock.ex_dock.database.category.*
 import com.ex_dock.ex_dock.database.checkout.CheckoutJdbcVerticle
 import com.ex_dock.ex_dock.database.home.HomeJdbcVerticle
@@ -34,6 +35,7 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
 import io.vertx.core.eventbus.EventBus
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 
 class JDBCStarter : AbstractVerticle() {
 
@@ -94,6 +96,7 @@ class JDBCStarter : AbstractVerticle() {
     verticles.add(vertx.deployWorkerVerticleHelper(CacheVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(ImageJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(AuthenticationVerticle::class))
   }
 
   private fun getAllCodecClasses() {
@@ -159,6 +162,8 @@ class JDBCStarter : AbstractVerticle() {
       .registerGenericCodec(Template::class)
       .registerGenericCodec(Block::class)
       .registerGenericCodec(Map::class)
+      .registerGenericCodec(UsernamePasswordCredentials::class)
+      .registerGenericCodec(Pair::class)
       .registerGenericCodec(BackendBlock::class)
       .registerGenericCodec(BlockAttribute::class)
       .registerGenericCodec(AttributeBlock::class)
