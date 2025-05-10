@@ -26,6 +26,7 @@ import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.registerGenericListCodec
+import com.ex_dock.ex_dock.helper.sendError
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
@@ -46,10 +47,14 @@ class JDBCStarter : AbstractVerticle() {
         eventBus = vertx.eventBus()
 
         eventBus.request<String>("process.service.populateTemplates", "").onFailure {
+          eventBus.sendError(
+            PopulateException("Could not populate the database with standard data. Closing the server!"))
           throw PopulateException("Could not populate the database with standard data. Closing the server!")
         }.onSuccess {
           println("Database populated with standard Data")
           eventBus.request<String>("process.service.addAdminUser", "").onFailure {
+            eventBus.sendError(
+              PopulateException("Could not populate the database with standard data. Closing the server!"))
             throw PopulateException("Could not add admin user. Closing the server!")
           }.onSuccess {
             starPromise.complete()
