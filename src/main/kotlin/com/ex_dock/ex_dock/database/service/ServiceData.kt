@@ -12,6 +12,8 @@ fun getAllStandardTemplates(): List<Template> {
   return templates.toList()
 }
 
-class PopulateException(message: String) : Exception(message)
+class PopulateException(message: String): Exception(message)
 
-class InvalidCacheKeyException(message: String) : Exception(message)
+class InvalidCacheKeyException(message: String): Exception(message)
+
+class ServerStartException(message: String): Exception(message)
