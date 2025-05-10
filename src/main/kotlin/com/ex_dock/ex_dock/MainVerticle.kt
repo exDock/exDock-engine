@@ -1,15 +1,18 @@
 package com.ex_dock.ex_dock
 
 import com.ex_dock.ex_dock.backend.enableBackendRouter
+import com.ex_dock.ex_dock.database.service.ServerStartException
 import com.ex_dock.ex_dock.frontend.account.router.initAccount
 import com.ex_dock.ex_dock.frontend.category.router.initCategory
 import com.ex_dock.ex_dock.frontend.checkout.router.initCheckout
 import com.ex_dock.ex_dock.frontend.home.router.initHome
 import com.ex_dock.ex_dock.frontend.product.router.initProduct
 import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
+import com.ex_dock.ex_dock.helper.sendError
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.core.http.CookieSameSite
+import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.SessionStore
@@ -56,7 +59,10 @@ class MainVerticle : AbstractVerticle() {
     mainRouter.initAccount(vertx)
 
     vertx
-      .createHttpServer()
+      .createHttpServer(
+        HttpServerOptions()
+          .setRegisterWebSocketWriteHandlers(true)
+      )
       .requestHandler(mainRouter)
       .listen(props.getProperty("FRONTEND_PORT").toInt()) { http ->
         if (http.succeeded()) {
@@ -64,6 +70,7 @@ class MainVerticle : AbstractVerticle() {
           startPromise.complete()
         } else {
           println("Failed to start HTTP server: ${http.cause()}")
+          vertx.eventBus().sendError(ServerStartException("Failed to start the HTTP server"))
           startPromise.fail(http.cause())
         }
       }
