@@ -3,6 +3,7 @@ package com.ex_dock.ex_dock.backend.v1.router
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
+import com.ex_dock.ex_dock.helper.sendError
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.JWTOptions
@@ -65,14 +66,15 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   backendV1Router.route().handler(JWTAuthHandler.create(jwtAuth))
 
   backendV1Router["/test"].handler { ctx ->
-    val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
-    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
-      if (it.getBoolean("success")) {
-        ctx.end()
-      } else {
-        ctx.response().setStatusCode(403).end("User does not have the permission for this")
-      }
-    }
+//    val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
+//    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
+//      if (it.getBoolean("success")) {
+//        ctx.end()
+//      } else {
+//        ctx.response().setStatusCode(403).end("User does not have the permission for this")
+//      }
+    vertx.eventBus().sendError(Exception("Test error to test websockets!"))
+    ctx.end()
   }
 
   // TODO: routing
