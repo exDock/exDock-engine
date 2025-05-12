@@ -30,7 +30,7 @@ fun Router.enableAuthRouter(vertx: Vertx, absoluteMounting: Boolean = false) {
         ctx.fail(500, Error("internal server error"))
       }
     }.onSuccess { message ->
-        ctx.response().putHeader("content-type", "application/json")
+        ctx.response().putHeader("Content-Type", "application/json")
           .end(JsonObject()
             .put("tokens", message.body())
             .encode()
