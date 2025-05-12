@@ -127,7 +127,7 @@ class AuthenticationVerticle: AbstractVerticle() {
 
       jwtAuth.authenticate(TokenCredentials().setToken(token)) { result ->
         if (result.succeeded()) {
-          message.reply(result.result().principal().getString("userId"))
+          message.reply(result.result().principal().getString("sub"))
         } else {
           message.fail(401, "invalid token")
         }
