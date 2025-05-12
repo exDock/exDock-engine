@@ -44,10 +44,11 @@ fun Router.enableBackendRouter(vertx: Vertx, logger: KLogger) {
     pairDeliveryOptions
   )
 
+  backendRouter.route().handler(CorsHandler.create())
+
   backendRouter.enableAuthRouter(vertx)
   backendRouter.initWebsocket(vertx, logger = logger)
 
-  backendRouter.route().handler(CorsHandler.create())
   backendRouter.route().handler(JWTAuthHandler.create(jwtAuth))
 
   backendRouter.get("/about").handler { ctx ->
