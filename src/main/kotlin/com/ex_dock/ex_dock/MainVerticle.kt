@@ -38,10 +38,10 @@ class MainVerticle : AbstractVerticle() {
   override fun start(startPromise: Promise<Void>) {
     vertx.deployVerticle(ExtensionsLauncher())
       .onSuccess{ _ -> (
-        println("MainVerticle started successfully")
+        logger.info { "MainVerticle started successfully" }
       )}
       .onFailure { err ->
-        println("Failed to start MainVerticle: $err")
+        logger.error { "Failed to start MainVerticle: $err" }
         startPromise.fail(err)
       }
 
@@ -70,10 +70,10 @@ class MainVerticle : AbstractVerticle() {
       .requestHandler(mainRouter)
       .listen(props.getProperty("FRONTEND_PORT").toInt()) { http ->
         if (http.succeeded()) {
-          println("HTTP server started on port ${props.getProperty("FRONTEND_PORT")}")
+          logger.info { "HTTP server started on port ${props.getProperty("FRONTEND_PORT")}" }
           startPromise.complete()
         } else {
-          println("Failed to start HTTP server: ${http.cause()}")
+          logger.error { "Failed to start HTTP server: ${http.cause()}" }
           vertx.eventBus().sendError(ServerStartException("Failed to start the HTTP server"))
           startPromise.fail(http.cause())
         }
