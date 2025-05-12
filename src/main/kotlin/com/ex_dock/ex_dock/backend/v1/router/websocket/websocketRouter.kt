@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.backend.v1.router.websocket
 
+import com.ex_dock.ex_dock.MainVerticle.Companion.logger
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import io.github.oshai.kotlinlogging.KLogger
 import io.vertx.core.Vertx
@@ -21,52 +22,16 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
 
   websocketRouter.route("/error").handler { ctx ->
     ctx.request().toWebSocket { asyncResult ->
-//      if (asyncResult.succeeded()) {
-//        val webSocket = asyncResult.result()
-//        val clientId = webSocket.binaryHandlerID()
-//        val userId = ctx.user().principal().getString("userId")
-//        connectedClients[clientId] = webSocket
-//        userIdToConnectionId[userId] = clientId
-//
-//        webSocket.handler { buffer ->
-//          val message = buffer.toString()
-//          println("Received: $message")
-//          webSocket.writeTextMessage("Server received: $message")
-//        }
-//
-//        webSocket.closeHandler { _ ->
-//          println("Client disconnected: $clientId")
-//          connectedClients.remove(clientId)
-//          userIdToConnectionId.remove(userId)
-//        }
-//        webSocket.exceptionHandler { error ->
-//          println("Error: ${error.message}")
-//          connectedClients.remove(clientId)
-//          userIdToConnectionId.remove(userId)
-//        }
-//      } else {
-//        ctx.response().setStatusCode(400).end()
-//      }
       if (asyncResult.succeeded()) {
         val webSocket = asyncResult.result()
         val clientId = webSocket.binaryHandlerID()
         var authenticatedUserId: String? = null
         var timerId: Long = -1
+        var firstAuthAttempt = true
 
         logger.info { "Client $clientId attempting to connect..." }
 
-        timerId = vertx.setTimer(authTimeOutMillis) {
-          if (authenticatedUserId == null && !webSocket.isClosed) {
-            logger.info("Client $clientId timed out")
-            webSocket.writeTextMessage(
-              JsonObject()
-                .put("type", "auth_timeout")
-                .put("message", "Authentication timed out. Closing connection.")
-                .encode()
-            )
-            webSocket.close()
-          }
-        }
+        timerId = vertx.setAuthTimer(authTimeOutMillis, authenticatedUserId, webSocket)
 
         val mainMessageHandler: (Buffer) -> Unit = { buffer ->
           val message = buffer.toString()
@@ -100,13 +65,20 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
 
                 webSocket.handler(mainMessageHandler)
               } else {
-                logger.info { "Client $clientId failed to authenticate." }
                 webSocket.writeTextMessage(
                   JsonObject()
                     .put("type", "auth_failure")
                     .put("message", "Authentication failed: User identification error.")
                     .encode()
                 )
+                if (!firstAuthAttempt) {
+                  logger.info { "Client $clientId failed to authenticate. Closing connection" }
+                  webSocket.close()
+                } else {
+                  firstAuthAttempt = false
+                  logger.info { "Client $clientId failed to authenticate." }
+                  timerId = vertx.setAuthTimer(authTimeOutMillis, authenticatedUserId, webSocket)
+                }
               }
             }
           } catch (e: Exception) {
@@ -202,3 +174,19 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
     if (absoluteMounting) "$apiMountingPath/v1/ws*" else "/v1/ws*"
   ).subRouter(websocketRouter)
 }
+
+fun Vertx.setAuthTimer(authTimeOutMillis: Long, authenticatedUserId: String?, webSocket: ServerWebSocket): Long {
+  return this.setTimer(authTimeOutMillis) {
+    if (authenticatedUserId == null && !webSocket.isClosed) {
+      logger.info{ "Client ${webSocket.binaryHandlerID()} timed out" }
+      webSocket.writeTextMessage(
+        JsonObject()
+          .put("type", "auth_timeout")
+          .put("message", "Authentication timed out. Closing connection.")
+          .encode()
+      )
+      webSocket.close()
+    }
+  }
+}
+
