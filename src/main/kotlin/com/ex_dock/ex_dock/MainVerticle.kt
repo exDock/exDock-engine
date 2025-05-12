@@ -9,6 +9,7 @@ import com.ex_dock.ex_dock.frontend.home.router.initHome
 import com.ex_dock.ex_dock.frontend.product.router.initProduct
 import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
 import com.ex_dock.ex_dock.helper.sendError
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.core.http.CookieSameSite
@@ -19,6 +20,9 @@ import io.vertx.ext.web.sstore.SessionStore
 import java.util.Properties
 
 class MainVerticle : AbstractVerticle() {
+  companion object {
+    val logger = KotlinLogging.logger {}
+  }
 
   private val props : Properties = javaClass.classLoader.getResourceAsStream("secret.properties").use {
     Properties().apply { load(it) }
@@ -49,7 +53,7 @@ class MainVerticle : AbstractVerticle() {
 
     mainRouter.route().handler(sessionHandler)
 
-    mainRouter.enableBackendRouter(vertx)
+    mainRouter.enableBackendRouter(vertx, logger)
 
     mainRouter.initHome()
     mainRouter.initProduct(vertx)
