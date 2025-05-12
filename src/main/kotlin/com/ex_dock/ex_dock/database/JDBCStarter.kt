@@ -35,6 +35,9 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 
 class JDBCStarter : AbstractVerticle() {
+  companion object {
+    val logger = io.github.oshai.kotlinlogging.KotlinLogging.logger {}
+  }
 
   private var verticles: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
   private lateinit var eventBus: EventBus
@@ -44,7 +47,7 @@ class JDBCStarter : AbstractVerticle() {
 
     Future.all(verticles)
       .onComplete {
-        println("All JDBC verticles deployed")
+        logger.info { "All JDBC Verticles started successfully" }
         getAllCodecClasses()
         eventBus = vertx.eventBus()
 
@@ -53,7 +56,7 @@ class JDBCStarter : AbstractVerticle() {
             PopulateException("Could not populate the database with standard data. Closing the server!"))
           throw PopulateException("Could not populate the database with standard data. Closing the server!")
         }.onSuccess {
-          println("Database populated with standard Data")
+          logger.info { "Database populated with standard data" }
           eventBus.request<String>("process.service.addAdminUser", "").onFailure {
             eventBus.sendError(
               PopulateException("Could not populate the database with standard data. Closing the server!"))
