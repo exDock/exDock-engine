@@ -12,7 +12,6 @@ import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
-import org.mindrot.jbcrypt.BCrypt
 
 class ServiceVerticle: AbstractVerticle() {
   private lateinit var client: Pool

@@ -1,14 +1,10 @@
 package com.ex_dock.ex_dock.backend.v1.router
 
 import com.ex_dock.ex_dock.backend.apiMountingPath
-import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.database.backend_block.FullBlockInfo
-import com.ex_dock.ex_dock.database.product.FullProduct
-import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import com.ex_dock.ex_dock.helper.convertJsonElement
 import com.ex_dock.ex_dock.helper.findValueByFieldName
-import com.google.gson.Gson
 import com.google.gson.JsonParser
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
