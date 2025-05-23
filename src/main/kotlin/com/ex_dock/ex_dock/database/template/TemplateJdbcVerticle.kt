@@ -241,7 +241,8 @@ class TemplateJdbcVerticle: AbstractVerticle() {
   private fun makeTemplate(row: Row): Template {
     return Template(
       row.getString("template_key"),
-      row.getString("template_data")
+      row.getString("template_data"),
+      row.getString("data_string")
     )
   }
 

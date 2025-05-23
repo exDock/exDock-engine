@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.category.PageIndex
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.database.image.Image
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -100,7 +101,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val createProductConsumer = eventBus.localConsumer<Products>("process.products.createProduct")
     createProductConsumer.handler { message ->
       val product = message.body()
-      val rowsFuture = client.preparedQuery("INSERT INTO products (name, short_name, description, short_description) VALUES (?,?,?,?)")
+      val rowsFuture = client.preparedQuery("INSERT INTO products (name, short_name, description, short_description, sku, ean, manufacturer) VALUES (?,?,?,?,?,?,?)")
        .execute(makeProductTuple(product, false))
 
       rowsFuture.onFailure{ res ->
@@ -118,7 +119,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val updateProductConsumer = eventBus.localConsumer<Products>("process.products.updateProduct")
     updateProductConsumer.handler { message ->
       val product = message.body()
-      val rowsFuture = client.preparedQuery("UPDATE products SET name =?, short_name =?, description =?, short_description =? WHERE product_id =?")
+      val rowsFuture = client.preparedQuery("UPDATE products SET name =?, short_name =?, description =?, " +
+        "short_description =?, sku=?, ean=?, manufacturer=? WHERE product_id =?")
        .execute(makeProductTuple(product, true))
 
       rowsFuture.onFailure{ res ->
@@ -292,7 +294,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val createProductPricingConsumer = eventBus.localConsumer<ProductsPricing>("process.products.createProductPricing")
     createProductPricingConsumer.handler { message ->
       val productPricing = message.body()
-      val rowsFuture = client.preparedQuery("INSERT INTO products_pricing (product_id, price, sale_price, cost_price) VALUES (?,?,?,?)")
+      val rowsFuture = client.preparedQuery("INSERT INTO products_pricing (product_id, price, sale_price, " +
+        "cost_price, tax_class, sale_date_start, sale_date_end) VALUES (?,?,?,?,?,?,?)")
        .execute(makeProductsPricingTuple(productPricing, false))
 
       rowsFuture.onFailure { res ->
@@ -308,7 +311,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val updateProductPricingConsumer = eventBus.localConsumer<ProductsPricing>("process.products.updateProductPricing")
     updateProductPricingConsumer.handler { message ->
       val productPricing = message.body()
-      val rowsFuture = client.preparedQuery("UPDATE products_pricing SET price =?, sale_price =?, cost_price =? WHERE product_id =?")
+      val rowsFuture = client.preparedQuery("UPDATE products_pricing SET price =?, sale_price =?, " +
+        "cost_price =?, tax_class=?, sale_date_start=?, sale_date_end=? WHERE product_id =?")
        .execute(makeProductsPricingTuple(productPricing, true))
 
       rowsFuture.onFailure { res ->
@@ -341,7 +345,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
     allProductInfoConsumer.handler { message ->
       val rowsFuture = client.preparedQuery("SELECT * FROM products " +
         "JOIN public.products_pricing pp on products.product_id = pp.product_id " +
-        "JOIN public.products_seo ps on products.product_id = ps.product_id").execute()
+        "JOIN public.products_seo ps on products.product_id = ps.product_id " +
+        "JOIN public.image_product ip ON products.product_id = ip.product_id " +
+        "JOIN public.image i ON ip.image_url = i.image_url").execute()
       val fullProducts: MutableList<FullProduct> = emptyList<FullProduct>().toMutableList()
 
       rowsFuture.onFailure { res ->
@@ -349,11 +355,25 @@ class ProductJdbcVerticle: AbstractVerticle() {
         message.reply(failedMessage)
       }.onSuccess { res ->
         val rows: RowSet<Row> = res
+        var product: FullProduct? = null
         if (rows.size() > 0) {
           rows.forEach { row ->
-            fullProducts.add(makeFullProducts(row))
+            val currentProduct = makeFullProducts(row)
+
+            if (product == null || currentProduct.product.productId != product!!.product.productId) {
+              if (product != null) fullProducts.add(product!!)
+
+              product = FullProduct(
+                product = currentProduct.product,
+                productsPricing = currentProduct.productsPricing,
+                productsSeo = currentProduct.productsSeo,
+                images = mutableListOf()
+              )
+            }
+            product!!.images.add(currentProduct.images)
           }
         }
+        if (product!= null) fullProducts.add(product!!)
 
         message.reply(fullProducts, listDeliveryOptions)
       }
@@ -367,6 +387,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
       val rowsFuture = client.preparedQuery("SELECT * FROM products " +
         "JOIN public.products_pricing pp on products.product_id = pp.product_id " +
         "JOIN public.products_seo ps on products.product_id = ps.product_id " +
+        "LEFT JOIN public.image_product ip ON products.product_id = ip.product_id " +
+        "LEFT JOIN public.image i ON ip.image_url = i.image_url " +
         "WHERE products.product_id =?")
        .execute(Tuple.of(productId))
 
@@ -376,9 +398,23 @@ class ProductJdbcVerticle: AbstractVerticle() {
         message.reply(failedMessage)
       }.onSuccess { res ->
         val rows: RowSet<Row> = res
+        var product: FullProduct? = null
         if (rows.size() > 0) {
-          val row = rows.first()
-          message.reply(makeFullProducts(row), fullProductDeliveryOptions)
+          rows.forEach { row ->
+            val currentProduct = makeFullProducts(row)
+
+            if (product == null || currentProduct.product.productId != productId) {
+              product = FullProduct(
+                product = currentProduct.product,
+                productsPricing = currentProduct.productsPricing,
+                productsSeo = currentProduct.productsSeo,
+                images = mutableListOf()
+              )
+            }
+            product!!.images.add(currentProduct.images)
+          }
+
+          message.reply(product, productDeliveryOptions)
         } else {
           message.reply("No products found!")
         }
@@ -392,7 +428,10 @@ class ProductJdbcVerticle: AbstractVerticle() {
       name = row.getString("name"),
       shortName = row.getString("short_name"),
       description = row.getString("description"),
-      shortDescription = row.getString("short_description")
+      shortDescription = row.getString("short_description"),
+      sku = row.getString("sku"),
+      ean = row.getString("ean"),
+      manufacturer = row.getString("manufacturer"),
     )
   }
 
@@ -407,19 +446,35 @@ class ProductJdbcVerticle: AbstractVerticle() {
   }
 
   private fun makeProductsPricing(row: Row): ProductsPricing {
+    var saleDateStart: String? = null
+    var saleDateEnd: String? = null
+
+    try {
+      saleDateStart = row.getString("sale_date_start")
+      saleDateEnd = row.getString("sale_date_end")
+    } catch (_: Exception) {}
+
     return ProductsPricing(
       productId = row.getInteger("product_id"),
       price = row.getDouble("price"),
       salePrice = row.getDouble("sale_price"),
-      costPrice = row.getDouble("cost_price")
+      costPrice = row.getDouble("cost_price"),
+      taxClass = row.getString("tax_class"),
+      saleDateStart = saleDateStart,
+      saleDateEnd = saleDateEnd
     )
   }
 
-  private fun makeFullProducts(row: Row): FullProduct {
-    return FullProduct(
+  private fun makeFullProducts(row: Row): FullProductEntry {
+    return FullProductEntry(
       makeProduct(row),
       makeProductSeo(row),
-      makeProductsPricing(row)
+      makeProductsPricing(row),
+      Image(
+        row.getString("image_url"),
+        row.getString("image_name"),
+        row.getString("extensions")
+      )
     )
   }
 
@@ -430,6 +485,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
         body.shortName,
         body.description,
         body.shortDescription,
+        body.sku,
+        body.ean,
+        body.manufacturer,
         body.productId
       )
     } else {
@@ -438,6 +496,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
         body.shortName,
         body.description,
         body.shortDescription,
+        body.sku,
+        body.ean,
+        body.manufacturer,
       )
     }
 
@@ -472,7 +533,10 @@ class ProductJdbcVerticle: AbstractVerticle() {
         body.price,
         body.salePrice,
         body.costPrice,
-        body.productId
+        body.taxClass,
+        body.saleDateStart,
+        body.saleDateEnd,
+        body.productId,
       )
     } else {
       Tuple.of(
@@ -480,6 +544,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
         body.price,
         body.salePrice,
         body.costPrice,
+        body.taxClass,
+        body.saleDateStart,
+        body.saleDateEnd
       )
     }
 

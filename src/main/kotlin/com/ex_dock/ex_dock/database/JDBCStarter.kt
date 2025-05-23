@@ -1,10 +1,14 @@
 package com.ex_dock.ex_dock.database
 
 import com.ex_dock.ex_dock.database.account.*
+import com.ex_dock.ex_dock.database.backend_block.*
 import com.ex_dock.ex_dock.database.auth.AuthenticationVerticle
 import com.ex_dock.ex_dock.database.category.*
 import com.ex_dock.ex_dock.database.checkout.CheckoutJdbcVerticle
 import com.ex_dock.ex_dock.database.home.HomeJdbcVerticle
+import com.ex_dock.ex_dock.database.image.Image
+import com.ex_dock.ex_dock.database.image.ImageJdbcVerticle
+import com.ex_dock.ex_dock.database.image.ImageProduct
 import com.ex_dock.ex_dock.database.product.*
 import com.ex_dock.ex_dock.database.scope.FullScope
 import com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticle
@@ -54,7 +58,15 @@ class JDBCStarter : AbstractVerticle() {
           eventBus.request<String>("process.service.addAdminUser", "").onFailure {
             throw PopulateException("Could not add admin user. Closing the server!")
           }.onSuccess {
-            starPromise.complete()
+            eventBus.request<String>("process.service.addTestProduct", "").onFailure {
+              throw PopulateException("Could not add test product. Closing the server!")
+            }.onSuccess {
+              eventBus.request<String>("process.service.addProductInfoBackendBlock", "").onFailure {
+                throw PopulateException("Could not add product info backend block. Closing the server!")
+              }.onSuccess {
+                starPromise.complete()
+              }
+            }
           }
         }
       }
@@ -82,6 +94,8 @@ class JDBCStarter : AbstractVerticle() {
     verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(ServiceVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(CacheVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ImageJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(AuthenticationVerticle::class))
   }
 
@@ -150,6 +164,20 @@ class JDBCStarter : AbstractVerticle() {
       .registerGenericCodec(Map::class)
       .registerGenericCodec(UsernamePasswordCredentials::class)
       .registerGenericCodec(Pair::class)
+      .registerGenericCodec(BackendBlock::class)
+      .registerGenericCodec(BlockAttribute::class)
+      .registerGenericCodec(AttributeBlock::class)
+      .registerGenericCodec(BlockId::class)
+      .registerGenericCodec(EavAttributeBool::class)
+      .registerGenericCodec(EavAttributeFloat::class)
+      .registerGenericCodec(EavAttributeInt::class)
+      .registerGenericCodec(EavAttributeMoney::class)
+      .registerGenericCodec(EavAttributeString::class)
+      .registerGenericCodec(EavAttributeMultiSelect::class)
+      .registerGenericCodec(FullBlockInfo::class)
+      .registerGenericCodec(FullEavAttribute::class)
+      .registerGenericCodec(Image::class)
+      .registerGenericCodec(ImageProduct::class)
 
       .registerGenericListCodec(FullUser::class)
   }

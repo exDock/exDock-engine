@@ -10,6 +10,7 @@ import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.core.http.CookieSameSite
+import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.SessionStore
@@ -56,7 +57,7 @@ class MainVerticle : AbstractVerticle() {
     mainRouter.initAccount(vertx)
 
     vertx
-      .createHttpServer()
+      .createHttpServer(HttpServerOptions().setMaxHeaderSize(32 * 1024))
       .requestHandler(mainRouter)
       .listen(props.getProperty("FRONTEND_PORT").toInt()) { http ->
         if (http.succeeded()) {

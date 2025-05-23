@@ -753,6 +753,9 @@ class UrlJdbcVerticle: AbstractVerticle() {
         shortName = row.getString("product_short_name"),
         description = row.getString("product_description"),
         shortDescription = row.getString("product_short_description"),
+        sku = row.getString("product_sku"),
+        ean = row.getString("product_ean"),
+        manufacturer = row.getString("product_manufacturer"),
       )
 
       fullUrlKeys.product = product
@@ -945,7 +948,8 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
     if (joinList[2]) {
       columnNamesQuery += ", p.product_id, p.name AS product_name, p.short_name AS product_short_name, " +
-        "p.description AS product_description, p.short_description AS product_short_description"
+        "p.description AS product_description, p.short_description AS product_short_description " +
+        "p.sku AS product_sku, p.ean AS product_ean, p.manufacturer AS product_manufacturer"
     }
 
     columnNamesQuery += " FROM url_keys uk "

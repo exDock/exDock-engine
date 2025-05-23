@@ -590,6 +590,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, msab.value AS bool_value, " +
         "msaf.value AS float_value, msas.value AS string_value, " +
         "msai.value AS int_value, msam.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "cpa.attribute_key FROM products " +
         "Left Join public.eav e on products.product_id = e.product_id " +
         "LEFT JOIN public.custom_product_attributes cpa on cpa.attribute_key = e.attribute_key " +
@@ -627,6 +628,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, msab.value AS bool_value, " +
         "msaf.value AS float_value, msas.value AS string_value, " +
         "msai.value AS int_value, msam.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "cpa.attribute_key FROM products " +
         "Left Join public.eav e on products.product_id = e.product_id " +
         "LEFT JOIN public.custom_product_attributes cpa on cpa.attribute_key = e.attribute_key " +
@@ -705,13 +707,16 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         shortName = row.getString("short_name"),
         description = row.getString("description"),
         shortDescription = row.getString("short_description"),
+        sku = row.getString("sku"),
+        ean = row.getString("ean"),
+        manufacturer = row.getString("manufacturer")
       ),
       row.getString("attribute_key"),
-      row.getBoolean("bool_value"),
-      row.getFloat("float_value"),
-      row.getString("string_value"),
-      row.getInteger("int_value"),
-      row.getDouble("money_value")
+      try {row.getBoolean("bool_value")} catch (_: Exception) {null},
+      try {row.getFloat("float_value")} catch (_: Exception) {null},
+      try {row.getString("string_value")} catch (_: Exception) {null},
+      try {row.getInteger("int_value")} catch (_: Exception) {null},
+      try {row.getDouble("money_value")} catch (_: Exception) {null},
     )
   }
 

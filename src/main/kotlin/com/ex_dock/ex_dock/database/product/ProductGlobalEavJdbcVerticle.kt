@@ -937,12 +937,12 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
   private fun makeEavGlobalInfo(row: Row): EavGlobalInfo {
     return EavGlobalInfo(
       eav = makeEavGlobal(row),
-      eavGlobalBool = row.getBoolean("bool_value"),
-      eavGlobalFloat = row.getFloat("float_value"),
-      eavGlobalString = row.getString("string_value"),
-      eavGlobalInt = row.getInteger("int_value"),
-      eavGlobalMoney = row.getDouble("money_value"),
-      eavGlobalMultiSelect = row.getInteger("multi_select_value")
+      eavGlobalBool = try {row.getBoolean("bool_value")} catch (_: Exception) {null},
+      eavGlobalFloat = try {row.getFloat("float_value")} catch (_: Exception) {null},
+      eavGlobalString = try {row.getString("string_value")} catch (_: Exception) {null},
+      eavGlobalInt = try {row.getInteger("int_value")} catch (_: Exception) {null},
+      eavGlobalMoney = try {row.getDouble("money_value")} catch (_: Exception) {null},
+      eavGlobalMultiSelect = try {row.getInteger("multi_select_value")} catch (_: Exception) {null}
     )
   }
 
