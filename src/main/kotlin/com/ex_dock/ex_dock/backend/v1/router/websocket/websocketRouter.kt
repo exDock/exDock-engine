@@ -15,7 +15,7 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
   val connectedClients = ConcurrentHashMap<String, ServerWebSocket>()
   val userIdToConnectionId = ConcurrentHashMap<String, String>()
   val websocketRouter = Router.router(vertx)
-  val authTimeOutMillis: Long = 10000L // 10 seconds timeout
+  val authTimeOutMillis = 10000L // 10 seconds timeout
 
   websocketRouter["/test"].handler { ctx ->
     ctx.end("Got request")
@@ -26,7 +26,7 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
       val webSocket = result
       val clientId = webSocket.binaryHandlerID()
       var authenticatedUserId: String? = null
-      var timerId by Delegates.notNull<Long>();
+      var timerId by Delegates.notNull<Long>()
       var firstAuthAttempt = true
 
       logger.info { "Client $clientId attempting to connect..." }
@@ -165,6 +165,9 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
             println("error")
           }
         }
+      }
+      else -> {
+        throw IllegalArgumentException("Unsupported targetType: $targetType")
       }
     }
   }
