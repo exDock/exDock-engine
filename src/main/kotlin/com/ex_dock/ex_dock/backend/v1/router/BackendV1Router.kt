@@ -1,6 +1,13 @@
 package com.ex_dock.ex_dock.backend.v1.router
 
 import com.ex_dock.ex_dock.backend.apiMountingPath
+import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
+import com.ex_dock.ex_dock.database.backend_block.FullBlockInfo
+import com.ex_dock.ex_dock.database.product.FullProduct
+import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
+import com.ex_dock.ex_dock.helper.convertJsonElement
+import com.ex_dock.ex_dock.helper.findValueByFieldName
+import com.google.gson.Gson
 import com.ex_dock.ex_dock.database.backend_block.FullBlockInfo
 import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import com.ex_dock.ex_dock.helper.convertJsonElement
@@ -12,11 +19,15 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.ext.web.handler.JWTAuthHandler
+import kotlinx.serialization.json.JsonElement
 
 fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false) {
   val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
   val backendV1Router: Router = Router.router(vertx)
   val eventBus: EventBus = vertx.eventBus()
+  val authProvider = AuthProvider()
+  val exDockAuthHandler = ExDockAuthHandler(vertx)
 
   backendV1Router.route().handler(BodyHandler.create())
 
@@ -101,6 +112,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
       ctx.end(it.result().body())
     }
   }
+
 
   // TODO: routing
   backendV1Router.initImage(vertx)

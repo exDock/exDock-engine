@@ -26,6 +26,8 @@ class ServiceVerticle: AbstractVerticle() {
     addProductInfoBackendBlock()
     addTestProduct()
     imageConverter()
+    addProductInfoBackendBlock()
+    addTestProduct()
   }
 
   private fun populateTemplateTable() {
@@ -443,6 +445,10 @@ class ServiceVerticle: AbstractVerticle() {
       }
 
     }
+  }
+
+  private fun hashPassword(password: String): String {
+    return BCrypt.hashpw(password, BCrypt.gensalt(12))
   }
 
   private fun imageConverter() {
