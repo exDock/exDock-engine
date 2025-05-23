@@ -9,6 +9,7 @@ import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.properties.Delegates
 
 fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger: KLogger) {
   val connectedClients = ConcurrentHashMap<String, ServerWebSocket>()
@@ -21,102 +22,100 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
   }
 
   websocketRouter.route("/error").handler { ctx ->
-    ctx.request().toWebSocket { asyncResult ->
-      if (asyncResult.succeeded()) {
-        val webSocket = asyncResult.result()
-        val clientId = webSocket.binaryHandlerID()
-        var authenticatedUserId: String? = null
-        var timerId: Long = -1
-        var firstAuthAttempt = true
+    ctx.request().toWebSocket().onSuccess { result ->
+      val webSocket = result
+      val clientId = webSocket.binaryHandlerID()
+      var authenticatedUserId: String? = null
+      var timerId by Delegates.notNull<Long>();
+      var firstAuthAttempt = true
 
-        logger.info { "Client $clientId attempting to connect..." }
+      logger.info { "Client $clientId attempting to connect..." }
 
-        timerId = vertx.setAuthTimer(authTimeOutMillis, authenticatedUserId, webSocket)
+      timerId = vertx.setAuthTimer(authTimeOutMillis, authenticatedUserId, webSocket)
 
-        val mainMessageHandler: (Buffer) -> Unit = { buffer ->
-          val message = buffer.toString()
-          logger.info { "Authenticated client $clientId (User: $authenticatedUserId) received: $message" }
-          webSocket.writeTextMessage("Server received: $message")
-        }
+      val mainMessageHandler: (Buffer) -> Unit = { buffer ->
+        val message = buffer.toString()
+        logger.info { "Authenticated client $clientId (User: $authenticatedUserId) received: $message" }
+        webSocket.writeTextMessage("Server received: $message")
+      }
 
-        webSocket.handler { accessBuffer ->
-          vertx.cancelTimer(timerId)
+      webSocket.handler { accessBuffer ->
+        vertx.cancelTimer(timerId)
 
-          try {
-            val authMessageJson = accessBuffer.toJsonObject()
-            val accessToken = authMessageJson.getString("token")
+        try {
+          val authMessageJson = accessBuffer.toJsonObject()
+          val accessToken = authMessageJson.getString("token")
 
-            vertx.eventBus().request<String>(
-              "process.authentication.authenticateToken", accessToken).onComplete { result ->
-              if (result.succeeded()) {
-                val userIdFromAuth = result.result().body()
-                authenticatedUserId = userIdFromAuth
+          vertx.eventBus().request<String>(
+            "process.authentication.authenticateToken", accessToken).onComplete { result ->
+            if (result.succeeded()) {
+              val userIdFromAuth = result.result().body()
+              authenticatedUserId = userIdFromAuth
 
-                userIdToConnectionId[userIdFromAuth] = clientId
-                connectedClients[userIdFromAuth] = webSocket
+              userIdToConnectionId[userIdFromAuth] = clientId
+              connectedClients[userIdFromAuth] = webSocket
 
-                logger.info { "Client $clientId authenticated successfully as user $authenticatedUserId." }
-                webSocket.writeTextMessage(
-                  JsonObject()
-                    .put("type", "auth_success")
-                    .put("message", "Authentication successful.")
-                    .encode()
-                )
+              logger.info { "Client $clientId authenticated successfully as user $authenticatedUserId." }
+              webSocket.writeTextMessage(
+                JsonObject()
+                  .put("type", "auth_success")
+                  .put("message", "Authentication successful.")
+                  .encode()
+              )
 
-                webSocket.handler(mainMessageHandler)
+              webSocket.handler(mainMessageHandler)
+            } else {
+              webSocket.writeTextMessage(
+                JsonObject()
+                  .put("type", "auth_failure")
+                  .put("message", "Authentication failed: User identification error.")
+                  .encode()
+              )
+              if (!firstAuthAttempt) {
+                logger.info { "Client $clientId failed to authenticate. Closing connection" }
+                webSocket.close()
               } else {
-                webSocket.writeTextMessage(
-                  JsonObject()
-                    .put("type", "auth_failure")
-                    .put("message", "Authentication failed: User identification error.")
-                    .encode()
-                )
-                if (!firstAuthAttempt) {
-                  logger.info { "Client $clientId failed to authenticate. Closing connection" }
-                  webSocket.close()
-                } else {
-                  firstAuthAttempt = false
-                  logger.info { "Client $clientId failed to authenticate." }
-                  timerId = vertx.setAuthTimer(authTimeOutMillis, authenticatedUserId, webSocket)
-                }
+                firstAuthAttempt = false
+                logger.info { "Client $clientId failed to authenticate." }
+                timerId = vertx.setAuthTimer(authTimeOutMillis, authenticatedUserId, webSocket)
               }
             }
-          } catch (e: Exception) {
-            logger.error { "Client $clientId sent invalid auth message format: ${e.message}" }
-            webSocket.writeTextMessage(
-              JsonObject()
-                .put("type", "auth_failure")
-                .put("message", "Invalid authentication message format.")
-                .encode()
-            )
-            webSocket.close()
           }
+        } catch (e: Exception) {
+          logger.error { "Client $clientId sent invalid auth message format: ${e.message}" }
+          webSocket.writeTextMessage(
+            JsonObject()
+              .put("type", "auth_failure")
+              .put("message", "Invalid authentication message format.")
+              .encode()
+          )
+          webSocket.close()
+        }
 
-          webSocket.closeHandler { _ ->
-            vertx.cancelTimer(timerId)
-            connectedClients.remove(clientId)
-            logger.info { "Client $clientId disconnected." }
-            if (authenticatedUserId != null) {
-              userIdToConnectionId.remove(authenticatedUserId)
-            }
-          }
-
-          webSocket.exceptionHandler { error ->
-            vertx.cancelTimer(timerId)
-            connectedClients.remove(clientId)
-            logger.error { "Error for client $clientId (User: $authenticatedUserId): ${error.message}" }
-            if (authenticatedUserId != null) {
-              userIdToConnectionId.remove(authenticatedUserId)
-            }
-            if (!webSocket.isClosed) {
-              webSocket.close()
-            }
+        webSocket.closeHandler { _ ->
+          vertx.cancelTimer(timerId)
+          connectedClients.remove(clientId)
+          logger.info { "Client $clientId disconnected." }
+          if (authenticatedUserId != null) {
+            userIdToConnectionId.remove(authenticatedUserId)
           }
         }
-      } else {
-        logger.error { "Failed to upgrade to WebSocket" }
-        ctx.response().setStatusCode(400).end("Failed to upgrade to WebSocket")
+
+        webSocket.exceptionHandler { error ->
+          vertx.cancelTimer(timerId)
+          connectedClients.remove(clientId)
+          logger.error { "Error for client $clientId (User: $authenticatedUserId): ${error.message}" }
+          if (authenticatedUserId != null) {
+            userIdToConnectionId.remove(authenticatedUserId)
+          }
+          if (!webSocket.isClosed) {
+            webSocket.close()
+          }
+        }
       }
+    }.onFailure { error ->
+      logger.error { "Failed to upgrade to WebSocket" }
+      ctx.response().setStatusCode(400).end("Failed to upgrade to WebSocket")
     }
   }
 
