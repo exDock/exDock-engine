@@ -113,7 +113,7 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
           }
         }
       }
-    }.onFailure { error ->
+    }.onFailure { _ ->
       logger.error { "Failed to upgrade to WebSocket" }
       ctx.response().setStatusCode(400).end("Failed to upgrade to WebSocket")
     }
