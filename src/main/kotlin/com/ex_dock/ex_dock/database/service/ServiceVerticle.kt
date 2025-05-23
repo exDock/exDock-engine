@@ -3,6 +3,7 @@ package com.ex_dock.ex_dock.database.service
 import com.ex_dock.ex_dock.database.account.Permission
 import com.ex_dock.ex_dock.database.account.hash
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.helper.convertImage
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.eventbus.EventBus
@@ -25,6 +26,7 @@ class ServiceVerticle: AbstractVerticle() {
     addAdminUser()
     addProductInfoBackendBlock()
     addTestProduct()
+    imageConverter()
   }
 
   private fun populateTemplateTable() {
@@ -441,6 +443,15 @@ class ServiceVerticle: AbstractVerticle() {
         }
       }
 
+    }
+  }
+
+  private fun imageConverter() {
+    eventBus.consumer("process.service.convertImage") { message ->
+      val path = message.body()
+      println("Got request")
+      convertImage(path)
+      message.reply("Image conversion completed")
     }
   }
 }

@@ -5,6 +5,7 @@ import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.database.backend_block.FullBlockInfo
 import com.ex_dock.ex_dock.database.product.FullProduct
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
+import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import com.ex_dock.ex_dock.helper.convertJsonElement
 import com.ex_dock.ex_dock.helper.findValueByFieldName
 import com.google.gson.Gson
@@ -106,6 +107,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   }
 
   // TODO: routing
+  backendV1Router.initImage(vertx)
 
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
