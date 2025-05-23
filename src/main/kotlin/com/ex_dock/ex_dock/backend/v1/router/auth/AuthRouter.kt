@@ -25,7 +25,7 @@ fun Router.enableAuthRouter(vertx: Vertx, absoluteMounting: Boolean = false) {
       "process.authentication.login", usernamePasswordCredentials, usernamePasswordCredentialsDeliveryOptions)
       .onFailure { exception ->
       if (exception.message == "invalid credentials") {
-        ctx.fail(401, Error("invalid credentials"))
+        ctx.fail(403, Error("invalid credentials"))
       } else {
         ctx.fail(500, Error("internal server error"))
       }
@@ -44,7 +44,7 @@ fun Router.enableAuthRouter(vertx: Vertx, absoluteMounting: Boolean = false) {
     eventBus.request<String>("process.authentication.refresh", refreshToken)
       .onFailure { exception ->
         if (exception.message == "invalid refresh token") {
-          ctx.fail(401, Error("invalid refresh token"))
+          ctx.fail(403, Error("invalid refresh token"))
         } else {
           ctx.fail(500, Error("internal server error"))
         }
