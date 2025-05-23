@@ -447,10 +447,6 @@ class ServiceVerticle: AbstractVerticle() {
     }
   }
 
-  private fun hashPassword(password: String): String {
-    return BCrypt.hashpw(password, BCrypt.gensalt(12))
-  }
-
   private fun imageConverter() {
     eventBus.consumer("process.service.convertImage") { message ->
       val path = message.body()
