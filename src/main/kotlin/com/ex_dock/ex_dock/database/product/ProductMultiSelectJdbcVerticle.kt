@@ -21,7 +21,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     getAllMultiSelectAttributesBool()
@@ -74,7 +74,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach{ row ->
-            multiSelectBoolList.add(makeMultiSelectAttributesBool(row))
+            multiSelectBoolList.add(row.makeMultiSelectAttributesBool())
           }
         }
 
@@ -99,7 +99,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeMultiSelectAttributesBool(rows.first()), multiSelectBoolDeliveryOptions)
+          message.reply(rows.first().makeMultiSelectAttributesBool(), multiSelectBoolDeliveryOptions)
         } else {
           message.reply("No website bool found")
         }
@@ -113,7 +113,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO multi_select_attributes_bool (attribute_key, option, value) VALUES (?, ?, ?::bit(1))"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesBoolTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -132,7 +132,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE multi_select_attributes_bool SET option =?, value =?::bit(1) WHERE attribute_key =? "
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesBoolTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -179,7 +179,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            multiSelectFloatList.add(makeMultiSelectAttributesFloat(row))
+            multiSelectFloatList.add(row.makeMultiSelectAttributesFloat())
           }
         }
 
@@ -218,7 +218,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO multi_select_attributes_float (attribute_key, option, value) VALUES (?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesFloatTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -237,7 +237,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE multi_select_attributes_float SET option =?, value =? WHERE attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesFloatTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -284,7 +284,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            multiSelectStringList.add(makeMultiSelectAttributesString(row))
+            multiSelectStringList.add(row.makeMultiSelectAttributesString())
           }
         }
 
@@ -323,7 +323,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO multi_select_attributes_string (attribute_key, option, value) VALUES (?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesStringTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -342,7 +342,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE multi_select_attributes_string SET option =?, value =? WHERE attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesStringTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -389,7 +389,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            multiSelectIntList.add(makeMultiSelectAttributesInt(row))
+            multiSelectIntList.add(row.makeMultiSelectAttributesInt())
           }
         }
 
@@ -428,7 +428,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO multi_select_attributes_int (attribute_key, option, value) VALUES (?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesIntTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -447,7 +447,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE multi_select_attributes_int SET option =?, value =? WHERE attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesIntTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -494,7 +494,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            multiSelectMoney.add(makeMultiSelectAttributesMoney(row))
+            multiSelectMoney.add(row.makeMultiSelectAttributesMoney())
           }
         }
 
@@ -533,7 +533,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO multi_select_attributes_money (attribute_key, option, value) VALUES (?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesMoneyTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -552,7 +552,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE multi_select_attributes_money SET option =?, value =? WHERE attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeMultiSelectAttributesMoneyTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -590,6 +590,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, msab.value AS bool_value, " +
         "msaf.value AS float_value, msas.value AS string_value, " +
         "msai.value AS int_value, msam.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "cpa.attribute_key FROM products " +
         "Left Join public.eav e on products.product_id = e.product_id " +
         "LEFT JOIN public.custom_product_attributes cpa on cpa.attribute_key = e.attribute_key " +
@@ -610,7 +611,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            multiSelectInfoList.add(makeMultiSelectAttributesInfo(row))
+            multiSelectInfoList.add(row.makeMultiSelectAttributesInfo())
           }
         }
 
@@ -627,6 +628,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, msab.value AS bool_value, " +
         "msaf.value AS float_value, msas.value AS string_value, " +
         "msai.value AS int_value, msam.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "cpa.attribute_key FROM products " +
         "Left Join public.eav e on products.product_id = e.product_id " +
         "LEFT JOIN public.custom_product_attributes cpa on cpa.attribute_key = e.attribute_key " +
@@ -648,7 +650,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            multiSelectInfoList.add(makeMultiSelectAttributesInfo(row))
+            multiSelectInfoList.add(row.makeMultiSelectAttributesInfo())
           }
         }
 
@@ -657,153 +659,154 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
     }
   }
 
-  private fun makeMultiSelectAttributesBool(row: Row): MultiSelectBool {
+  private fun Row.makeMultiSelectAttributesBool(): MultiSelectBool {
     return MultiSelectBool(
-      attributeKey = row.getString("attribute_key"),
-      option = row.getInteger("option"),
-      value = row.getBoolean("value")
+      attributeKey = this.getString("attribute_key"),
+      option = this.getInteger("option"),
+      value = this.getBoolean("value")
     )
   }
 
-  private fun makeMultiSelectAttributesFloat(row: Row): MultiSelectFloat {
+  private fun Row.makeMultiSelectAttributesFloat(): MultiSelectFloat {
     return MultiSelectFloat(
-      attributeKey = row.getString("attribute_key"),
-      option = row.getInteger("option"),
-      value = row.getFloat("value")
+      attributeKey = this.getString("attribute_key"),
+      option = this.getInteger("option"),
+      value = this.getFloat("value")
     )
   }
 
-  private fun makeMultiSelectAttributesString(row: Row): MultiSelectString {
+  private fun Row.makeMultiSelectAttributesString(): MultiSelectString {
     return MultiSelectString(
-      attributeKey = row.getString("attribute_key"),
-      option = row.getInteger("option"),
-      value = row.getString("value")
+      attributeKey = this.getString("attribute_key"),
+      option = this.getInteger("option"),
+      value = this.getString("value")
     )
   }
 
-  private fun makeMultiSelectAttributesInt(row: Row): MultiSelectInt {
+  private fun Row.makeMultiSelectAttributesInt(): MultiSelectInt {
     return MultiSelectInt(
-      attributeKey = row.getString("attribute_key"),
-      option = row.getInteger("option"),
-      value = row.getInteger("value")
+      attributeKey = this.getString("attribute_key"),
+      option = this.getInteger("option"),
+      value = this.getInteger("value")
     )
   }
 
-  private fun makeMultiSelectAttributesMoney(row: Row): MultiSelectMoney {
+  private fun Row.makeMultiSelectAttributesMoney(): MultiSelectMoney {
     return MultiSelectMoney(
-      attributeKey = row.getString("attribute_key"),
-      option = row.getInteger("option"),
-      value = row.getDouble("value")
+      attributeKey = this.getString("attribute_key"),
+      option = this.getInteger("option"),
+      value = this.getDouble("value")
     )
   }
 
-  private fun makeMultiSelectAttributesInfo(row: Row): MultiSelectInfo {
+  private fun Row.makeMultiSelectAttributesInfo(): MultiSelectInfo {
     return MultiSelectInfo(
       Products(
-        productId = row.getInteger("product_id"),
-        name = row.getString("name"),
-        shortName = row.getString("short_name"),
-        description = row.getString("description"),
-        shortDescription = row.getString("short_description"),
+        productId = this.getInteger("product_id"),
+        name = this.getString("name"),
+        shortName = this.getString("short_name"),
+        description = this.getString("description"),
+        shortDescription = this.getString("short_description"),
+        sku = this.getString("sku"),
+        ean = this.getString("ean"),
+        manufacturer = this.getString("manufacturer")
       ),
-      row.getString("attribute_key"),
-      row.getBoolean("bool_value"),
-      row.getFloat("float_value"),
-      row.getString("string_value"),
-      row.getInteger("int_value"),
-      row.getDouble("money_value")
+      this.getString("attribute_key"),
+      try {this.getBoolean("bool_value")} catch (_: Exception) {null},
+      try {this.getFloat("float_value")} catch (_: Exception) {null},
+      try {this.getString("string_value")} catch (_: Exception) {null},
+      try {this.getInteger("int_value")} catch (_: Exception) {null},
+      try {this.getDouble("money_value")} catch (_: Exception) {null},
     )
   }
 
-  private fun makeMultiSelectAttributesBoolTuple(body: MultiSelectBool, isPutRequest: Boolean): Tuple {
+  private fun MultiSelectBool.toTuple(isPutRequest: Boolean): Tuple {
     val multiSelectBoolTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.option,
-        body.value.toInt(),
-        body.attributeKey,
+        this.option,
+        this.value.toInt(),
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.attributeKey,
-        body.option,
-        body.value.toInt(),
+        this.attributeKey,
+        this.option,
+        this.value.toInt(),
       )
     }
 
     return multiSelectBoolTuple
   }
 
-  private fun makeMultiSelectAttributesFloatTuple(body: MultiSelectFloat, isPutRequest: Boolean): Tuple {
+  private fun MultiSelectFloat.toTuple(isPutRequest: Boolean): Tuple {
     val multiSelectFloatTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.option,
-        body.value,
-        body.attributeKey,
+        this.option,
+        this.value,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.attributeKey,
-        body.option,
-        body.value,
+        this.attributeKey,
+        this.option,
+        this.value,
       )
     }
 
     return multiSelectFloatTuple
   }
 
-  private fun makeMultiSelectAttributesStringTuple(body: MultiSelectString, isPutRequest: Boolean): Tuple {
+  private fun MultiSelectString.toTuple(isPutRequest: Boolean): Tuple {
     val multiSelectStringTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.option,
-        body.value,
-        body.attributeKey,
+        this.option,
+        this.value,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.attributeKey,
-        body.option,
-        body.value,
+        this.attributeKey,
+        this.option,
+        this.value,
       )
     }
 
     return multiSelectStringTuple
   }
 
-  private fun makeMultiSelectAttributesIntTuple(body: MultiSelectInt, isPutRequest: Boolean): Tuple {
+  private fun MultiSelectInt.toTuple(isPutRequest: Boolean): Tuple {
     val multiSelectIntTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.option,
-        body.value,
-        body.attributeKey,
+        this.option,
+        this.value,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.attributeKey,
-        body.option,
-        body.value,
+        this.attributeKey,
+        this.option,
+        this.value,
       )
     }
 
     return multiSelectIntTuple
   }
 
-  private fun makeMultiSelectAttributesMoneyTuple(body: MultiSelectMoney, isPutRequest: Boolean): Tuple {
+  private fun MultiSelectMoney.toTuple(isPutRequest: Boolean): Tuple {
     val multiSelectMoneyTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.option,
-        body.value,
-        body.attributeKey,
+        this.option,
+        this.value,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.attributeKey,
-        body.option,
-        body.value,
+        this.attributeKey,
+        this.option,
+        this.value,
       )
     }
 
     return multiSelectMoneyTuple
   }
-
-  private fun Boolean.toInt() = if (this) 1 else 0
 }

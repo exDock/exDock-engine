@@ -1,6 +1,8 @@
 package com.ex_dock.ex_dock.database.text_pages
 
 import com.ex_dock.ex_dock.database.category.PageIndex
+import com.ex_dock.ex_dock.database.category.convertToString
+import com.ex_dock.ex_dock.database.category.toPageIndex
 import com.ex_dock.ex_dock.database.connection.getConnection
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
@@ -21,7 +23,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize the eventbus connections with the text pages table
@@ -61,7 +63,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
         val rows = res.value()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            textPagesList.add(makeTextPages(row))
+            textPagesList.add(row.makeTextPages())
           }
         }
 
@@ -88,7 +90,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(makeTextPages(rows.first()), textPagesDeliveryOptions)
+          message.reply(rows.first().makeTextPages(), textPagesDeliveryOptions)
         } else {
           message.reply("No text page found with ID")
         }
@@ -104,7 +106,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
     createTextPageConsumer.handler { message ->
       val body = message.body()
       val query = "INSERT INTO text_pages (name, short_text, text) VALUES (?,?,?)"
-      val textPageTuple =  makeTextPagesTuple(body, false)
+      val textPageTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(textPageTuple)
 
       rowsFuture.onFailure { res ->
@@ -131,7 +133,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
     updateTextPageConsumer.handler { message ->
       val body = message.body()
       val query = "UPDATE text_pages SET name =?, short_text =?, text =? WHERE text_pages_id =?"
-      val textPageTuple =  makeTextPagesTuple(body, true)
+      val textPageTuple =  body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(textPageTuple)
 
       rowsFuture.onFailure { res ->
@@ -192,7 +194,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
         val rows = res.value()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            textPagesSeoList.add(makeSeoTextPages(row))
+            textPagesSeoList.add(row.makeSeoTextPages())
           }
         }
 
@@ -219,7 +221,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(makeSeoTextPages(rows.first()), seoTextPagesDeliveryOptions)
+          message.reply(rows.first().makeSeoTextPages(), seoTextPagesDeliveryOptions)
         } else {
           message.reply("No SEO text page found with ID")
         }
@@ -237,7 +239,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
       val query =
         "INSERT INTO text_pages_seo (text_pages_id, meta_title, meta_description, meta_keywords, page_index) " +
           "VALUES (?,?,?,?,?::p_index)"
-      val seoTextPageTuple = makeSeoTextPageTuple(body, false)
+      val seoTextPageTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(seoTextPageTuple)
 
       rowsFuture.onFailure { res ->
@@ -266,7 +268,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
       val query =
         "UPDATE text_pages_seo SET meta_title =?, meta_description =?, meta_keywords =?, page_index =?::p_index " +
           "WHERE text_pages_id =?"
-      val seoTextPageTuple = makeSeoTextPageTuple(body, true)
+      val seoTextPageTuple = body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(seoTextPageTuple)
 
       rowsFuture.onFailure { res ->
@@ -329,7 +331,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
         val rows = res.value()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            fullTextPagesList.add(makeFullTextPages(row))
+            fullTextPagesList.add(row.makeFullTextPages())
           }
         }
 
@@ -359,7 +361,7 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(makeFullTextPages(rows.first()), fullTextPagesDeliveryOptions)
+          message.reply(rows.first().makeFullTextPages(), fullTextPagesDeliveryOptions)
         } else {
           message.reply("No full text page found with ID")
         }
@@ -373,12 +375,12 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
    * @param row The row given from the database
    * @return The JSON fields from the database row
    */
-  private fun makeTextPages(row: Row): TextPages {
+  private fun Row.makeTextPages(): TextPages {
     return TextPages(
-      textPagesId = row.getInteger("text_pages_id"),
-      name = row.getString("name"),
-      shortText = row.getString("short_text"),
-      text = row.getString("text"),
+      textPagesId = this.getInteger("text_pages_id"),
+      name = this.getString("name"),
+      shortText = this.getString("short_text"),
+      text = this.getString("text"),
     )
   }
 
@@ -388,13 +390,13 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
    * @param row The row given from the database
    * @return The JSON fields from the database row
    */
-  private fun makeSeoTextPages(row: Row): TextPagesSeo {
+  private fun Row.makeSeoTextPages(): TextPagesSeo {
     return TextPagesSeo(
-      textPagesId = row.getInteger("text_pages_id"),
-      metaTitle = row.getString("meta_title"),
-      metaDescription = row.getString("meta_description"),
-      metaKeywords = row.getString("meta_keywords"),
-      pageIndex = getEnum(row.getString("page_index"))
+      textPagesId = this.getInteger("text_pages_id"),
+      metaTitle = this.getString("meta_title"),
+      metaDescription = this.getString("meta_description"),
+      metaKeywords = this.getString("meta_keywords"),
+      pageIndex = this.getString("page_index").toPageIndex()
     )
   }
 
@@ -404,10 +406,10 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
    * @param row The row given from the database
    * @return The JSON fields from the database row
    */
-  private fun makeFullTextPages(row: Row): FullTextPages {
+  private fun Row.makeFullTextPages(): FullTextPages {
     return FullTextPages(
-      makeTextPages(row),
-      makeSeoTextPages(row)
+      this.makeTextPages(),
+      this.makeSeoTextPages()
     )
   }
 
@@ -418,20 +420,20 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
    * @param putRequest if the given request is a put request
    * @return A tuple for the text pages with the given body
    */
-  private fun makeTextPagesTuple(body: TextPages, putRequest: Boolean): Tuple {
+  private fun TextPages.toTuple(putRequest: Boolean): Tuple {
 
     val textPagesTuple: Tuple = if (putRequest) {
       Tuple.of(
-        body.name,
-        body.shortText,
-        body.text,
-        body.textPagesId
+        this.name,
+        this.shortText,
+        this.text,
+        this.textPagesId
       )
     } else {
       Tuple.of(
-        body.name,
-        body.shortText,
-        body.text
+        this.name,
+        this.shortText,
+        this.text
       )
     }
 
@@ -445,45 +447,25 @@ class TextPagesJdbcVerticle: AbstractVerticle() {
    * @param putRequest if the given request is a put request
    * @return A Tuple for the SEO text pages with the given body
    */
-  private fun makeSeoTextPageTuple(body: TextPagesSeo, putRequest: Boolean): Tuple {
+  private fun TextPagesSeo.toTuple(putRequest: Boolean): Tuple {
     val seoTextPageTuple: Tuple = if (putRequest) {
       Tuple.of(
-        body.metaTitle,
-        body.metaDescription,
-        body.metaKeywords,
-        convertEnum(body.pageIndex),
-        body.textPagesId
+        this.metaTitle,
+        this.metaDescription,
+        this.metaKeywords,
+        this.pageIndex.convertToString(),
+        this.textPagesId
       )
     } else {
       Tuple.of(
-        body.textPagesId,
-        body.metaTitle,
-        body.metaDescription,
-        body.metaKeywords,
-        convertEnum(body.pageIndex)
+        this.textPagesId,
+        this.metaTitle,
+        this.metaDescription,
+        this.metaKeywords,
+        this.pageIndex.convertToString()
       )
     }
 
     return seoTextPageTuple
-  }
-
-  private fun getEnum(name: String): PageIndex {
-    when (name) {
-      "index, follow" -> return PageIndex.IndexFollow
-      "index, nofollow" -> return PageIndex.IndexNoFollow
-      "noindex, follow" -> return PageIndex.NoIndexFollow
-      "noindex, nofollow" -> return PageIndex.NoIndexNoFollow
-    }
-
-    return PageIndex.NoIndexNoFollow
-  }
-
-  private fun convertEnum(pageIndex: PageIndex): String {
-    return when (pageIndex) {
-      PageIndex.IndexFollow -> "index, follow"
-      PageIndex.IndexNoFollow -> "index, nofollow"
-      PageIndex.NoIndexFollow -> "noindex, follow"
-      PageIndex.NoIndexNoFollow -> "noindex, nofollow"
-    }
   }
 }

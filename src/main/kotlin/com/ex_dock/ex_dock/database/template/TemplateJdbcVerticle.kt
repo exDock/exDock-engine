@@ -18,7 +18,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     getAllTemplates()
@@ -46,7 +46,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onSuccess { rows ->
-        val templates: MutableList<Template> = rows.map { makeTemplate(it) }.toMutableList()
+        val templates: MutableList<Template> = rows.map { it.makeTemplate() }.toMutableList()
         message.reply(templates, listDeliveryOptions)
       }
     }
@@ -66,7 +66,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onSuccess { rows ->
         if (rows.size() == 1) {
-          val template = makeTemplate(rows.first())
+          val template = rows.first().makeTemplate()
           message.reply(template, templateDeliveryOptions)
         } else {
           message.reply(failedMessage)
@@ -80,7 +80,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
     createTemplateConsumer.handler { message ->
       val body = message.body()
       val isPutRequest = message.headers().contains("isPutRequest")
-      val templateTuple = makeTemplateTuple(body, isPutRequest)
+      val templateTuple = body.toTuple(isPutRequest)
       val query = "INSERT INTO templates (template_data, template_key) VALUES (?,?)"
 
       val rowsFuture = client.preparedQuery(query).execute(templateTuple)
@@ -101,7 +101,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
     updateTemplateConsumer.handler { message ->
       val body = message.body()
       val isPutRequest = message.headers().contains("isPutRequest")
-      val templateTuple = makeTemplateTuple(body, isPutRequest)
+      val templateTuple = body.toTuple(isPutRequest)
       val query = "UPDATE templates SET template_data =? WHERE template_key =?"
 
       val rowsFuture = client.preparedQuery(query).execute(templateTuple)
@@ -148,7 +148,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onSuccess { rows ->
-        val blocks: MutableList<Block> = rows.map { makeBlock(it) }.toMutableList()
+        val blocks: MutableList<Block> = rows.map { it.makeBlock() }.toMutableList()
         message.reply(blocks, listDeliveryOptions)
       }
     }
@@ -168,7 +168,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onSuccess { rows ->
         if (rows.size() == 1) {
-          val block = makeBlock(rows.first())
+          val block = rows.first().makeBlock()
           message.reply(block, blockDeliveryOptions)
         } else {
           message.reply(failedMessage)
@@ -182,7 +182,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
     createBlockConsumer.handler { message ->
       val body = message.body()
       val isPutRequest = message.headers().contains("isPutRequest")
-      val blockTuple = makeBlockTuple(body, isPutRequest)
+      val blockTuple = body.toTuple(false)
       val query = "INSERT INTO blocks (template_key) VALUES (?)"
 
       val rowsFuture = client.preparedQuery(query).execute(blockTuple)
@@ -203,7 +203,7 @@ class TemplateJdbcVerticle: AbstractVerticle() {
     updateBlockConsumer.handler { message ->
       val body = message.body()
       val isPutRequest = message.headers().contains("isPutRequest")
-      val blockTuple = makeBlockTuple(body, isPutRequest)
+      val blockTuple = body.toTuple(isPutRequest)
       val query = "UPDATE blocks SET template_key =? WHERE template_key =?"
 
       val rowsFuture = client.preparedQuery(query).execute(blockTuple)
@@ -238,44 +238,45 @@ class TemplateJdbcVerticle: AbstractVerticle() {
     }
   }
 
-  private fun makeTemplate(row: Row): Template {
+  private fun Row.makeTemplate(): Template {
     return Template(
-      row.getString("template_key"),
-      row.getString("template_data")
+      this.getString("template_key"),
+      this.getString("template_data"),
+      this.getString("data_string")
     )
   }
 
-  private fun makeBlock(row: Row): Block {
+  private fun Row.makeBlock(): Block {
     return Block(
-      row.getString("block_key"),
+      this.getString("block_key"),
     )
   }
 
-  private fun makeTemplateTuple(body: Template, isPutRequest: Boolean): Tuple {
+  private fun Template.toTuple(isPutRequest: Boolean): Tuple {
     val templateTuple = if (isPutRequest) {
       Tuple.of(
-        body.templateData,
-        body.templateKey,
+        this.templateData,
+        this.templateKey,
       )
     } else {
       Tuple.of(
-        body.templateKey,
-        body.templateData
+        this.templateKey,
+        this.templateData
       )
     }
 
     return templateTuple
   }
 
-  private fun makeBlockTuple(body: Block, isPutRequest: Boolean): Tuple {
+  private fun Block.toTuple(isPutRequest: Boolean): Tuple {
     val blockTuple = if (isPutRequest) {
       Tuple.of(
-        body.templateKey,
-        body.templateKey
+        this.templateKey,
+        this.templateKey
       )
     } else {
       Tuple.of(
-        body.templateKey
+        this.templateKey
       )
     }
 

@@ -1,5 +1,7 @@
 package com.ex_dock.ex_dock.database.account
 
+import org.mindrot.jbcrypt.BCrypt
+
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -100,7 +102,30 @@ enum class Permission(name: String) {
     }
 
     fun toString(permission: Permission): String {
-      return permission.name
+      return permission.name.lowercase().replace("_", "-")
     }
+  }
+}
+
+fun String.hash(): String {
+  return BCrypt.hashpw(this, BCrypt.gensalt(12))
+}
+
+fun String.convertToPermission(): Permission {
+  when (this) {
+    "read" -> return Permission.READ
+    "write" -> return Permission.WRITE
+    "read-write" -> return Permission.READ_WRITE
+  }
+
+  return Permission.NONE
+}
+
+fun Permission.convertToString(): String {
+  return when (this) {
+    Permission.READ -> "read"
+    Permission.WRITE -> "write"
+    Permission.READ_WRITE -> "read-write"
+    Permission.NONE -> "none"
   }
 }
