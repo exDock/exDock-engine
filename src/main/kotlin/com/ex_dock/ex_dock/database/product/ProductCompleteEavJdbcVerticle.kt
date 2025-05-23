@@ -18,7 +18,7 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
   private var currentListName = ""
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     getAllCompleteProductEavData()
@@ -105,7 +105,7 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
             obj(
               "completeEav" to rows.map { row ->
                 obj(
-                  makeCompleteEavDataJsonFields(row)
+                  row.makeCompleteEavDataJsonFields()
                 )
               }
             )
@@ -200,7 +200,7 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
             obj(
               "completeEav" to rows.map { row ->
                 obj(
-                  makeCompleteEavDataJsonFields(row)
+                  row.makeCompleteEavDataJsonFields()
                 )
               }
             )
@@ -346,7 +346,7 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
       rowsFuture.onSuccess { rs ->
         val rows = rs.value()
         rows.forEach { row ->
-          json = makeCompleteEavDataJsonFieldsNew(row, json)
+          json = row.makeCompleteEavDataJsonFieldsNew(json)
         }
 
         message.reply(json)
@@ -354,36 +354,36 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
     }
   }
 
-  private fun makeCompleteEavDataJsonFieldsNew(row: Row, jsonObject: JsonObject?): JsonObject {
+  private fun Row.makeCompleteEavDataJsonFieldsNew(jsonObject: JsonObject?): JsonObject {
     var newJsonObject = jsonObject
 
     if (newJsonObject == null) {
       newJsonObject = JsonObject()
-      newJsonObject.put("product_id", row.getInteger("product_id"))
-      newJsonObject.put("attribute_key", row.getString("attribute_key"))
-      newJsonObject.put("store_view_id", row.getInteger("store_view_id"))
-      newJsonObject.put("website_id", row.getInteger("website_id"))
-      newJsonObject.put("product_name", row.getString("product_name"))
-      newJsonObject.put("product_short_name", row.getString("product_short_name"))
-      newJsonObject.put("product_description", row.getString("product_description"))
-      newJsonObject.put("product_short_description", row.getString("product_short_description"))
-      newJsonObject.put("product_sku", row.getString("product_sku"))
-      newJsonObject.put("product_ean", row.getString("product_ean"))
-      newJsonObject.put("product_manufacturer", row.getString("product_manufacturer"))
-      newJsonObject.put("product_price", row.getDouble("product_price"))
-      newJsonObject.put("product_cost_price", row.getDouble("product_cost_price"))
-      newJsonObject.put("product_sale_price", row.getDouble("product_sale_price"))
-      newJsonObject.put("product_tax_class", row.getString("product_tax_class"))
-      newJsonObject.put("product_sale_date_start", row.getString("product_sale_date_start"))
-      newJsonObject.put("product_sale_date_end", row.getString("product_sale_date_end"))
-      newJsonObject.put("product_meta_title", row.getString("product_meta_title"))
-      newJsonObject.put("product_meta_description", row.getString("product_meta_description"))
-      newJsonObject.put("product_meta_keywords", row.getString("product_meta_keywords"))
-      newJsonObject.put("product_page_index", row.getString("product_page_index"))
-      newJsonObject.put("product_location", row.getString("product_location"))
+      newJsonObject.put("product_id", this.getInteger("product_id"))
+      newJsonObject.put("attribute_key", this.getString("attribute_key"))
+      newJsonObject.put("store_view_id", this.getInteger("store_view_id"))
+      newJsonObject.put("website_id", this.getInteger("website_id"))
+      newJsonObject.put("product_name", this.getString("product_name"))
+      newJsonObject.put("product_short_name", this.getString("product_short_name"))
+      newJsonObject.put("product_description", this.getString("product_description"))
+      newJsonObject.put("product_short_description", this.getString("product_short_description"))
+      newJsonObject.put("product_sku", this.getString("product_sku"))
+      newJsonObject.put("product_ean", this.getString("product_ean"))
+      newJsonObject.put("product_manufacturer", this.getString("product_manufacturer"))
+      newJsonObject.put("product_price", this.getDouble("product_price"))
+      newJsonObject.put("product_cost_price", this.getDouble("product_cost_price"))
+      newJsonObject.put("product_sale_price", this.getDouble("product_sale_price"))
+      newJsonObject.put("product_tax_class", this.getString("product_tax_class"))
+      newJsonObject.put("product_sale_date_start", this.getString("product_sale_date_start"))
+      newJsonObject.put("product_sale_date_end", this.getString("product_sale_date_end"))
+      newJsonObject.put("product_meta_title", this.getString("product_meta_title"))
+      newJsonObject.put("product_meta_description", this.getString("product_meta_description"))
+      newJsonObject.put("product_meta_keywords", this.getString("product_meta_keywords"))
+      newJsonObject.put("product_page_index", this.getString("product_page_index"))
+      newJsonObject.put("product_location", this.getString("product_location"))
     }
 
-    val eavAttributesJson = stripStandardValues(row)
+    val eavAttributesJson = this.stripStandardValues()
     val iterator = eavAttributesJson.iterator()
 
     while (iterator.hasNext()) {
@@ -439,8 +439,8 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
     return newJsonObject
   }
 
-  private fun stripStandardValues(row: Row): JsonObject {
-    val jsonRow = row.toJson()
+  private fun Row.stripStandardValues(): JsonObject {
+    val jsonRow = this.toJson()
     jsonRow.remove("product_id")
     jsonRow.remove("attribute_key")
     jsonRow.remove("store_view_id")
@@ -467,39 +467,39 @@ class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
     return jsonRow
   }
 
-  private fun makeCompleteEavDataJsonFields(row: Row): List<Pair<String, Any>> {
+  private fun Row.makeCompleteEavDataJsonFields(): List<Pair<String, Any>> {
     return listOf(
-      "product_id" to row.getInteger("product_id"),
-      "attribute_key" to row.getString("attribute_key"),
-      "store_view_id" to row.getInteger("store_view_id"),
-      "website_id" to row.getInteger("website_id"),
-      "product_name" to row.getString("product_name"),
-      "product_short_name" to row.getString("product_short_name"),
-      "product_description" to row.getString("product_description"),
-      "product_short_description" to row.getString("product_short_description"),
-      "global_bool" to row.getBoolean("global_bool"),
-      "global_float" to row.getDouble("global_float"),
-      "global_string" to row.getString("global_string"),
-      "global_int" to row.getInteger("global_int"),
-      "global_money" to row.getDouble("global_money"),
-      "global_multi_select" to row.getString("global_multi_select"),
-      "store_view_bool" to row.getString("store_view_bool"),
-      "store_view_float" to row.getDouble("store_view_float"),
-      "store_view_string" to row.getString("store_view_string"),
-      "store_view_int" to row.getInteger("store_view_int"),
-      "store_view_money" to row.getDouble("store_view_money"),
-      "store_view_multi_select" to row.getString("store_view_multi_select"),
-      "website_bool" to row.getString("website_bool"),
-      "website_float" to row.getDouble("website_float"),
-      "website_string" to row.getString("website_string"),
-      "website_int" to row.getInteger("website_int"),
-      "website_money" to row.getDouble("website_money"),
-      "website_multi_select" to row.getString("website_multi_select"),
-      "multi_select_bool" to row.getString("multi_select_bool"),
-      "multi_select_float" to row.getDouble("multi_select_float"),
-      "multi_select_string" to row.getString("multi_select_string"),
-      "multi_select_int" to row.getInteger("multi_select_int"),
-      "multi_select_money" to row.getDouble("multi_select_money")
+      "product_id" to this.getInteger("product_id"),
+      "attribute_key" to this.getString("attribute_key"),
+      "store_view_id" to this.getInteger("store_view_id"),
+      "website_id" to this.getInteger("website_id"),
+      "product_name" to this.getString("product_name"),
+      "product_short_name" to this.getString("product_short_name"),
+      "product_description" to this.getString("product_description"),
+      "product_short_description" to this.getString("product_short_description"),
+      "global_bool" to this.getBoolean("global_bool"),
+      "global_float" to this.getDouble("global_float"),
+      "global_string" to this.getString("global_string"),
+      "global_int" to this.getInteger("global_int"),
+      "global_money" to this.getDouble("global_money"),
+      "global_multi_select" to this.getString("global_multi_select"),
+      "store_view_bool" to this.getString("store_view_bool"),
+      "store_view_float" to this.getDouble("store_view_float"),
+      "store_view_string" to this.getString("store_view_string"),
+      "store_view_int" to this.getInteger("store_view_int"),
+      "store_view_money" to this.getDouble("store_view_money"),
+      "store_view_multi_select" to this.getString("store_view_multi_select"),
+      "website_bool" to this.getString("website_bool"),
+      "website_float" to this.getDouble("website_float"),
+      "website_string" to this.getString("website_string"),
+      "website_int" to this.getInteger("website_int"),
+      "website_money" to this.getDouble("website_money"),
+      "website_multi_select" to this.getString("website_multi_select"),
+      "multi_select_bool" to this.getString("multi_select_bool"),
+      "multi_select_float" to this.getDouble("multi_select_float"),
+      "multi_select_string" to this.getString("multi_select_string"),
+      "multi_select_int" to this.getInteger("multi_select_int"),
+      "multi_select_money" to this.getDouble("multi_select_money")
     )
   }
 }

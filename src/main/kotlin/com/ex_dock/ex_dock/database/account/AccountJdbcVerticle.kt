@@ -10,7 +10,6 @@ import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
-import org.mindrot.jbcrypt.BCrypt
 
 class AccountJdbcVerticle: AbstractVerticle() {
 
@@ -40,7 +39,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections for user management
@@ -77,7 +76,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(rows.map { row -> makeUserObject(row) }, userListDeliveryOptions)
+          message.reply(rows.map { row -> row.makeUserObject() }, userListDeliveryOptions)
         } else {
           message.reply(emptyList<User>(), userListDeliveryOptions)
         }
@@ -100,7 +99,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(makeUserObject(rows.first()), userDeliveryOptions)
+          message.reply(rows.first().makeUserObject(), userDeliveryOptions)
         } else {
           message.fail(404, NO_USER)
         }
@@ -114,7 +113,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
       val query = "INSERT INTO users (email, password) VALUES (?,?) RETURNING user_id AS UID"
       val rowsFuture = client
         .preparedQuery(query)
-        .execute(makeUserCreationTuple(message.body()))
+        .execute(message.body().makeUserCreationTuple())
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -140,7 +139,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
     updateUserConsumer.handler { message ->
       val body = message.body()
       val query = "UPDATE users SET email = ?, password = ? WHERE user_id = ?"
-      val userTuple = makeUserTuple(body)
+      val userTuple = body.makeUserTuple()
       val rowsFuture = client.preparedQuery(query).execute(userTuple)
 
       rowsFuture.onFailure { res ->
@@ -202,7 +201,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(rows.map { row -> makeBackendPermissionsObject(row) }, backendPermissionsListDeliveryOptions)
+          message.reply(rows.map { row -> row.makeBackendPermissionsObject() }, backendPermissionsListDeliveryOptions)
         } else {
           message.reply(emptyList<BackendPermissions>(), backendPermissionsListDeliveryOptions)
         }
@@ -226,7 +225,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(makeBackendPermissionsObject(rows.first()), backendPermissionsDeliveryOptions)
+          message.reply(rows.first().makeBackendPermissionsObject(), backendPermissionsDeliveryOptions)
         } else {
           message.fail(404, NO_BACKEND_PERMISSION)
         }
@@ -243,7 +242,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
         "product_content, product_price, product_warehouse, text_pages, \"API_KEY\") VALUES " +
         "(?,?::b_permissions,?::b_permissions,?::b_permissions,?::b_permissions,?::b_permissions,?::b_permissions," +
         "?::b_permissions,?::b_permissions,?::b_permissions,?)"
-      val createBackendPermissionTuple = makeBackendPermissionsTuple(message.body(), false)
+      val createBackendPermissionTuple = message.body().makeBackendPermissionsTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(createBackendPermissionTuple)
 
       rowsFuture.onFailure { res ->
@@ -272,7 +271,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
         "category_products =?::b_permissions, product_content =?::b_permissions, product_price =?::b_permissions, " +
         "product_warehouse =?::b_permissions, " +
         "text_pages =?::b_permissions, \"API_KEY\" =? WHERE user_id =?"
-      val updateBackendPermissionTuple = makeBackendPermissionsTuple(body, true)
+      val updateBackendPermissionTuple = body.makeBackendPermissionsTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(updateBackendPermissionTuple)
 
       rowsFuture.onFailure { res ->
@@ -330,7 +329,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(rows.map { row -> makeFullUserObject(row) }, fullUserListDeliveryOptions)
+          message.reply(rows.map { row -> row.makeFullUserObject() }, fullUserListDeliveryOptions)
         } else {
           message.reply(emptyList<FullUser>(), fullUserListDeliveryOptions)
         }
@@ -360,7 +359,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(makeFullUserObject(rows.first()), fullUserDeliveryOptions)
+          message.reply(rows.first().makeFullUserObject(), fullUserDeliveryOptions)
         } else {
           message.fail(404, NO_USER)
         }
@@ -387,7 +386,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(makeFullUserObject(rows.first()), fullUserDeliveryOptions)
+          message.reply(rows.first().makeFullUserObject(), fullUserDeliveryOptions)
           } else {
           message.fail(404, NO_USER)
         }
@@ -395,105 +394,82 @@ class AccountJdbcVerticle: AbstractVerticle() {
     }
   }
 
-  private fun makeUserObject(row: Row): User {
+  private fun Row.makeUserObject(): User {
     return User(
-      userId = row.getInteger("user_id"),
-      email = row.getString("email"),
-      password = row.getString("password")
+      userId = this.getInteger("user_id"),
+      email = this.getString("email"),
+      password = this.getString("password")
     )
   }
 
-  private fun makeBackendPermissionsObject(row: Row) : BackendPermissions {
+  private fun Row.makeBackendPermissionsObject() : BackendPermissions {
     return BackendPermissions(
-      userId = row.getInteger("user_id"),
-      userPermission = Permission.fromString(row.getString("user_permissions")),
-      serverSettings = Permission.fromString(row.getString("server_settings")),
-      template = Permission.fromString(row.getString("template")),
-      categoryContent = Permission.fromString(row.getString("category_content")),
-      categoryProducts = Permission.fromString(row.getString("category_products")),
-      productContent = Permission.fromString(row.getString("product_content")),
-      productPrice = Permission.fromString(row.getString("product_price")),
-      productWarehouse = Permission.fromString(row.getString("product_warehouse")),
-      textPages = Permission.fromString(row.getString("text_pages")),
-      apiKey = row.getString("API_KEY")
+      userId = this.getInteger("user_id"),
+      userPermission = Permission.fromString(this.getString("user_permissions")),
+      serverSettings = Permission.fromString(this.getString("server_settings")),
+      template = Permission.fromString(this.getString("template")),
+      categoryContent = Permission.fromString(this.getString("category_content")),
+      categoryProducts = Permission.fromString(this.getString("category_products")),
+      productContent = Permission.fromString(this.getString("product_content")),
+      productPrice = Permission.fromString(this.getString("product_price")),
+      productWarehouse = Permission.fromString(this.getString("product_warehouse")),
+      textPages = Permission.fromString(this.getString("text_pages")),
+      apiKey = this.getString("API_KEY")
     )
   }
 
-  private fun makeFullUserObject(row: Row): FullUser {
+  private fun Row.makeFullUserObject(): FullUser {
     return FullUser(
-      user = makeUserObject(row),
-      backendPermissions = makeBackendPermissionsObject(row)
+      user = this.makeUserObject(),
+      backendPermissions = this.makeBackendPermissionsObject()
     )
   }
 
 
-  private fun makeUserTuple(body: User): Tuple {
-    val userTuple: Tuple = Tuple.of(body.email, hashPassword(body.password), body.userId)
+  private fun User.makeUserTuple(): Tuple {
+    val userTuple: Tuple = Tuple.of(this.email, this.password.hash(), this.userId)
 
     return userTuple
   }
 
 
-  private fun makeUserCreationTuple(body: UserCreation): Tuple {
-    val userTuple: Tuple = Tuple.of(body.email, hashPassword(body.password))
+  private fun UserCreation.makeUserCreationTuple(): Tuple {
+    val userTuple: Tuple = Tuple.of(this.email, this.password.hash())
 
     return userTuple
   }
 
-  private fun makeBackendPermissionsTuple(body: BackendPermissions, isPutRequest: Boolean): Tuple {
+  private fun BackendPermissions.makeBackendPermissionsTuple(isPutRequest: Boolean): Tuple {
     val backendPermissionsTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        convertPermissionToString(body.userPermission),
-        convertPermissionToString(body.serverSettings),
-        convertPermissionToString(body.template),
-        convertPermissionToString(body.categoryContent),
-        convertPermissionToString(body.categoryProducts),
-        convertPermissionToString(body.productContent),
-        convertPermissionToString(body.productPrice),
-        convertPermissionToString(body.productWarehouse),
-        convertPermissionToString(body.textPages),
-        body.apiKey,
-        body.userId
+        this.userPermission.convertToString(),
+        this.serverSettings.convertToString(),
+        this.template.convertToString(),
+        this.categoryContent.convertToString(),
+        this.categoryProducts.convertToString(),
+        this.productContent.convertToString(),
+        this.productPrice.convertToString(),
+        this.productWarehouse.convertToString(),
+        this.textPages.convertToString(),
+        this.apiKey,
+        this.userId
       )
     } else {
       Tuple.of(
-        body.userId,
-        convertPermissionToString(body.userPermission),
-        convertPermissionToString(body.serverSettings),
-        convertPermissionToString(body.template),
-        convertPermissionToString(body.categoryContent),
-        convertPermissionToString(body.categoryProducts),
-        convertPermissionToString(body.productContent),
-        convertPermissionToString(body.productPrice),
-        convertPermissionToString(body.productWarehouse),
-        convertPermissionToString(body.textPages),
-        body.apiKey
+        this.userId,
+        this.userPermission.convertToString(),
+        this.serverSettings.convertToString(),
+        this.template.convertToString(),
+        this.categoryContent.convertToString(),
+        this.categoryProducts.convertToString(),
+        this.productContent.convertToString(),
+        this.productPrice.convertToString(),
+        this.productWarehouse.convertToString(),
+        this.textPages.convertToString(),
+        this.apiKey
       )
     }
 
     return backendPermissionsTuple
-  }
-
-  private fun hashPassword(password: String): String {
-    return BCrypt.hashpw(password, BCrypt.gensalt(12))
-  }
-
-  private fun convertStringToPermission(name: String): Permission {
-    when (name) {
-      "read" -> return Permission.READ
-      "write" -> return Permission.WRITE
-      "read-write" -> return Permission.READ_WRITE
-    }
-
-    return Permission.NONE
-  }
-
-  private fun convertPermissionToString(permission: Permission): String {
-    return when (permission) {
-      Permission.READ -> "read"
-      Permission.WRITE -> "write"
-      Permission.READ_WRITE -> "read-write"
-      Permission.NONE -> "none"
-    }
   }
 }

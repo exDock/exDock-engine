@@ -34,3 +34,23 @@ enum class PageIndex(pIndex: String) {
   NoIndexFollow("noindex, follow"),
   NoIndexNoFollow("noindex, nofollow");
 }
+
+fun String.toPageIndex(): PageIndex {
+  when (this) {
+    "index, follow" -> return PageIndex.IndexFollow
+    "index, nofollow" -> return PageIndex.IndexNoFollow
+    "noindex, follow" -> return PageIndex.NoIndexFollow
+    "noindex, nofollow" -> return PageIndex.NoIndexNoFollow
+  }
+
+  return PageIndex.NoIndexNoFollow
+}
+
+fun PageIndex.convertToString(): String {
+  return when (this) {
+    PageIndex.IndexFollow -> "index, follow"
+    PageIndex.IndexNoFollow -> "index, nofollow"
+    PageIndex.NoIndexFollow -> "noindex, follow"
+    PageIndex.NoIndexNoFollow -> "noindex, nofollow"
+  }
+}

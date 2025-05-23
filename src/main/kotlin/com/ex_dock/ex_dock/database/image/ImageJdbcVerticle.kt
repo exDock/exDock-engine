@@ -17,7 +17,7 @@ class ImageJdbcVerticle: AbstractVerticle() {
   private val imageProductDeliveryOptions = DeliveryOptions().setCodecName("ImageProductCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections for basic images
@@ -54,7 +54,7 @@ class ImageJdbcVerticle: AbstractVerticle() {
       }.onSuccess{ res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            imageList.add(makeImage(row))
+            imageList.add(row.makeImage())
           }
         }
         message.reply(imageList, listDeliveryOptions)
@@ -79,7 +79,7 @@ class ImageJdbcVerticle: AbstractVerticle() {
         message.reply("Failed to execute query: $res")
       }.onSuccess{ res: RowSet<Row> ->
         if (res.size() > 0) {
-          message.reply(makeImage(res.first()), imageDeliveryOptions)
+          message.reply(res.first().makeImage(), imageDeliveryOptions)
         } else {
           message.reply("No image found")
         }
@@ -96,7 +96,7 @@ class ImageJdbcVerticle: AbstractVerticle() {
       val query = "INSERT INTO image (image_url, image_name, extensions) VALUES (?,?,?)"
       val image = message.body()
 
-      val queryTuple: Tuple = makeImageTuple(image)
+      val queryTuple: Tuple = image.toTuple()
 
       val rowsFuture = client.preparedQuery(query).execute(queryTuple)
 
@@ -170,7 +170,7 @@ class ImageJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            imageProductList.add(makeImageProduct(row))
+            imageProductList.add(row.makeImageProduct())
           }
         }
         message.reply(imageProductList, listDeliveryOptions)
@@ -195,7 +195,7 @@ class ImageJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            imageProductList.add(makeImageProduct(row))
+            imageProductList.add(row.makeImageProduct())
           }
         }
         message.reply(imageProductList, listDeliveryOptions)
@@ -220,7 +220,7 @@ class ImageJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            imageProductList.add(makeImageProduct(row))
+            imageProductList.add(row.makeImageProduct())
           }
         }
         message.reply(imageProductList, listDeliveryOptions)
@@ -292,11 +292,11 @@ class ImageJdbcVerticle: AbstractVerticle() {
    *
    * @param row The row from the database to be converted into JSON
    */
-  private fun makeImage(row: Row): Image {
+  private fun Row.makeImage(): Image {
     return Image(
-      imageUrl = row.getString("image_url"),
-      imageName = row.getString("image_name"),
-      imageExtensions = row.getString("extensions")
+      imageUrl = this.getString("image_url"),
+      imageName = this.getString("image_name"),
+      imageExtensions = this.getString("extensions")
     )
   }
 
@@ -305,10 +305,10 @@ class ImageJdbcVerticle: AbstractVerticle() {
    *
    * @param row The row from the database to be converted into JSON
    */
-  private fun makeImageProduct(row: Row): ImageProduct {
+  private fun Row.makeImageProduct(): ImageProduct {
     return ImageProduct(
-      productId = row.getInteger("product_id"),
-      imageUrl = row.getString("image_url")
+      productId = this.getInteger("product_id"),
+      imageUrl = this.getString("image_url")
     )
   }
 
@@ -318,11 +318,11 @@ class ImageJdbcVerticle: AbstractVerticle() {
    * @param body The JSON object to be converted into a tuple
    * @return A tuple from the given JSON object
    */
-  private fun makeImageTuple(body: Image): Tuple {
+  private fun Image.toTuple(): Tuple {
     return Tuple.of(
-      body.imageUrl,
-      body.imageName,
-      body.imageExtensions
+      this.imageUrl,
+      this.imageName,
+      this.imageExtensions
     )
   }
 }

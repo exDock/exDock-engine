@@ -258,3 +258,26 @@ enum class Type(name: String) {
   STRING("string"),
   MONEY("money"),
 }
+
+fun Type.convertToString(): String {
+  return when (this) {
+    Type.STRING -> "string"
+    Type.BOOL -> "bool"
+    Type.FLOAT -> "float"
+    Type.INT -> "int"
+    Type.MONEY -> "money"
+  }
+}
+
+fun String.toType(): Type {
+  return when (this) {
+    "string" -> Type.STRING
+    "bool" -> Type.BOOL
+    "float" -> Type.FLOAT
+    "int" -> Type.INT
+    "money" -> Type.MONEY
+    else -> throw IllegalArgumentException("Invalid type: $this")
+  }
+}
+
+fun Boolean.toInt() = if (this) 1 else 0

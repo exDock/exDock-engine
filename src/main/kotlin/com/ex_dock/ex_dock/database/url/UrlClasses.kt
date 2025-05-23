@@ -52,3 +52,20 @@ enum class PageType(name: String) {
   CATEGORY("category"),
   TEXT_PAGE("text_page")
 }
+
+fun PageType.convertToString(): String {
+  return when (this) {
+    PageType.TEXT_PAGE -> "text_page"
+    PageType.CATEGORY -> "category"
+    PageType.PRODUCT -> "product"
+  }
+}
+
+fun String.toPageType(): PageType {
+  return when (this) {
+    "text_page" -> PageType.TEXT_PAGE
+    "category" -> PageType.CATEGORY
+    "product" -> PageType.PRODUCT
+    else -> throw IllegalArgumentException("Invalid page type: $this")
+  }
+}

@@ -18,7 +18,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections for the website table
@@ -60,7 +60,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
           val rows = res.result()
           if (rows.size() > 0) {
             rows.forEach { row ->
-              websites.add(makeWebsite(row))
+              websites.add(row.makeWebsite())
             }
           }
 
@@ -89,7 +89,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
         if (res.succeeded()) {
           val rows = res.result()
           if (rows.size() > 0) {
-            message.reply(makeWebsite(rows.first()), websiteDeliveryOptions)
+            message.reply(rows.first().makeWebsite(), websiteDeliveryOptions)
           } else {
             message.reply("No website found!")
           }
@@ -106,7 +106,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
     createWebsiteConsumer.handler { message ->
       val body = message.body()
       val query = "INSERT INTO websites (website_name) VALUES (?)"
-      val websiteTuple = makeWebsiteTuple(body, false)
+      val websiteTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(websiteTuple)
 
       rowsFuture.onFailure { res ->
@@ -133,7 +133,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
     editWebsiteConsumer.handler { message ->
       val body = message.body()
       val query = "UPDATE websites SET website_name =? WHERE website_id =?"
-      val websiteTuple = makeWebsiteTuple(body, true)
+      val websiteTuple = body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(websiteTuple)
 
       rowsFuture.onFailure { res ->
@@ -196,7 +196,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
           val rows = res.result()
           if (rows.size() > 0) {
             rows.forEach { row ->
-              storeViews.add(makeStoreView(row))
+              storeViews.add(row.makeStoreView())
             }
           }
 
@@ -225,7 +225,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
         if (res.succeeded()) {
           val rows = res.result()
           if (rows.size() > 0) {
-            message.reply(makeStoreView(rows.first()), storeViewDeliveryOptions)
+            message.reply(rows.first().makeStoreView(), storeViewDeliveryOptions)
           } else {
             message.reply("No store view found!")
           }
@@ -242,7 +242,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
     createStoreViewConsumer.handler { message ->
       val body = message.body()
       val query = "INSERT INTO store_view (website_id, store_view_name) VALUES (?,?)"
-      val storeViewTuple = makeStoreViewTuple(body, false)
+      val storeViewTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(storeViewTuple)
 
       rowsFuture.onFailure { res ->
@@ -269,7 +269,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
     editStoreViewConsumer.handler { message ->
       val body = message.body()
       val query = "UPDATE store_view SET website_id =?, store_view_name =? WHERE store_view_id =?"
-      val storeViewTuple = makeStoreViewTuple(body, true)
+      val storeViewTuple = body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(storeViewTuple)
 
       rowsFuture.onFailure { res ->
@@ -332,7 +332,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
           val rows = res.result()
           if (rows.size() > 0) {
             rows.forEach { row ->
-              fullScopes.add(makeFullScope(row))
+              fullScopes.add(row.makeFullScope())
             }
           }
 
@@ -363,7 +363,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
         if (res.succeeded()) {
           val rows = res.result()
           if (rows.size() > 0) {
-            message.reply(makeFullScope(rows.first()), fullScopeDeliveryOptions)
+            message.reply(rows.first().makeFullScope(), fullScopeDeliveryOptions)
           } else {
             message.reply("No full scope found!")
           }
@@ -378,10 +378,10 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
    * @param row The row from the database
    * @return A list with the JSON fields in the format of a Pair object
    */
-  private fun makeWebsite(row: Row): Websites {
+  private fun Row.makeWebsite(): Websites {
     return Websites(
-      websiteId = row.getInteger("website_id"),
-      websiteName = row.getString("website_name")
+      websiteId = this.getInteger("website_id"),
+      websiteName = this.getString("website_name")
     )
   }
 
@@ -391,11 +391,11 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
    * @param row The row from the database
    * @return A list with the JSON fields in the format of a Pair object
    **/
-  private fun makeStoreView(row: Row): StoreView {
+  private fun Row.makeStoreView(): StoreView {
     return StoreView(
-      storeViewId = row.getInteger("store_view_id"),
-      storeViewName = row.getString("store_view_name"),
-      websiteId = row.getInteger("website_id")
+      storeViewId = this.getInteger("store_view_id"),
+      storeViewName = this.getString("store_view_name"),
+      websiteId = this.getInteger("website_id")
     )
   }
 
@@ -405,10 +405,10 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
    * @param row The row from the database
    * @return A list with the JSON fields in the format of a Pair object
    **/
-  private fun makeFullScope(row: Row): FullScope {
+  private fun Row.makeFullScope(): FullScope {
     return FullScope(
-      makeWebsite(row),
-      makeStoreView(row)
+      this.makeWebsite(),
+      this.makeStoreView()
     )
   }
 
@@ -420,16 +420,16 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
    *
    * @return A Tuple with the query parameters
    **/
-  private fun makeWebsiteTuple(body: Websites, putRequest: Boolean): Tuple {
+  private fun Websites.toTuple(putRequest: Boolean): Tuple {
 
     val websiteTuple: Tuple = if (putRequest) {
       Tuple.of(
-        body.websiteName,
-        body.websiteId
+        this.websiteName,
+        this.websiteId
       )
     } else {
       Tuple.of(
-        body.websiteName
+        this.websiteName
       )
     }
 
@@ -444,17 +444,17 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
    *
    * @return A Tuple with the query parameters
    **/
-  private fun makeStoreViewTuple(body: StoreView, putRequest: Boolean): Tuple {
+  private fun StoreView.toTuple(putRequest: Boolean): Tuple {
     val storeViewTuple: Tuple = if (putRequest) {
       Tuple.of(
-        body.websiteId,
-        body.storeViewName,
-        body.storeViewId
+        this.websiteId,
+        this.storeViewName,
+        this.storeViewId
       )
     } else {
       Tuple.of(
-        body.websiteId,
-        body.storeViewName,
+        this.websiteId,
+        this.storeViewName,
       )
     }
 

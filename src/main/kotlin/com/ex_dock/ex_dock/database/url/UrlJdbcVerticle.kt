@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.url
 
 import com.ex_dock.ex_dock.database.category.Categories
+import com.ex_dock.ex_dock.database.category.toPageIndex
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.database.product.Products
 import com.ex_dock.ex_dock.database.text_pages.TextPages
@@ -23,7 +24,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections with the url_keys table
@@ -78,7 +79,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            urlKeyList.add(makeUrlKey(row))
+            urlKeyList.add(row.makeUrlKey())
           }
         }
 
@@ -105,7 +106,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeUrlKey(rows.first()), urlKeysDeliveryOptions)
+          message.reply(rows.first().makeUrlKey(), urlKeysDeliveryOptions)
         } else {
           message.reply("No url key found!")
         }
@@ -121,7 +122,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     createUrlKeyConsumer.handler { message ->
       val body = message.body()
       val query = "INSERT INTO url_keys (url_key, upper_key, page_type) VALUES (?,?,?::p_type)"
-      val urlKeyTuple = makeUrlKeyTuple(body, false)
+      val urlKeyTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(urlKeyTuple)
 
       rowsFuture.onFailure { res ->
@@ -147,7 +148,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     updateUrlKeyConsumer.handler { message ->
       val body = message.body()
       val query = "UPDATE url_keys SET page_type =?::p_type WHERE url_key =? AND upper_key =?"
-      val urlKeyTuple = makeUrlKeyTuple(body, true)
+      val urlKeyTuple = body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(urlKeyTuple)
 
       rowsFuture.onFailure { res ->
@@ -211,7 +212,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            textPageUrls.add(makeTextPageUrl(row))
+            textPageUrls.add(row.makeTextPageUrl())
           }
         }
 
@@ -228,7 +229,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     getTextPageUrlByKeyConsumer.handler { message ->
       val body = message.body()
       val query = "SELECT * FROM text_page_urls WHERE url_key =? AND upper_key =? AND text_pages_id =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeTextPageUrlTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -238,7 +239,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeTextPageUrl(rows.first()), textPageUrlsDeliveryOptions)
+          message.reply(rows.first().makeTextPageUrl(), textPageUrlsDeliveryOptions)
         } else {
           message.reply("No text page url found!")
         }
@@ -254,7 +255,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     createTextPageUrlConsumer.handler { message ->
       val body = message.body()
       val query = "INSERT INTO text_page_urls (url_key, upper_key, text_pages_id) VALUES (?,?,?)"
-      val textPageUrlTuple = makeTextPageUrlTuple(body, false)
+      val textPageUrlTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(textPageUrlTuple)
 
       rowsFuture.onFailure { res ->
@@ -281,7 +282,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query = "UPDATE text_page_urls SET url_key =?, upper_key =?, " +
         "text_pages_id =? WHERE url_key =? AND upper_key =? AND text_pages_id =?"
-      val textPageUrlTuple = makeTextPageUrlTuple(body, true)
+      val textPageUrlTuple = body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(textPageUrlTuple)
 
       rowsFuture.onFailure { res ->
@@ -307,7 +308,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     deleteTextPageUrlConsumer.handler { message ->
       val body = message.body()
       val query = "DELETE FROM text_page_urls WHERE url_key =? AND upper_key =? AND text_pages_id =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeTextPageUrlTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -343,7 +344,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach {row ->
-            categoryUrlsList.add(makeCategoryUrl(row))
+            categoryUrlsList.add(row.makeCategoryUrl())
           }
         }
 
@@ -360,7 +361,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     getCategoryUrlByKeyConsumer.handler { message ->
       val body = message.body()
       val query = "SELECT * FROM category_urls WHERE url_key =? AND upper_key =? AND category_id =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeCategoryUrlTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -370,7 +371,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeCategoryUrl(rows.first()), categoryUrlsDeliveryOptions)
+          message.reply(rows.first().makeCategoryUrl(), categoryUrlsDeliveryOptions)
         } else {
           message.reply("No category url found!")
         }
@@ -386,7 +387,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     createCategoryUrlConsumer.handler { message ->
       val body = message.body()
       val query = "INSERT INTO category_urls (url_key, upper_key, category_id) VALUES (?,?,?)"
-      val categoryUrlTuple = makeCategoryUrlTuple(body, false)
+      val categoryUrlTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(categoryUrlTuple)
 
       rowsFuture.onFailure { res ->
@@ -413,7 +414,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query = "UPDATE category_urls SET url_key =?, upper_key =?, category_id =? " +
         "WHERE url_key =? AND upper_key =? AND category_id =?"
-      val categoryUrlTuple = makeCategoryUrlTuple(body, true)
+      val categoryUrlTuple = body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(categoryUrlTuple)
 
       rowsFuture.onFailure { res ->
@@ -439,7 +440,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     deleteCategoryUrlConsumer.handler { message ->
       val body = message.body()
       val query = "DELETE FROM category_urls WHERE url_key =? AND upper_key =? AND category_id =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeCategoryUrlTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -475,7 +476,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            productUrlsList.add(makeProductUrl(row))
+            productUrlsList.add(row.makeProductUrl())
           }
         }
 
@@ -492,7 +493,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     getProductUrlByKeyConsumer.handler { message ->
       val body = message.body()
       val query = "SELECT * FROM product_urls WHERE url_key =? AND upper_key =? AND product_id =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeProductUrlTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -502,7 +503,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeProductUrl(rows.first()), productUrlsDeliveryOptions)
+          message.reply(rows.first().makeProductUrl(), productUrlsDeliveryOptions)
         } else {
           message.reply("No product url found!")
         }
@@ -518,7 +519,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     createProductUrlConsumer.handler { message ->
       val body = message.body()
       val query = "INSERT INTO product_urls (url_key, upper_key, product_id) VALUES (?,?,?)"
-      val productUrlTuple = makeProductUrlTuple(body, false)
+      val productUrlTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(productUrlTuple)
 
       rowsFuture.onFailure { res ->
@@ -545,7 +546,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query = "UPDATE product_urls SET url_key =?, upper_key =?, product_id =? " +
         "WHERE url_key =? AND upper_key =? AND product_id =?"
-      val productUrlTuple = makeProductUrlTuple(body, true)
+      val productUrlTuple = body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(productUrlTuple)
 
       rowsFuture.onFailure { res ->
@@ -571,7 +572,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     deleteProductUrlConsumer.handler { message ->
       val body = message.body()
       val query = "DELETE FROM product_urls WHERE url_key =? AND upper_key =? AND product_id =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeProductUrlTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -595,7 +596,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     val getAllFullUrlsConsumer = eventBus.consumer<FullUrlRequestInfo>("process.url.getAllFullUrls")
     getAllFullUrlsConsumer.handler { message ->
       val body = message.body()
-      val joinList = checkJoinMessage(body.joinList)
+      val joinList = body.joinList.checkJoinMessage()
       val query = makeFullUrlKeyQuery(joinList, false)
 
       val rowsFuture = client.preparedQuery(query).execute()
@@ -610,7 +611,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            fullUrlKeysList.add(makeFullUrlKey(row, joinList))
+            fullUrlKeysList.add(row.makeFullUrlKey(joinList))
           }
         }
 
@@ -626,7 +627,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     val getFullUrlByKeyConsumer = eventBus.consumer<FullUrlRequestInfo>("process.url.getFullUrlByKey")
     getFullUrlByKeyConsumer.handler { message ->
       val body = message.body()
-      val joinList = checkJoinMessage(body.joinList)
+      val joinList = body.joinList.checkJoinMessage()
       val query = makeFullUrlKeyQuery(joinList, true)
 
       val rowsFuture = client.preparedQuery(query).execute(
@@ -644,7 +645,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeFullUrlKey(rows.first(), joinList), fullUrlsDeliveryOptions)
+          message.reply(rows.first().makeFullUrlKey(joinList), fullUrlsDeliveryOptions)
         } else {
           message.reply("No full url found!")
         }
@@ -658,11 +659,11 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param row The row from the database
    * @return A list with the converted fields from the database
    */
-  private fun makeUrlKey(row: Row): UrlKeys {
+  private fun Row.makeUrlKey(): UrlKeys {
     return  UrlKeys(
-      urlKey = row.getString("url_key"),
-      upperKey = row.getString("upper_key"),
-      pageType = convertStringToPageType(row.getString("page_type"))
+      urlKey = this.getString("url_key"),
+      upperKey = this.getString("upper_key"),
+      pageType = this.getString("page_type").toPageType()
     )
   }
 
@@ -672,11 +673,11 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param row The row from the database
    * @return A list with the converted fields from the database
    */
-  private fun makeTextPageUrl(row: Row): TextPageUrls {
+  private fun Row.makeTextPageUrl(): TextPageUrls {
     return TextPageUrls(
-      urlKeys = row.getString("url_key"),
-      upperKey = row.getString("upper_key"),
-      textPagesId = row.getInteger("text_pages_id")
+      urlKeys = this.getString("url_key"),
+      upperKey = this.getString("upper_key"),
+      textPagesId = this.getInteger("text_pages_id")
     )
   }
 
@@ -686,11 +687,11 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param row The row from the database
    * @return A list with the converted fields from the database
    */
-  private fun makeCategoryUrl(row: Row): CategoryUrls {
+  private fun Row.makeCategoryUrl(): CategoryUrls {
     return CategoryUrls(
-      urlKeys = row.getString("url_key"),
-      upperKey = row.getString("upper_key"),
-      categoryId = row.getInteger("category_id"),
+      urlKeys = this.getString("url_key"),
+      upperKey = this.getString("upper_key"),
+      categoryId = this.getInteger("category_id"),
     )
   }
 
@@ -700,11 +701,11 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param row The row from the database
    * @return A list with the converted fields from the databas
    */
-  private fun makeProductUrl(row: Row): ProductUrls {
+  private fun Row.makeProductUrl(): ProductUrls {
     return ProductUrls(
-      urlKeys = row.getString("url_key"),
-      upperKey = row.getString("upper_key"),
-      productId = row.getInteger("product_id"),
+      urlKeys = this.getString("url_key"),
+      upperKey = this.getString("upper_key"),
+      productId = this.getInteger("product_id"),
     )
   }
 
@@ -715,9 +716,9 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param joinList A list of booleans indicating whether to join with text_pages, categories, or products
    * @return The constructed query string
    */
-  private fun makeFullUrlKey(row: Row, joinList: List<Boolean>): FullUrlKeys {
+  private fun Row.makeFullUrlKey(joinList: List<Boolean>): FullUrlKeys {
     val fullUrlKeys = FullUrlKeys(
-      urlKeys = makeUrlKey(row),
+      urlKeys = this.makeUrlKey(),
       textPage = null,
       category = null,
       product = null
@@ -725,10 +726,10 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
     if (joinList[0]) {
       val textPages = TextPages(
-        textPagesId = row.getInteger("text_pages_id"),
-        name = row.getString("text_page_name"),
-        shortText = row.getString("text_page_short_text"),
-        text = row.getString("text_page_text")
+        textPagesId = this.getInteger("text_pages_id"),
+        name = this.getString("text_page_name"),
+        shortText = this.getString("text_page_short_text"),
+        text = this.getString("text_page_text")
       )
 
       fullUrlKeys.textPage = textPages
@@ -736,11 +737,11 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
     if (joinList[1]) {
       val category = Categories(
-        categoryId = row.getInteger("category_id"),
-        upperCategory = row.getInteger("upper_category"),
-        name = row.getString("category_name"),
-        description = row.getString("category_description"),
-        shortDescription = row.getString("category_short_description")
+        categoryId = this.getInteger("category_id"),
+        upperCategory = this.getInteger("upper_category"),
+        name = this.getString("category_name"),
+        description = this.getString("category_description"),
+        shortDescription = this.getString("category_short_description")
       )
 
       fullUrlKeys.category = category
@@ -748,14 +749,14 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
     if (joinList[2]) {
       val product = Products(
-        productId = row.getInteger("product_id"),
-        name = row.getString("product_name"),
-        shortName = row.getString("product_short_name"),
-        description = row.getString("product_description"),
-        shortDescription = row.getString("product_short_description"),
-        sku = row.getString("product_sku"),
-        ean = row.getString("product_ean"),
-        manufacturer = row.getString("product_manufacturer"),
+        productId = this.getInteger("product_id"),
+        name = this.getString("product_name"),
+        shortName = this.getString("product_short_name"),
+        description = this.getString("product_description"),
+        shortDescription = this.getString("product_short_description"),
+        sku = this.getString("product_sku"),
+        ean = this.getString("product_ean"),
+        manufacturer = this.getString("product_manufacturer"),
       )
 
       fullUrlKeys.product = product
@@ -771,18 +772,18 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param isPutRequest if the request is a put request
    * @return The Tuple with the data from the body
    */
-  private fun makeUrlKeyTuple(body: UrlKeys, isPutRequest: Boolean): Tuple {
+  private fun UrlKeys.toTuple(isPutRequest: Boolean): Tuple {
     val urlKeyTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        convertPageTypeToString(body.pageType),
-        body.urlKey,
-        body.upperKey,
+        this.pageType.convertToString(),
+        this.urlKey,
+        this.upperKey,
       )
     } else {
       Tuple.of(
-        body.urlKey,
-        body.upperKey,
-        convertPageTypeToString(body.pageType),
+        this.urlKey,
+        this.upperKey,
+        this.pageType.convertToString(),
       )
     }
 
@@ -796,21 +797,21 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param isPutRequest if the request is a put request
    * @return The Tuple with the data from the body
    */
-  private fun makeTextPageUrlTuple(body: TextPageUrls, isPutRequest: Boolean): Tuple {
+  private fun TextPageUrls.toTuple(isPutRequest: Boolean): Tuple {
     val textPageUrlTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.urlKeys,
-        body.upperKey,
-        body.textPagesId,
-        body.urlKeys,
-        body.upperKey,
-        body.textPagesId,
+        this.urlKeys,
+        this.upperKey,
+        this.textPagesId,
+        this.urlKeys,
+        this.upperKey,
+        this.textPagesId,
       )
     } else {
       Tuple.of(
-        body.urlKeys,
-        body.upperKey,
-        body.textPagesId,
+        this.urlKeys,
+        this.upperKey,
+        this.textPagesId,
       )
     }
 
@@ -824,21 +825,21 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param isPutRequest if the request is a put request
    * @return The Tuple with the data from the body
    */
-  private fun makeCategoryUrlTuple(body: CategoryUrls, isPutRequest: Boolean): Tuple {
+  private fun CategoryUrls.toTuple(isPutRequest: Boolean): Tuple {
     val categoryUrlTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.urlKeys,
-        body.upperKey,
-        body.categoryId,
-        body.urlKeys,
-        body.upperKey,
-        body.categoryId,
+        this.urlKeys,
+        this.upperKey,
+        this.categoryId,
+        this.urlKeys,
+        this.upperKey,
+        this.categoryId,
       )
     } else {
       Tuple.of(
-        body.urlKeys,
-        body.upperKey,
-        body.categoryId,
+        this.urlKeys,
+        this.upperKey,
+        this.categoryId,
       )
     }
 
@@ -852,21 +853,21 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param isPutRequest if the request is a put request
    * @return The Tuple with the data from the body
    */
-  private fun makeProductUrlTuple(body: ProductUrls, isPutRequest: Boolean): Tuple {
+  private fun ProductUrls.toTuple(isPutRequest: Boolean): Tuple {
     val productUrlTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.urlKeys,
-        body.upperKey,
-        body.productId,
-        body.urlKeys,
-        body.upperKey,
-        body.productId,
+        this.urlKeys,
+        this.upperKey,
+        this.productId,
+        this.urlKeys,
+        this.upperKey,
+        this.productId,
       )
     } else {
       Tuple.of(
-        body.urlKeys,
-        body.upperKey,
-        body.productId,
+        this.urlKeys,
+        this.upperKey,
+        this.productId,
       )
     }
 
@@ -879,17 +880,17 @@ class UrlJdbcVerticle: AbstractVerticle() {
    * @param body The body which has the information of the joins
    * @return A list with booleans of the tables to join
    */
-  private fun checkJoinMessage(body: JoinList): MutableList<Boolean> {
+  private fun JoinList.checkJoinMessage(): MutableList<Boolean> {
     val joinList: MutableList<Boolean> = mutableListOf(false, false, false)
 
     joinList[0]= try {
-      body.joinTextPage
+      this.joinTextPage
     } catch (e: NullPointerException) { false}
     joinList[1] = try {
-      body.joinCategory
+      this.joinCategory
     } catch (e: NullPointerException) { false }
     joinList[2] = try {
-      body.joinProduct
+      this.joinProduct
     } catch (e: NullPointerException) { false }
 
     return joinList
@@ -954,22 +955,5 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
     columnNamesQuery += " FROM url_keys uk "
     return columnNamesQuery
-  }
-
-  private fun convertPageTypeToString(pageType: PageType): String {
-    return when (pageType) {
-      PageType.TEXT_PAGE -> "text_page"
-      PageType.CATEGORY -> "category"
-      PageType.PRODUCT -> "product"
-    }
-  }
-
-  private fun convertStringToPageType(pageType: String): PageType {
-    return when (pageType) {
-      "text_page" -> PageType.TEXT_PAGE
-      "category" -> PageType.CATEGORY
-      "product" -> PageType.PRODUCT
-      else -> throw IllegalArgumentException("Invalid page type: $pageType")
-    }
   }
 }
