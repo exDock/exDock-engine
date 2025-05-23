@@ -9,6 +9,7 @@ import com.ex_dock.ex_dock.helper.convertJsonElement
 import com.ex_dock.ex_dock.helper.findValueByFieldName
 import com.google.gson.Gson
 import com.google.gson.JsonParser
+import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -29,20 +30,6 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   val eventBus: EventBus = vertx.eventBus()
   val authProvider = AuthProvider()
   val exDockAuthHandler = ExDockAuthHandler(vertx)
-  val jwtAuth = JWTAuth.create(
-    vertx,
-    JWTAuthOptions()
-      .addPubSecKey(
-        PubSecKeyOptions()
-          .setAlgorithm("RS256")
-          .setBuffer(authProvider.publicKey)
-      )
-      .addPubSecKey(
-        PubSecKeyOptions()
-         .setAlgorithm("RS256")
-         .setBuffer(authProvider.privateKey)
-      )
-  )
 
   backendV1Router.route().handler(BodyHandler.create())
 
@@ -162,6 +149,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   }
 
   // TODO: routing
+  backendV1Router.initImage(vertx)
 
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
