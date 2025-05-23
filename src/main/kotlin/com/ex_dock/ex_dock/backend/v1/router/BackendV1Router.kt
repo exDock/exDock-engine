@@ -39,27 +39,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
       requestBody.getString("email"),
       requestBody.getString("password")
     )
-
-    exDockAuthHandler.authenticate(credentials) {
-      if (it.succeeded()) {
-        val user = it.result()
-        val token = jwtAuth.generateToken(
-          JsonObject().apply {
-            put("userId", user.principal().getString("id"))
-            put("email", user.principal().getString("email"))
-            put("authorizations", user.principal().getJsonArray("authorizations"))
-          },
-          JWTOptions().setAlgorithm("RS256")
-        )
-
-        ctx.response().putHeader("Content-Type", "text/plain").end(token)
-      } else {
-        ctx.response().setStatusCode(403).end("Authentication failed")
-      }
-    }
   }
-
-  backendV1Router.route().handler(JWTAuthHandler.create(jwtAuth))
 
 //  backendV1Router["/test"].handler { ctx ->
 //    val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
@@ -147,6 +127,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
       ctx.end(it.result().body())
     }
   }
+
 
   // TODO: routing
   backendV1Router.initImage(vertx)
