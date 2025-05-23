@@ -126,7 +126,7 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
     val errorPayload = errorEvent.getJsonObject("errorPayload", null)
 
     if (errorPayload == null) {
-      println("message missing error payload")
+      logger.error { "Missing error payload" }
     }
 
     val wsErrorMessage = JsonObject()
