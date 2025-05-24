@@ -1,9 +1,9 @@
 package com.ex_dock.ex_dock.database
 
+import com.ex_dock.ex_dock.backend.v1.router.system.SystemVerticle
 import com.ex_dock.ex_dock.database.account.*
 import com.ex_dock.ex_dock.database.backend_block.*
 import com.ex_dock.ex_dock.database.auth.AuthenticationVerticle
-import com.ex_dock.ex_dock.database.backend_block.*
 import com.ex_dock.ex_dock.database.category.*
 import com.ex_dock.ex_dock.database.checkout.CheckoutJdbcVerticle
 import com.ex_dock.ex_dock.database.home.HomeJdbcVerticle
@@ -106,6 +106,7 @@ class JDBCStarter : AbstractVerticle() {
     verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(ImageJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(AuthenticationVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
   }
 
   private fun getAllCodecClasses() {
