@@ -4,9 +4,10 @@ import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.database.backend_block.FullBlockInfo
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
+import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import com.ex_dock.ex_dock.helper.convertJsonElement
 import com.ex_dock.ex_dock.helper.findValueByFieldName
-import com.ex_dock.ex_dock.backend.v1.router.image.initImage
+import com.ex_dock.ex_dock.helper.sendError
 import com.google.gson.JsonParser
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
@@ -98,12 +99,15 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
     }
 
   backendV1Router["/test"].handler { ctx ->
-    eventBus.request<String>("process.completeEav.getById", 1).onFailure {
-      println("Failed to get completeEav data")
-      ctx.end("Failed to get completeEav data")
-    }.onComplete {
-      ctx.end(it.result().body())
-    }
+//    val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
+//    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
+//      if (it.getBoolean("success")) {
+//        ctx.end()
+//      } else {
+//        ctx.response().setStatusCode(403).end("User does not have the permission for this")
+//      }
+    vertx.eventBus().sendError(Exception("Test error to test websockets!"))
+    ctx.end()
   }
 
 

@@ -3,6 +3,9 @@ package com.ex_dock.ex_dock.backend
 import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.backend.v1.router.auth.enableAuthRouter
 import com.ex_dock.ex_dock.backend.v1.router.enableBackendV1Router
+import com.ex_dock.ex_dock.backend.v1.router.websocket.initWebsocket
+import com.ex_dock.ex_dock.helper.registerGenericCodec
+import io.github.oshai.kotlinlogging.KLogger
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.ext.auth.PubSecKeyOptions
@@ -12,7 +15,7 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.JWTAuthHandler
 
-fun Router.enableBackendRouter(vertx: Vertx) {
+fun Router.enableBackendRouter(vertx: Vertx, logger: KLogger) {
   val backendRouter: Router = Router.router(vertx)
   val pairDeliveryOptions = DeliveryOptions().setCodecName("PairCodec")
   val eventBus = vertx.eventBus()
@@ -32,15 +35,20 @@ fun Router.enableBackendRouter(vertx: Vertx) {
       )
   )
 
+  // To avoid a race condition with the JDBC starter
+  eventBus.registerGenericCodec(Pair::class)
+
   eventBus.send(
     "process.authentication.registerKeys",
     Pair(authProvider.privateKey, authProvider.publicKey),
     pairDeliveryOptions
   )
 
-  backendRouter.enableAuthRouter(vertx)
-
   backendRouter.route().handler(CorsHandler.create())
+
+  backendRouter.enableAuthRouter(vertx)
+  backendRouter.initWebsocket(vertx, logger = logger)
+
   backendRouter.route().handler(JWTAuthHandler.create(jwtAuth))
 
   backendRouter.get("/about").handler { ctx ->

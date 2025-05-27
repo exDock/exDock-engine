@@ -30,6 +30,7 @@ class AuthenticationVerticle: AbstractVerticle() {
 
     handleLogin()
     handleRefresh()
+    authenticateToken()
   }
 
   private fun setupJwtAuth() {
@@ -115,6 +116,20 @@ class AuthenticationVerticle: AbstractVerticle() {
           }
         } else {
           message.fail(401, "invalid refresh token")
+        }
+      }
+    }
+  }
+
+  private fun authenticateToken() {
+    eventBus.consumer<String>("process.authentication.authenticateToken").handler { message ->
+      val token = message.body()
+
+      jwtAuth.authenticate(TokenCredentials().setToken(token)) { result ->
+        if (result.succeeded()) {
+          message.reply(result.result().principal().getString("sub"))
+        } else {
+          message.fail(401, "invalid token")
         }
       }
     }

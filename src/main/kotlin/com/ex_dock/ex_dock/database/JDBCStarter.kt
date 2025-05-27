@@ -32,6 +32,7 @@ import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.registerGenericListCodec
+import com.ex_dock.ex_dock.helper.sendError
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
@@ -39,6 +40,9 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 
 class JDBCStarter : AbstractVerticle() {
+  companion object {
+    val logger = io.github.oshai.kotlinlogging.KotlinLogging.logger {}
+  }
 
   private var verticles: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
   private lateinit var eventBus: EventBus
@@ -48,15 +52,19 @@ class JDBCStarter : AbstractVerticle() {
 
     Future.all(verticles)
       .onComplete {
-        println("All JDBC verticles deployed")
+        logger.info { "All JDBC Verticles started successfully" }
         getAllCodecClasses()
         eventBus = vertx.eventBus()
 
         eventBus.request<String>("process.service.populateTemplates", "").onFailure {
+          eventBus.sendError(
+            PopulateException("Could not populate the database with standard data. Closing the server!"))
           throw PopulateException("Could not populate the database with standard data. Closing the server!")
         }.onSuccess {
-          println("Database populated with standard Data")
+          logger.info { "Database populated with standard data" }
           eventBus.request<String>("process.service.addAdminUser", "").onFailure {
+            eventBus.sendError(
+              PopulateException("Could not populate the database with standard data. Closing the server!"))
             throw PopulateException("Could not add admin user. Closing the server!")
           }.onSuccess {
             eventBus.request<String>("process.service.addTestProduct", "").onFailure {
@@ -164,7 +172,6 @@ class JDBCStarter : AbstractVerticle() {
       .registerGenericCodec(Block::class)
       .registerGenericCodec(Map::class)
       .registerGenericCodec(UsernamePasswordCredentials::class)
-      .registerGenericCodec(Pair::class)
       .registerGenericCodec(BackendBlock::class)
       .registerGenericCodec(BlockAttribute::class)
       .registerGenericCodec(AttributeBlock::class)
