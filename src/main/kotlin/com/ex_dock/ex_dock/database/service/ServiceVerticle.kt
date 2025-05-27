@@ -26,8 +26,6 @@ class ServiceVerticle: AbstractVerticle() {
     addProductInfoBackendBlock()
     addTestProduct()
     imageConverter()
-    addProductInfoBackendBlock()
-    addTestProduct()
   }
 
   private fun populateTemplateTable() {
