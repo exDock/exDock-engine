@@ -55,7 +55,7 @@ private fun JsonArray.addSettingAttribute(id: String, name: String, type: String
   val setting = JsonObject()
     .put("attribute_id", id)
     .put("attribute_name", name.encode())
-    .put("attribute_type", type.toBackOfficeType())
+    .put("attribute_type", type.toBackOfficeType(id))
     .put("current_attribute_value", value)
   this.add(setting)
 }
@@ -82,7 +82,9 @@ private fun String.encode(): String {
   return result
 }
 
-private fun String.toBackOfficeType(): String {
+private fun String.toBackOfficeType(name: String): String {
+  if (name.contains("PASSWORD", ignoreCase = true)) return "password"
+
   return when (this) {
     "Int" -> "int"
     else -> "text"
