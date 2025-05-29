@@ -57,6 +57,10 @@ fun Router.enableAuthRouter(vertx: Vertx, absoluteMounting: Boolean = false) {
       }
   }
 
+  authRouter["/ping"].handler { ctx ->
+    ctx.response().end("Server responded!")
+  }
+
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
   ).subRouter(authRouter)
