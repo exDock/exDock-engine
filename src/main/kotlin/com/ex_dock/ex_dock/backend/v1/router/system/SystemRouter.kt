@@ -15,10 +15,6 @@ fun Router.enableSystemRouter(vertx: Vertx) {
     }
   }
 
-  systemRouter["/ping"].handler { ctx ->
-    ctx.response().end("Server responded!")
-  }
-
 
   this.route("/system*").subRouter(systemRouter)
 }
