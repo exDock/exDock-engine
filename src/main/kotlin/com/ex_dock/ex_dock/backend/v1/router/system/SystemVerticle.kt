@@ -69,7 +69,13 @@ class SystemVerticle: AbstractVerticle() {
           logger.error { "Could not find secret.properties" }
           message.fail(400, "Could not find secret.properties")
         }
-        message.reply("test")
+
+        if (path != null) {
+          File(path.toURI()).delete()
+          File(path.toURI()).writeText(props.generateFileString())
+        }
+
+        message.reply("Successfully saved settings")
       } catch (_: Exception) {
         logger.error { "Could not find settings" }
         message.fail(400, "Could not find settings")
@@ -117,4 +123,13 @@ private fun String.toBackOfficeType(name: String): String {
     "Int" -> "int"
     else -> "text"
   }
+}
+
+private fun Properties.generateFileString(): String {
+  val builder = StringBuilder()
+  this.entries.forEach { entry ->
+    builder.append("${entry.key}=${entry.value}\n")
+  }
+
+  return builder.toString()
 }
