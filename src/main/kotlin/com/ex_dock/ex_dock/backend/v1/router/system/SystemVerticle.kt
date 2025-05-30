@@ -7,6 +7,7 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+import java.io.File
 import java.util.Properties
 
 class SystemVerticle: AbstractVerticle() {
@@ -20,6 +21,7 @@ class SystemVerticle: AbstractVerticle() {
     eventBus = vertx.eventBus()
 
     getSystemVariables()
+    saveSystemVariables()
   }
 
   private fun getSystemVariables() {
@@ -45,6 +47,30 @@ class SystemVerticle: AbstractVerticle() {
           logger.error { "Could not find default settings" }
           message.fail(400, "Could not find settings")
         }
+      }
+    }
+  }
+
+  private fun saveSystemVariables() {
+    eventBus.consumer<JsonObject>("process.system.saveVariables").handler { message ->
+      try {
+        val props = ClassLoaderDummy::class.java.classLoader.getResourceAsStream("secret.properties").use {
+          Properties().apply { load(it) }
+        }
+
+        props.entries.forEach { mutableEntry ->
+          props.setProperty(mutableEntry.key.toString(), message.body().getValue("${mutableEntry.key}") as String)
+        }
+
+        val path = ClassLoaderDummy::class.java.classLoader.getResource("secret.properties")
+        if (path == null) {
+          logger.error { "Could not find secret.properties" }
+          message.fail(400, "Could not find secret.properties")
+        }
+        message.reply("test")
+      } catch (_: Exception) {
+        logger.error { "Could not find settings" }
+        message.fail(400, "Could not find settings")
       }
     }
   }
