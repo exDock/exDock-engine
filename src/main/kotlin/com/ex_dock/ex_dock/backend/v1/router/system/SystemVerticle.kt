@@ -59,7 +59,9 @@ class SystemVerticle: AbstractVerticle() {
         }
 
         props.entries.forEach { mutableEntry ->
-          props.setProperty(mutableEntry.key.toString(), message.body().getValue("${mutableEntry.key}") as String)
+          if (message.body().containsKey(mutableEntry.key.toString())) {
+            props.setProperty(mutableEntry.key.toString(), message.body().getValue("${mutableEntry.key}") as String)
+          }
         }
 
         val path = ClassLoaderDummy::class.java.classLoader.getResource("secret.properties")
