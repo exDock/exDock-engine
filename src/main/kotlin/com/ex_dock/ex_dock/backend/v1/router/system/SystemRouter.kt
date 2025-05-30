@@ -15,8 +15,8 @@ fun Router.enableSystemRouter(vertx: Vertx) {
     }
   }
 
-  systemRouter["/setSettings"].handler { ctx ->
-    eventBus.request<String>("process.system.setVariables", ctx.body().asJsonObject()).onFailure { error ->
+  systemRouter.post("/setSettings").handler { ctx ->
+    eventBus.request<String>("process.system.saveVariables", ctx.body().asJsonObject()).onFailure { error ->
       ctx.response().setStatusCode(400).end(error.message)
     }.onSuccess {
       ctx.response().end()
