@@ -64,16 +64,12 @@ class SystemVerticle: AbstractVerticle() {
           }
         }
 
-        val path = ClassLoaderDummy::class.java.classLoader.getResource("secret.properties")
-        if (path == null) {
-          logger.error { "Could not find secret.properties" }
-          message.fail(400, "Could not find secret.properties")
-        }
+        val path = ClassLoaderDummy::class.java.classLoader.getResource("secret.properties")?.toURI()
+        println(path)
 
-        if (path != null) {
-          File(path.toURI()).delete()
-          File(path.toURI()).writeText(props.generateFileString())
-        }
+        println(File(path).delete())
+
+        props.store(File(path).outputStream(), null)
 
         message.reply("Successfully saved settings")
       } catch (_: Exception) {
@@ -123,13 +119,4 @@ private fun String.toBackOfficeType(name: String): String {
     "Int" -> "int"
     else -> "text"
   }
-}
-
-private fun Properties.generateFileString(): String {
-  val builder = StringBuilder()
-  this.entries.forEach { entry ->
-    builder.append("${entry.key}=${entry.value}\n")
-  }
-
-  return builder.toString()
 }
