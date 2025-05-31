@@ -353,7 +353,6 @@ class ServiceVerticle: AbstractVerticle() {
         contentBlockId = 5
         imageBlockId = 3
         priceBlockId = 6
-        println("Completed first step")
         val addAttributeBlockQuery = "INSERT INTO attribute_block (block_id, attribute_id) SELECT ?,? " +
           "WHERE NOT EXISTS (SELECT * FROM attribute_block WHERE block_id = ? AND attribute_id = ?)"
         val rowsFuture14 = client.preparedQuery(addAttributeBlockQuery).execute(
@@ -439,7 +438,6 @@ class ServiceVerticle: AbstractVerticle() {
           println("Failed to execute all queries: $it")
           message.fail(500, "Failed to execute all queries")
         }.onComplete {
-          println("Completed second step")
           message.reply("")
         }
       }
