@@ -12,6 +12,7 @@ import com.ex_dock.ex_dock.helper.sendError
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
+import io.vertx.core.eventbus.EventBus
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.Router
@@ -48,6 +49,7 @@ class MainVerticle : AbstractVerticle() {
     val mainRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
+    val eventBus = vertx.eventBus()
 
     sessionHandler.setCookieSameSite(CookieSameSite.STRICT)
 
@@ -55,7 +57,7 @@ class MainVerticle : AbstractVerticle() {
 
     mainRouter.enableBackendRouter(vertx, logger)
 
-    mainRouter.initHome()
+    mainRouter.initHome(eventBus)
     mainRouter.initProduct(vertx)
     mainRouter.initCategory(vertx)
     mainRouter.initTextPages(vertx)

@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -14,6 +15,10 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
   private val failedMessage: String = "failed"
   private val customProductAttributesDataDeliveryOptions = DeliveryOptions().setCodecName("CustomProductAttributesCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS = "custom_attributes"
+  }
 
   override fun start() {
     client = vertx.getConnection()
@@ -92,6 +97,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.result().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, customProductAttributesDataDeliveryOptions)
         } else {
           message.reply("Failed to create custom attribute")
@@ -118,6 +124,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.result().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, customProductAttributesDataDeliveryOptions)
         } else {
           message.reply("No custom attribute found to update")
@@ -140,6 +147,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.result().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply("Custom attribute deleted successfully")
         } else {
           message.reply("No custom attribute found to delete")

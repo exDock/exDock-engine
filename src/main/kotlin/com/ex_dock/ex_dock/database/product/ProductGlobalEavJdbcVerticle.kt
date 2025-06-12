@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -21,6 +22,10 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
   private val eavGlobalStringDeliveryOptions = DeliveryOptions().setCodecName("EavGlobalStringCodec")
   private val eavDeliveryOptions = DeliveryOptions().setCodecName("EavCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS = "global_eav"
+  }
 
   override fun start() {
     client = vertx.getConnection()
@@ -135,6 +140,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalBoolDeliveryOptions)
       }
     }
@@ -154,6 +160,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalBoolDeliveryOptions)
       }
     }
@@ -172,6 +179,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV global bool deleted successfully")
       }
     }
@@ -240,6 +248,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalFloatDeliveryOptions)
       }
     }
@@ -259,6 +268,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalFloatDeliveryOptions)
       }
     }
@@ -277,6 +287,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV global float deleted successfully")
       }
     }
@@ -345,6 +356,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalStringDeliveryOptions)
       }
     }
@@ -364,6 +376,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalStringDeliveryOptions)
       }
     }
@@ -382,6 +395,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV global string deleted successfully")
       }
     }
@@ -450,6 +464,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalIntDeliveryOptions)
       }
     }
@@ -469,6 +484,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalIntDeliveryOptions)
       }
     }
@@ -487,6 +503,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV global int deleted successfully")
       }
     }
@@ -555,6 +572,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalMoneyDeliveryOptions)
       }
     }
@@ -574,6 +592,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalMoneyDeliveryOptions)
       }
     }
@@ -592,6 +611,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV global money deleted successfully")
       }
     }
@@ -658,6 +678,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalMultiSelectDeliveryOptions)
       }
     }
@@ -677,6 +698,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavGlobalMultiSelectDeliveryOptions)
       }
     }
@@ -695,6 +717,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV global multi-select deleted successfully")
       }
     }
@@ -761,6 +784,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavDeliveryOptions)
       }
     }
@@ -780,6 +804,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavDeliveryOptions)
       }
     }
@@ -798,6 +823,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV global deleted successfully")
       }
     }

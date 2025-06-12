@@ -29,6 +29,7 @@ class CacheVerticle : AbstractVerticle() {
 
     // Initialize the eventbus address to handle the cache requests
     getData()
+    cacheInvalidateHandler()
   }
 
   private fun getData() {
@@ -42,7 +43,14 @@ class CacheVerticle : AbstractVerticle() {
       // Iterate through all keys in the key string
       for (key in keyString) {
         futures.add(Future.future { promise ->
-          val cacheData = cache[key]
+          var cacheData = cache.getIfPresent(key)
+
+          if (cacheData == null) {
+            cacheData = CacheData(
+              Future.succeededFuture(listOf("No data Found!")),
+              0,
+            )
+          }
 
           cacheData.data.onFailure { err ->
             promise.fail(err.message)
@@ -101,7 +109,7 @@ class CacheVerticle : AbstractVerticle() {
     // Check if the cache data exists and is not expired or deleted
     if (cacheData != null) {
       // If hits exceed the threshold, reset the cache
-      if (cacheData.hits >= maxHitCount || cacheData.flag) {
+      if (cacheData.hits >= maxHitCount) {
         // We invalidate the cache directly, this is safe because we use CacheLoader
         cache.invalidate(key)
         println("CACHE DATA EXPIRED")
@@ -119,13 +127,11 @@ class CacheVerticle : AbstractVerticle() {
     val cacheData = CacheData(
       data = Future.future {},
       hits = 0,
-      flag = false
     )
 
     // Fetch data asynchronously
     cacheData.data = Future.future { promise ->
       eventBus.request<MutableList<Any>>("process.$address", "").onFailure {
-        cacheData.flag = true
         promise.fail("Failed to load cache data")
       }.onSuccess { res ->
         promise.complete(res.body().toList())
@@ -134,18 +140,32 @@ class CacheVerticle : AbstractVerticle() {
 
     return cacheData
   }
+
+  /**
+   * Sets a specified cache data flag
+   */
+  private fun cacheInvalidateHandler() {
+    eventBus.consumer("process.cache.invalidateKey") { message ->
+      val cacheKey = message.body()
+      val cacheData = cache.getIfPresent(cacheKey)
+
+      // Set the cache data flag if the cache entry exists
+      if (cacheData != null) {
+        cache.refresh(cacheKey)
+        message.reply("Cache flag was successfully set")
+      }
+    }
+  }
 }
 
 /**
  * Cache data object for use in the cache
  * @param data The data from the database as a list
  * @param hits The number of times the cache was accessed
- * @param flag The flag indicating if the data has expired
  */
 data class CacheData(
   var data: Future<List<Any>>,
   var hits: Int,
-  var flag: Boolean
 )
 
 
