@@ -38,6 +38,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
   private val backendPermissionsListDeliveryOptions = DeliveryOptions().setCodecName("BackendPermissionsListCodec")
   private val fullUserDeliveryOptions = DeliveryOptions().setCodecName("FullUserCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+  private val fullUserListDeliveryOptions = DeliveryOptions().setCodecName("FullUserListCodec")
 
   override fun start() {
     client = vertx.getConnection()
@@ -336,9 +337,9 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val rows = res.value()
         if (rows.size() > 0) {
-          message.reply(rows.map { row -> row.makeFullUserObject() }, listDeliveryOptions)
+          message.reply(rows.map { row -> row.makeFullUserObject() }, fullUserListDeliveryOptions)
         } else {
-          message.reply(emptyList<FullUser>(), listDeliveryOptions)
+          message.reply(emptyList<FullUser>(), fullUserListDeliveryOptions)
         }
       }
     }
