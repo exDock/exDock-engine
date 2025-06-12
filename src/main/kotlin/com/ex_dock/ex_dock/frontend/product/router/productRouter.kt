@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.frontend.product.router
 
+import com.ex_dock.ex_dock.helper.sendError
 import io.vertx.ext.web.Router
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
@@ -7,6 +8,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.kotlin.core.json.Json
 import io.vertx.kotlin.core.json.obj
+import java.sql.SQLException
 
 fun Router.initProduct(vertx: Vertx) {
   val productRouter = Router.router(vertx)
@@ -42,6 +44,11 @@ fun Router.initProduct(vertx: Vertx) {
         ctx.end(reply.body().toString())
       }.onFailure { error ->
         ctx.end("Error creating product: ${error.localizedMessage}")
+        eventBus.sendError(
+          SQLException("Error creating product: ${error.localizedMessage}"),
+          "Connection_id",
+          ctx.user().principal().getString("userId")
+        )
       }
   }
 

@@ -28,7 +28,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
   }
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     getAllEavGlobalBool()
@@ -93,7 +93,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavGlobalBools.add(makeEavGlobalBool(row))
+            eavGlobalBools.add(row.makeEavGlobalBool())
           }
         }
 
@@ -118,7 +118,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavGlobalBool(rows.first()), eavGlobalBoolDeliveryOptions)
+          message.reply(rows.first().makeEavGlobalBool(), eavGlobalBoolDeliveryOptions)
         } else {
           message.reply("No global bool found")
         }
@@ -132,7 +132,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_global_bool (product_id, attribute_key, value) VALUES (?, ?, ?::bit(1))"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalBoolTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -152,7 +152,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_global_bool SET value =?::bit(1) WHERE product_id =? AND attribute_key =? "
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalBoolTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -201,7 +201,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavGlobalFloats.add(makeEavGlobalFloat(row))
+            eavGlobalFloats.add(row.makeEavGlobalFloat())
           }
         }
 
@@ -226,7 +226,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavGlobalFloat(rows.first()), eavGlobalFloatDeliveryOptions)
+          message.reply(rows.first().makeEavGlobalFloat(), eavGlobalFloatDeliveryOptions)
         } else {
           message.reply("No global float found")
         }
@@ -240,7 +240,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_global_float (product_id, attribute_key, value) VALUES (?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalFloatTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -260,7 +260,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_global_float SET value =? WHERE product_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalFloatTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -309,7 +309,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavGlobalStrings.add(makeEavGlobalString(row))
+            eavGlobalStrings.add(row.makeEavGlobalString())
           }
         }
 
@@ -348,7 +348,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_global_string (product_id, attribute_key, value) VALUES (?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalStringTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -368,7 +368,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_global_string SET value =? WHERE product_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalStringTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -417,7 +417,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavGlobalInts.add(makeEavGlobalInt(row))
+            eavGlobalInts.add(row.makeEavGlobalInt())
           }
         }
 
@@ -442,7 +442,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavGlobalInt(rows.first()), eavGlobalIntDeliveryOptions)
+          message.reply(rows.first().makeEavGlobalInt(), eavGlobalIntDeliveryOptions)
         } else {
           message.reply("No rows returned")
         }
@@ -456,7 +456,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_global_int (product_id, attribute_key, value) VALUES (?,?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalIntTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -476,7 +476,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_global_int SET value =? WHERE product_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalIntTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -525,7 +525,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavGlobalMoneys.add(makeEavGlobalMoney(row))
+            eavGlobalMoneys.add(row.makeEavGlobalMoney())
           }
         }
 
@@ -550,7 +550,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavGlobalMoney(rows.first()), eavGlobalMoneyDeliveryOptions)
+          message.reply(rows.first().makeEavGlobalMoney(), eavGlobalMoneyDeliveryOptions)
         } else {
           message.reply("No Eav Global Money found")
         }
@@ -564,7 +564,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_global_money (product_id, attribute_key, value) VALUES (?,?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalMoneyTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -584,7 +584,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_global_money SET value =? WHERE product_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalMoneyTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -633,7 +633,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavGlobalMultiSelects.add(makeEavGlobalMultiSelect(row))
+            eavGlobalMultiSelects.add(row.makeEavGlobalMultiSelect())
           }
         }
 
@@ -658,7 +658,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavGlobalMultiSelect(rows.first()), eavGlobalMultiSelectDeliveryOptions)
+          message.reply(rows.first().makeEavGlobalMultiSelect(), eavGlobalMultiSelectDeliveryOptions)
         }
       }
     }
@@ -670,7 +670,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_global_multi_select (product_id, attribute_key, value) VALUES (?,?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalMultiSelectTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -690,7 +690,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_global_multi_select SET value =? WHERE product_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalMultiSelectTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -739,7 +739,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavs.add(makeEavGlobal(row))
+            eavs.add(row.makeEavGlobal())
           }
         }
 
@@ -764,7 +764,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavGlobal(rows.first()), eavDeliveryOptions)
+          message.reply(rows.first().makeEavGlobal(), eavDeliveryOptions)
         }
       }
     }
@@ -776,7 +776,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav (product_id, attribute_key) VALUES (?,?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -796,7 +796,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav SET product_id =?, attribute_key=? WHERE product_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavGlobalTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -857,7 +857,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavGlobalInfoList.add(makeEavGlobalInfo(row))
+            eavGlobalInfoList.add(row.makeEavGlobalInfo())
           }
         }
 
@@ -896,7 +896,7 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavGlobalInfoList.add(makeEavGlobalInfo(row))
+            eavGlobalInfoList.add(row.makeEavGlobalInfo())
           }
         }
 
@@ -905,198 +905,196 @@ class ProductGlobalEavJdbcVerticle: AbstractVerticle() {
     }
   }
 
-  private fun makeEavGlobalBool(row: Row): EavGlobalBool {
+  private fun Row.makeEavGlobalBool(): EavGlobalBool {
     return EavGlobalBool(
-      productId = row.getInteger("product_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getBoolean("value")
+      productId = this.getInteger("product_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getBoolean("value")
     )
   }
 
-  private fun makeEavGlobalFloat(row: Row): EavGlobalFloat {
+  private fun Row.makeEavGlobalFloat(): EavGlobalFloat {
     return EavGlobalFloat(
-      productId = row.getInteger("product_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getFloat("value")
+      productId = this.getInteger("product_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getFloat("value")
     )
   }
 
-  private fun makeEavGlobalString(row: Row): EavGlobalString {
+  private fun Row.makeEavGlobalString(): EavGlobalString {
     return EavGlobalString(
-      productId = row.getInteger("product_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getString("value")
+      productId = this.getInteger("product_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getString("value")
     )
   }
 
-  private fun makeEavGlobalInt(row: Row): EavGlobalInt {
+  private fun Row.makeEavGlobalInt(): EavGlobalInt {
     return EavGlobalInt(
-      productId = row.getInteger("product_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getInteger("value")
+      productId = this.getInteger("product_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getInteger("value")
     )
   }
 
-  private fun makeEavGlobalMoney(row: Row): EavGlobalMoney {
+  private fun Row.makeEavGlobalMoney(): EavGlobalMoney {
     return EavGlobalMoney(
-      productId = row.getInteger("product_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getDouble("value")
+      productId = this.getInteger("product_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getDouble("value")
     )
   }
 
-  private fun makeEavGlobalMultiSelect(row: Row): EavGlobalMultiSelect {
+  private fun Row.makeEavGlobalMultiSelect(): EavGlobalMultiSelect {
     return EavGlobalMultiSelect(
-      productId = row.getInteger("product_id"),
-      attributeKey = row.getString("attribute_key"),
-      value = row.getInteger("value")
+      productId = this.getInteger("product_id"),
+      attributeKey = this.getString("attribute_key"),
+      value = this.getInteger("value")
     )
   }
 
-  private fun makeEavGlobal(row: Row): Eav {
+  private fun Row.makeEavGlobal(): Eav {
     return Eav(
-      productId = row.getInteger("product_id"),
-      attributeKey = row.getString("attribute_key")
+      productId = this.getInteger("product_id"),
+      attributeKey = this.getString("attribute_key")
     )
   }
 
-  private fun makeEavGlobalInfo(row: Row): EavGlobalInfo {
+  private fun Row.makeEavGlobalInfo(): EavGlobalInfo {
     return EavGlobalInfo(
-      eav = makeEavGlobal(row),
-      eavGlobalBool = row.getBoolean("bool_value"),
-      eavGlobalFloat = row.getFloat("float_value"),
-      eavGlobalString = row.getString("string_value"),
-      eavGlobalInt = row.getInteger("int_value"),
-      eavGlobalMoney = row.getDouble("money_value"),
-      eavGlobalMultiSelect = row.getInteger("multi_select_value")
+      eav = this.makeEavGlobal(),
+      eavGlobalBool = try {this.getBoolean("bool_value")} catch (_: Exception) {null},
+      eavGlobalFloat = try {this.getFloat("float_value")} catch (_: Exception) {null},
+      eavGlobalString = try {this.getString("string_value")} catch (_: Exception) {null},
+      eavGlobalInt = try {this.getInteger("int_value")} catch (_: Exception) {null},
+      eavGlobalMoney = try {this.getDouble("money_value")} catch (_: Exception) {null},
+      eavGlobalMultiSelect = try {this.getInteger("multi_select_value")} catch (_: Exception) {null}
     )
   }
 
-  private fun makeEavGlobalBoolTuple(body: EavGlobalBool, isPutRequest: Boolean): Tuple {
+  private fun EavGlobalBool.toTuple(isPutRequest: Boolean): Tuple {
     val eavGlobalBoolTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value.toInt(),
-        body.productId,
-        body.attributeKey,
+        this.value.toInt(),
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.value.toInt(),
+        this.productId,
+        this.attributeKey,
+        this.value.toInt(),
       )
     }
 
     return eavGlobalBoolTuple
   }
 
-  private fun makeEavGlobalFloatTuple(body: EavGlobalFloat, isPutRequest: Boolean): Tuple {
+  private fun EavGlobalFloat.toTuple(isPutRequest: Boolean): Tuple {
     val eavGlobalFloatTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavGlobalFloatTuple
   }
 
-  private fun makeEavGlobalStringTuple(body: EavGlobalString, isPutRequest: Boolean): Tuple {
+  private fun EavGlobalString.toTuple(isPutRequest: Boolean): Tuple {
     val eavGlobalStringTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavGlobalStringTuple
   }
 
-  private fun makeEavGlobalIntTuple(body: EavGlobalInt, isPutRequest: Boolean): Tuple {
+  private fun EavGlobalInt.toTuple(isPutRequest: Boolean): Tuple {
     val eavGlobalIntTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavGlobalIntTuple
   }
 
-  private fun makeEavGlobalMoneyTuple(body: EavGlobalMoney, isPutRequest: Boolean): Tuple {
+  private fun EavGlobalMoney.toTuple(isPutRequest: Boolean): Tuple {
     val eavGlobalMoneyTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavGlobalMoneyTuple
   }
 
-  private fun makeEavGlobalMultiSelectTuple(body: EavGlobalMultiSelect, isPutRequest: Boolean): Tuple {
+  private fun EavGlobalMultiSelect.toTuple(isPutRequest: Boolean): Tuple {
     val eavGlobalMultiSelectTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavGlobalMultiSelectTuple
   }
 
-  private fun makeEavGlobalTuple(body: Eav, isPutRequest: Boolean): Tuple {
+  private fun Eav.toTuple(isPutRequest: Boolean): Tuple {
     val eavGlobalTuple = if (isPutRequest) {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.productId,
-        body.attributeKey,
+        this.productId,
+        this.attributeKey,
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
+        this.productId,
+        this.attributeKey,
       )
     }
 
     return eavGlobalTuple
   }
-
-  private fun Boolean.toInt() = if (this) 1 else 0
 }

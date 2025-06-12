@@ -2,15 +2,18 @@ package com.ex_dock.ex_dock
 
 import com.ex_dock.ex_dock.database.JDBCStarter
 import com.ex_dock.ex_dock.frontend.FrontendVerticle
-import com.ex_dock.ex_dock.helper.VerticleDeployHelper
 import com.ex_dock.ex_dock.helper.deployVerticleHelper
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
 import io.vertx.ext.web.client.WebClient
-import java.util.Properties
+import java.util.*
 
 class ExtensionsLauncher: AbstractVerticle() {
+  companion object {
+    val logger = KotlinLogging.logger {}
+  }
 
   private var extension: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
 
@@ -22,7 +25,7 @@ class ExtensionsLauncher: AbstractVerticle() {
  *
  * @param startPromise A Promise object that will be completed when the verticle has started successfully or failed.
  */
-override  fun start(startPromise: Promise<Void>) {
+override fun start(startPromise: Promise<Void>) {
     // Load properties from the 'secret.properties' file
     props = javaClass.classLoader.getResourceAsStream("secret.properties").use {
       Properties().apply { load(it) }
@@ -37,11 +40,11 @@ override  fun start(startPromise: Promise<Void>) {
         // Wait for all extensions to be started
         Future.all(extension)
           .onComplete { _ ->
-            println("All extensions started successfully")
+            logger.info { "All extensions started successfully" }
             startPromise.complete()
           }
           .onFailure {
-            println("Error starting extensions: ${it.message}")
+            logger.error { "Error starting extensions: ${it.message}" }
             startPromise.fail(it)
           }
       }

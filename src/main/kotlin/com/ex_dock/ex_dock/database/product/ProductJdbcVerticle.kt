@@ -1,7 +1,10 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.category.PageIndex
+import com.ex_dock.ex_dock.database.category.convertToString
+import com.ex_dock.ex_dock.database.category.toPageIndex
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.database.image.Image
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
@@ -28,7 +31,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
   }
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections to the product table
@@ -70,7 +73,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
         val rows: RowSet<Row> = res
         if (rows.size() > 0) {
           rows.forEach { row ->
-            productList.add(makeProduct(row))
+            productList.add(row.makeProduct())
           }
         }
 
@@ -93,7 +96,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
         val rows: RowSet<Row> = res
         if (rows.size() > 0) {
           val row = rows.first()
-          message.reply(makeProduct(row), productDeliveryOptions)
+          message.reply(row.makeProduct(), productDeliveryOptions)
         } else {
           message.reply("No product found!")
         }
@@ -105,8 +108,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val createProductConsumer = eventBus.localConsumer<Products>("process.products.createProduct")
     createProductConsumer.handler { message ->
       val product = message.body()
-      val rowsFuture = client.preparedQuery("INSERT INTO products (name, short_name, description, short_description) VALUES (?,?,?,?)")
-       .execute(makeProductTuple(product, false))
+      val rowsFuture = client.preparedQuery("INSERT INTO products (name, short_name, description, short_description, sku, ean, manufacturer) VALUES (?,?,?,?,?,?,?)")
+       .execute(product.toTuple(false))
 
       rowsFuture.onFailure{ res ->
         println("Failed to execute query: $res")
@@ -124,8 +127,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val updateProductConsumer = eventBus.localConsumer<Products>("process.products.updateProduct")
     updateProductConsumer.handler { message ->
       val product = message.body()
-      val rowsFuture = client.preparedQuery("UPDATE products SET name =?, short_name =?, description =?, short_description =? WHERE product_id =?")
-       .execute(makeProductTuple(product, true))
+      val rowsFuture = client.preparedQuery("UPDATE products SET name =?, short_name =?, description =?, " +
+        "short_description =?, sku=?, ean=?, manufacturer=? WHERE product_id =?")
+       .execute(product.toTuple(true))
 
       rowsFuture.onFailure{ res ->
         println("Failed to execute query: $res")
@@ -175,7 +179,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
         val rows: RowSet<Row> = res
         if (rows.size() > 0) {
           rows.forEach { row ->
-            productsSeoList.add(makeProductSeo(row))
+            productsSeoList.add(row.makeProductSeo())
           }
         }
 
@@ -198,7 +202,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
         val rows: RowSet<Row> = res
         if (rows.size() > 0) {
           val row = rows.first()
-          message.reply(makeProductSeo(row), productSeoDeliveryOptions)
+          message.reply(row.makeProductSeo(), productSeoDeliveryOptions)
         } else {
           message.reply("No products were found!")
         }
@@ -211,7 +215,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
     createProductSeoConsumer.handler { message ->
       val productSeo = message.body()
       val rowsFuture = client.preparedQuery("INSERT INTO products_seo (product_id, meta_title, meta_description, meta_keywords, page_index) VALUES (?,?,?,?,?::p_index)")
-       .execute(makeProductSeoTuple(productSeo, false))
+       .execute(productSeo.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -228,7 +232,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
     updateProductSeoConsumer.handler { message ->
       val productSeo = message.body()
       val rowsFuture = client.preparedQuery("UPDATE products_seo SET meta_title =?, meta_description =?, meta_keywords =?, page_index =?::p_index WHERE product_id =?")
-       .execute(makeProductSeoTuple(productSeo, true))
+       .execute(productSeo.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -269,7 +273,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res ->
         val rows: RowSet<Row> = res
         rows.forEach { row ->
-          productsPricingList.add(makeProductsPricing(row))
+          productsPricingList.add(row.makeProductsPricing())
         }
 
         message.reply(productsPricingList, listDeliveryOptions)
@@ -291,7 +295,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
         val rows: RowSet<Row> = res
         if (rows.size() > 0) {
           val row = rows.first()
-          message.reply(makeProductsPricing(row), productPricingDeliveryOptions)
+          message.reply(row.makeProductsPricing(), productPricingDeliveryOptions)
         } else {
           message.reply("No products found!")
         }
@@ -303,8 +307,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val createProductPricingConsumer = eventBus.localConsumer<ProductsPricing>("process.products.createProductPricing")
     createProductPricingConsumer.handler { message ->
       val productPricing = message.body()
-      val rowsFuture = client.preparedQuery("INSERT INTO products_pricing (product_id, price, sale_price, cost_price) VALUES (?,?,?,?)")
-       .execute(makeProductsPricingTuple(productPricing, false))
+      val rowsFuture = client.preparedQuery("INSERT INTO products_pricing (product_id, price, sale_price, " +
+        "cost_price, tax_class, sale_date_start, sale_date_end) VALUES (?,?,?,?,?,?,?)")
+       .execute(productPricing.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -320,8 +325,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
     val updateProductPricingConsumer = eventBus.localConsumer<ProductsPricing>("process.products.updateProductPricing")
     updateProductPricingConsumer.handler { message ->
       val productPricing = message.body()
-      val rowsFuture = client.preparedQuery("UPDATE products_pricing SET price =?, sale_price =?, cost_price =? WHERE product_id =?")
-       .execute(makeProductsPricingTuple(productPricing, true))
+      val rowsFuture = client.preparedQuery("UPDATE products_pricing SET price =?, sale_price =?, " +
+        "cost_price =?, tax_class=?, sale_date_start=?, sale_date_end=? WHERE product_id =?")
+       .execute(productPricing.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -355,7 +361,9 @@ class ProductJdbcVerticle: AbstractVerticle() {
     allProductInfoConsumer.handler { message ->
       val rowsFuture = client.preparedQuery("SELECT * FROM products " +
         "JOIN public.products_pricing pp on products.product_id = pp.product_id " +
-        "JOIN public.products_seo ps on products.product_id = ps.product_id").execute()
+        "JOIN public.products_seo ps on products.product_id = ps.product_id " +
+        "JOIN public.image_product ip ON products.product_id = ip.product_id " +
+        "JOIN public.image i ON ip.image_url = i.image_url").execute()
       val fullProducts: MutableList<FullProduct> = emptyList<FullProduct>().toMutableList()
 
       rowsFuture.onFailure { res ->
@@ -363,11 +371,25 @@ class ProductJdbcVerticle: AbstractVerticle() {
         message.reply(failedMessage)
       }.onSuccess { res ->
         val rows: RowSet<Row> = res
+        var product: FullProduct? = null
         if (rows.size() > 0) {
           rows.forEach { row ->
-            fullProducts.add(makeFullProducts(row))
+            val currentProduct = row.makeFullProducts()
+
+            if (product == null || currentProduct.product.productId != product!!.product.productId) {
+              if (product != null) fullProducts.add(product!!)
+
+              product = FullProduct(
+                product = currentProduct.product,
+                productsPricing = currentProduct.productsPricing,
+                productsSeo = currentProduct.productsSeo,
+                images = mutableListOf()
+              )
+            }
+            product!!.images.add(currentProduct.images)
           }
         }
+        if (product!= null) fullProducts.add(product!!)
 
         message.reply(fullProducts, listDeliveryOptions)
       }
@@ -381,6 +403,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
       val rowsFuture = client.preparedQuery("SELECT * FROM products " +
         "JOIN public.products_pricing pp on products.product_id = pp.product_id " +
         "JOIN public.products_seo ps on products.product_id = ps.product_id " +
+        "LEFT JOIN public.image_product ip ON products.product_id = ip.product_id " +
+        "LEFT JOIN public.image i ON ip.image_url = i.image_url " +
         "WHERE products.product_id =?")
        .execute(Tuple.of(productId))
 
@@ -390,9 +414,23 @@ class ProductJdbcVerticle: AbstractVerticle() {
         message.reply(failedMessage)
       }.onSuccess { res ->
         val rows: RowSet<Row> = res
+        var product: FullProduct? = null
         if (rows.size() > 0) {
-          val row = rows.first()
-          message.reply(makeFullProducts(row), fullProductDeliveryOptions)
+          rows.forEach { row ->
+            val currentProduct = row.makeFullProducts()
+
+            if (product == null || currentProduct.product.productId != productId) {
+              product = FullProduct(
+                product = currentProduct.product,
+                productsPricing = currentProduct.productsPricing,
+                productsSeo = currentProduct.productsSeo,
+                images = mutableListOf()
+              )
+            }
+            product!!.images.add(currentProduct.images)
+          }
+
+          message.reply(product, productDeliveryOptions)
         } else {
           message.reply("No products found!")
         }
@@ -400,122 +438,126 @@ class ProductJdbcVerticle: AbstractVerticle() {
     }
   }
 
-  private fun makeProduct(row: Row): Products {
+  private fun Row.makeProduct(): Products {
     return Products(
-      productId = row.getInteger("product_id"),
-      name = row.getString("name"),
-      shortName = row.getString("short_name"),
-      description = row.getString("description"),
-      shortDescription = row.getString("short_description")
+      productId = this.getInteger("product_id"),
+      name = this.getString("name"),
+      shortName = this.getString("short_name"),
+      description = this.getString("description"),
+      shortDescription = this.getString("short_description"),
+      sku = this.getString("sku"),
+      ean = this.getString("ean"),
+      manufacturer = this.getString("manufacturer"),
     )
   }
 
-  private fun makeProductSeo(row: Row): ProductsSeo {
+  private fun Row.makeProductSeo(): ProductsSeo {
     return ProductsSeo(
-      productId = row.getInteger("product_id"),
-      metaTitle = row.getString("meta_title"),
-      metaDescription = row.getString("meta_description"),
-      metaKeywords = row.getString("meta_keywords"),
-      pageIndex = convertStringToPageIndex(row.getString("page_index"))
+      productId = this.getInteger("product_id"),
+      metaTitle = this.getString("meta_title"),
+      metaDescription = this.getString("meta_description"),
+      metaKeywords = this.getString("meta_keywords"),
+      pageIndex = this.getString("page_index").toPageIndex()
     )
   }
 
-  private fun makeProductsPricing(row: Row): ProductsPricing {
+  private fun Row.makeProductsPricing(): ProductsPricing {
     return ProductsPricing(
-      productId = row.getInteger("product_id"),
-      price = row.getDouble("price"),
-      salePrice = row.getDouble("sale_price"),
-      costPrice = row.getDouble("cost_price")
+      productId = this.getInteger("product_id"),
+      price = this.getDouble("price"),
+      salePrice = this.getDouble("sale_price"),
+      costPrice = this.getDouble("cost_price"),
+      taxClass = this.getString("tax_class"),
+      saleDateStart = try {this.getString("sale_date_start")} catch (_: Exception) {null},
+      saleDateEnd = try {this.getString("sale_date_end")} catch (_: Exception) {null}
     )
   }
 
-  private fun makeFullProducts(row: Row): FullProduct {
-    return FullProduct(
-      makeProduct(row),
-      makeProductSeo(row),
-      makeProductsPricing(row)
+  private fun Row.makeFullProducts(): FullProductEntry {
+    return FullProductEntry(
+      this.makeProduct(),
+      this.makeProductSeo(),
+      this.makeProductsPricing(),
+      Image(
+        this.getString("image_url"),
+        this.getString("image_name"),
+        this.getString("extensions")
+      )
     )
   }
 
-  private fun makeProductTuple(body: Products, isPutRequest: Boolean): Tuple {
+  private fun Products.toTuple(isPutRequest: Boolean): Tuple {
     val productTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.name,
-        body.shortName,
-        body.description,
-        body.shortDescription,
-        body.productId
+        this.name,
+        this.shortName,
+        this.description,
+        this.shortDescription,
+        this.sku,
+        this.ean,
+        this.manufacturer,
+        this.productId
       )
     } else {
       Tuple.of(
-        body.name,
-        body.shortName,
-        body.description,
-        body.shortDescription,
+        this.name,
+        this.shortName,
+        this.description,
+        this.shortDescription,
+        this.sku,
+        this.ean,
+        this.manufacturer,
       )
     }
 
     return productTuple
   }
 
-  private fun makeProductSeoTuple(body: ProductsSeo, isPutRequest: Boolean): Tuple {
+  private fun ProductsSeo.toTuple(isPutRequest: Boolean): Tuple {
     val productSeoTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.metaTitle,
-        body.metaDescription,
-        body.metaKeywords,
-        convertPageIndexToString(body.pageIndex),
-        body.productId
+        this.metaTitle,
+        this.metaDescription,
+        this.metaKeywords,
+        this.pageIndex.convertToString(),
+        this.productId
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.metaTitle,
-        body.metaDescription,
-        body.metaKeywords,
-        convertPageIndexToString(body.pageIndex),
+        this.productId,
+        this.metaTitle,
+        this.metaDescription,
+        this.metaKeywords,
+        this.pageIndex.convertToString(),
       )
     }
 
     return productSeoTuple
   }
 
-  private fun makeProductsPricingTuple(body: ProductsPricing, isPutRequest: Boolean): Tuple {
+  private fun ProductsPricing.toTuple(isPutRequest: Boolean): Tuple {
     val productsPricingTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.price,
-        body.salePrice,
-        body.costPrice,
-        body.productId
+        this.price,
+        this.salePrice,
+        this.costPrice,
+        this.taxClass,
+        this.saleDateStart,
+        this.saleDateEnd,
+        this.productId,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.price,
-        body.salePrice,
-        body.costPrice,
+        this.productId,
+        this.price,
+        this.salePrice,
+        this.costPrice,
+        this.taxClass,
+        this.saleDateStart,
+        this.saleDateEnd
       )
     }
 
     return productsPricingTuple
-  }
-
-  private fun convertPageIndexToString(pageIndex: PageIndex): String {
-    return when (pageIndex) {
-      PageIndex.NoIndexFollow -> "noindex, follow"
-      PageIndex.NoIndexNoFollow -> "noindex, nofollow"
-      PageIndex.IndexFollow -> "index, follow"
-      PageIndex.IndexNoFollow -> "index, nofollow"
-    }
-  }
-
-  private fun convertStringToPageIndex(name: String): PageIndex {
-    return when (name) {
-      "noindex, follow" -> PageIndex.NoIndexFollow
-      "noindex, nofollow" -> PageIndex.NoIndexNoFollow
-      "index, follow" -> PageIndex.IndexFollow
-      "index, nofollow" -> PageIndex.IndexNoFollow
-      else -> throw IllegalArgumentException("Invalid page index: $name")
-    }
   }
 }

@@ -29,7 +29,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
 
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     getAllEavStoreViewBool()
@@ -94,7 +94,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavStoreViewBoolList.add(makeEavStoreViewBool(row))
+            eavStoreViewBoolList.add(row.makeEavStoreViewBool())
           }
         }
 
@@ -133,7 +133,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_store_view_bool (product_id, store_view_id, attribute_key, value) VALUES (?, ?, ?, ?::bit(1))"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewBoolTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -153,7 +153,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_store_view_bool SET value =?::bit(1) WHERE product_id =? AND store_view_id =? AND attribute_key =? "
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewBoolTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -202,7 +202,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavStoreViewFloatList.add(makeEavStoreViewFloat(row))
+            eavStoreViewFloatList.add(row.makeEavStoreViewFloat())
           }
         }
 
@@ -227,7 +227,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavStoreViewFloat(rows.first()), eavStoreViewFloatDeliveryOptions)
+          message.reply(rows.first().makeEavStoreViewFloat(), eavStoreViewFloatDeliveryOptions)
         } else {
           message.reply("No storeView float found")
         }
@@ -241,7 +241,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_store_view_float (product_id, store_view_id, attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewFloatTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -261,7 +261,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_store_view_float SET value =? WHERE product_id =? AND store_view_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewFloatTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -310,7 +310,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavStoreViewStringList.add(makeEavStoreViewString(row))
+            eavStoreViewStringList.add(row.makeEavStoreViewString())
           }
         }
 
@@ -335,7 +335,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavStoreViewString(rows.first()), eavStoreViewStringDeliveryOptions)
+          message.reply(rows.first().makeEavStoreViewString(), eavStoreViewStringDeliveryOptions)
         } else {
           message.reply("No storeView string found")
         }
@@ -349,7 +349,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_store_view_string (product_id, store_view_id, attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewStringTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -369,7 +369,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_store_view_string SET value =? WHERE product_id =? AND store_view_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewStringTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -418,7 +418,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach {row ->
-            eavStoreViewIntList.add(makeEavStoreViewInt(row))
+            eavStoreViewIntList.add(row.makeEavStoreViewInt())
           }
         }
 
@@ -443,7 +443,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavStoreViewInt(rows.first()), eavStoreViewIntDeliveryOptions)
+          message.reply(rows.first().makeEavStoreViewInt(), eavStoreViewIntDeliveryOptions)
         } else {
           message.reply("No rows returned")
         }
@@ -457,7 +457,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_store_view_int (product_id, store_view_id ,attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewIntTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -477,7 +477,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_store_view_int SET value =? WHERE product_id =? AND store_view_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewIntTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -526,7 +526,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            allEavStoreViewMoneyList.add(makeEavStoreViewMoney(row))
+            allEavStoreViewMoneyList.add(row.makeEavStoreViewMoney())
           }
         }
 
@@ -551,7 +551,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavStoreViewMoney(rows.first()), eavStoreViewMoneyDeliveryOptions)
+          message.reply(rows.first().makeEavStoreViewMoney(), eavStoreViewMoneyDeliveryOptions)
         } else {
           message.reply("No Eav Global Money found")
         }
@@ -565,7 +565,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_store_view_money (product_id, store_view_id, attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewMoneyTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -585,7 +585,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_store_view_money SET value =? WHERE product_id =? AND store_view_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewMoneyTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -634,7 +634,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavStoreViewMultiSelectList.add(makeEavStoreViewMultiSelect(row))
+            eavStoreViewMultiSelectList.add(row.makeEavStoreViewMultiSelect())
           }
         }
 
@@ -659,7 +659,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavStoreViewMultiSelect(rows.first()), eavStoreViewMultiSelectDeliveryOptions)
+          message.reply(rows.first().makeEavStoreViewMultiSelect(), eavStoreViewMultiSelectDeliveryOptions)
         } else {
           message.reply("No EAV storeView multi-select found")
         }
@@ -673,7 +673,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_store_view_multi_select (product_id, store_view_id, attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewMultiSelectTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -693,7 +693,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_store_view_multi_select SET value =? WHERE product_id =? AND store_view_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewMultiSelectTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -742,7 +742,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavList.add(makeEavStoreView(row))
+            eavList.add(row.makeEavStoreView())
           }
         }
 
@@ -767,7 +767,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavStoreView(rows.first()), eavDeliveryOptions)
+          message.reply(rows.first().makeEavStoreView(), eavDeliveryOptions)
         } else {
           message.reply("No EAV storeView found")
         }
@@ -781,7 +781,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav (product_id, attribute_key) VALUES (?,?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -801,7 +801,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav SET product_id =?, attribute_key=? WHERE product_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavStoreViewTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -841,6 +841,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, egb.value AS bool_value, " +
         "egf.value AS float_value, egs.value AS string_value, " +
         "egi.value AS int_value, egm.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "egms.value AS multi_select_value, cpa.attribute_key, sv.store_view_id AS store_view_id FROM products " +
         "LEFT JOIN public.eav_store_view_bool egb on products.product_id = egb.product_id " +
         "LEFT JOIN public.eav_store_view_float egf on products.product_id = egf.product_id " +
@@ -863,7 +864,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavStoreViewInfoList.add(makeEavStoreViewInfo(row))
+            eavStoreViewInfoList.add(row.makeEavStoreViewInfo())
           }
         }
 
@@ -880,6 +881,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, egb.value AS bool_value, " +
         "egf.value AS float_value, egs.value AS string_value, " +
         "egi.value AS int_value, egm.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "egms.value AS multi_select_value, cpa.attribute_key, sv.store_view_id AS store_view_id FROM products " +
         "LEFT JOIN public.eav_store_view_bool egb on products.product_id = egb.product_id " +
         "LEFT JOIN public.eav_store_view_float egf on products.product_id = egf.product_id " +
@@ -903,7 +905,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavStoreViewInfoList.add(makeEavStoreViewInfo(row))
+            eavStoreViewInfoList.add(row.makeEavStoreViewInfo())
           }
         }
 
@@ -912,223 +914,224 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
     }
   }
 
-  private fun makeEavStoreViewBool(row: Row): EavStoreViewBool {
+  private fun Row.makeEavStoreViewBool(): EavStoreViewBool {
     return EavStoreViewBool(
-      row.getInteger("product_id"),
-      row.getInteger("store_view_id"),
-      row.getString("attribute_key"),
-      row.getBoolean("value")
+      this.getInteger("product_id"),
+      this.getInteger("store_view_id"),
+      this.getString("attribute_key"),
+      this.getBoolean("value")
     )
   }
 
-  private fun makeEavStoreViewFloat(row: Row): EavStoreViewFloat {
+  private fun Row.makeEavStoreViewFloat(): EavStoreViewFloat {
     return EavStoreViewFloat(
-      row.getInteger("product_id"),
-      row.getInteger("store_view_id"),
-      row.getString("attribute_key"),
-      row.getFloat("value")
+      this.getInteger("product_id"),
+      this.getInteger("store_view_id"),
+      this.getString("attribute_key"),
+      this.getFloat("value")
     )
   }
 
-  private fun makeEavStoreViewString(row: Row): EavStoreViewString {
+  private fun Row.makeEavStoreViewString(): EavStoreViewString {
     return EavStoreViewString(
-      row.getInteger("product_id"),
-      row.getInteger("store_view_id"),
-      row.getString("attribute_key"),
-      row.getString("value")
+      this.getInteger("product_id"),
+      this.getInteger("store_view_id"),
+      this.getString("attribute_key"),
+      this.getString("value")
     )
   }
 
-  private fun makeEavStoreViewInt(row: Row): EavStoreViewInt {
+  private fun Row.makeEavStoreViewInt(): EavStoreViewInt {
     return EavStoreViewInt(
-      row.getInteger("product_id"),
-      row.getInteger("store_view_id"),
-      row.getString("attribute_key"),
-      row.getInteger("value")
+      this.getInteger("product_id"),
+      this.getInteger("store_view_id"),
+      this.getString("attribute_key"),
+      this.getInteger("value")
     )
   }
 
-  private fun makeEavStoreViewMoney(row: Row): EavStoreViewMoney {
+  private fun Row.makeEavStoreViewMoney(): EavStoreViewMoney {
     return EavStoreViewMoney(
-      row.getInteger("product_id"),
-      row.getInteger("store_view_id"),
-      row.getString("attribute_key"),
-      row.getDouble("value")
+      this.getInteger("product_id"),
+      this.getInteger("store_view_id"),
+      this.getString("attribute_key"),
+      this.getDouble("value")
     )
   }
 
-  private fun makeEavStoreViewMultiSelect(row: Row): EavStoreViewMultiSelect {
+  private fun Row.makeEavStoreViewMultiSelect(): EavStoreViewMultiSelect {
     return EavStoreViewMultiSelect(
-      row.getInteger("product_id"),
-      row.getInteger("store_view_id"),
-      row.getString("attribute_key"),
-      row.getInteger("value")
+      this.getInteger("product_id"),
+      this.getInteger("store_view_id"),
+      this.getString("attribute_key"),
+      this.getInteger("value")
     )
   }
 
-  private fun makeEavStoreView(row: Row): Eav {
+  private fun Row.makeEavStoreView(): Eav {
     return Eav(
-      row.getInteger("product_id"),
-      row.getString("attribute_key")
+      this.getInteger("product_id"),
+      this.getString("attribute_key")
     )
   }
 
-  private fun makeEavStoreViewInfo(row: Row): EavStoreViewInfo {
+  private fun Row.makeEavStoreViewInfo(): EavStoreViewInfo {
     return EavStoreViewInfo(
       Products(
-        row.getInteger("product_id"),
-        row.getString("name"),
-        row.getString("short_name"),
-        row.getString("description"),
-        row.getString("short_description"),
+        this.getInteger("product_id"),
+        this.getString("name"),
+        this.getString("short_name"),
+        this.getString("description"),
+        this.getString("short_description"),
+        this.getString("sku"),
+        this.getString("ean"),
+        this.getString("manufacturer")
       ),
-      row.getString("attribute_key"),
-      row.getBoolean("bool_value"),
-      row.getFloat("float_value"),
-      row.getInteger("int_value"),
-      row.getString("string_value"),
-      row.getInteger("multi_select_value"),
-      row.getDouble("money_value"),
+      this.getString("attribute_key"),
+      try {this.getBoolean("bool_value")} catch (_: Exception) {null},
+      try {this.getFloat("float_value")} catch (_: Exception) {null},
+      try {this.getInteger("int_value")} catch (_: Exception) {null},
+      try {this.getString("string_value")} catch (_: Exception) {null},
+      try {this.getInteger("multi_select_value")} catch (_: Exception) {null},
+      try {this.getDouble("money_value")} catch (_: Exception) {null},
     )
   }
 
-  private fun makeEavStoreViewBoolTuple(body: EavStoreViewBool, isPutRequest: Boolean): Tuple {
+  private fun EavStoreViewBool.toTuple(isPutRequest: Boolean): Tuple {
     val eavStoreViewBoolTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value.toInt(),
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
+        this.value.toInt(),
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
-        body.value.toInt(),
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
+        this.value.toInt(),
       )
     }
 
     return eavStoreViewBoolTuple
   }
 
-  private fun makeEavStoreViewFloatTuple(body: EavStoreViewFloat, isPutRequest: Boolean): Tuple {
+  private fun EavStoreViewFloat.toTuple(isPutRequest: Boolean): Tuple {
     val eavStoreViewFloatTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavStoreViewFloatTuple
   }
 
-  private fun makeEavStoreViewStringTuple(body: EavStoreViewString, isPutRequest: Boolean): Tuple {
+  private fun EavStoreViewString.toTuple(isPutRequest: Boolean): Tuple {
     val eavStoreViewStringTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavStoreViewStringTuple
   }
 
-  private fun makeEavStoreViewIntTuple(body: EavStoreViewInt, isPutRequest: Boolean): Tuple {
+  private fun EavStoreViewInt.toTuple(isPutRequest: Boolean): Tuple {
     val eavStoreViewIntTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavStoreViewIntTuple
   }
 
-  private fun makeEavStoreViewMoneyTuple(body: EavStoreViewMoney, isPutRequest: Boolean): Tuple {
+  private fun EavStoreViewMoney.toTuple(isPutRequest: Boolean): Tuple {
     val eavStoreViewMoneyTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavStoreViewMoneyTuple
   }
 
-  private fun makeEavStoreViewMultiSelectTuple(body: EavStoreViewMultiSelect, isPutRequest: Boolean): Tuple {
+  private fun EavStoreViewMultiSelect.toTuple(isPutRequest: Boolean): Tuple {
     val eavStoreViewMultiSelectTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.storeViewId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.storeViewId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavStoreViewMultiSelectTuple
   }
 
-  private fun makeEavStoreViewTuple(body: Eav, isPutRequest: Boolean): Tuple {
+  private fun Eav.toTuple(isPutRequest: Boolean): Tuple {
     val eavStoreViewTuple = if (isPutRequest) {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.productId,
-        body.attributeKey,
+        this.productId,
+        this.attributeKey,
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
+        this.productId,
+        this.attributeKey,
       )
     }
 
     return eavStoreViewTuple
   }
-
-  private fun Boolean.toInt() = if (this) 1 else 0
 }

@@ -1,0 +1,13 @@
+<configuration>
+  <appender name="STDOUT-INFO" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>[%highlight(%level)] --- %d{HH:mm:ss.SSS} %boldCyan(@) %boldGreen(%logger{36}) --- %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="deng" level="INFO"/>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT-INFO"/>
+  </root>
+</configuration>

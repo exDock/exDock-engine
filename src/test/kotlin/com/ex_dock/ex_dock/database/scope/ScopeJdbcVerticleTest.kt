@@ -43,10 +43,10 @@ class ScopeJdbcVerticleTest {
   @BeforeEach
   fun setUp(vertx: Vertx, testContext: VertxTestContext) {
     eventBus = vertx.eventBus()
-      .registerCodec(GenericCodec(MutableList::class.java))
-      .registerCodec(GenericCodec(Websites::class.java))
-      .registerCodec(GenericCodec(StoreView::class.java))
-      .registerCodec(GenericCodec(FullScope::class.java))
+      .registerCodec(GenericCodec(MutableList::class))
+      .registerCodec(GenericCodec(Websites::class))
+      .registerCodec(GenericCodec(StoreView::class))
+      .registerCodec(GenericCodec(FullScope::class))
       deployWorkerVerticleHelper(
         vertx,
         ScopeJdbcVerticle::class.qualifiedName.toString(), 5, 5

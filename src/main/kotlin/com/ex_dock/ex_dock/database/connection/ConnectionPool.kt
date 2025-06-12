@@ -1,29 +1,21 @@
 package com.ex_dock.ex_dock.database.connection
 
 import com.ex_dock.ex_dock.ClassLoaderDummy
-import com.ex_dock.ex_dock.MainVerticle
 import io.vertx.core.Vertx
 import io.vertx.jdbcclient.JDBCConnectOptions
 import io.vertx.jdbcclient.JDBCPool
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
-import java.util.*
-import kotlin.jvm.javaClass
-
-class Connection {
-  @Deprecated("Moved getConnection out of Connection() class")
-  fun getConnection(vertx: Vertx): Pool {
-    return com.ex_dock.ex_dock.database.connection.getConnection(vertx)
-  }
-}
+import java.util.Properties
 
 
-fun getConnection(vertx: Vertx): Pool {
+fun Vertx.getConnection(): Pool {
   val connection: Pool
   val connectOptions = JDBCConnectOptions()
 
   try {
-    val props: Properties = ClassLoaderDummy::class.java.classLoader.getResourceAsStream("secret.properties").use {
+    val props:
+        Properties = ClassLoaderDummy::class.java.classLoader.getResourceAsStream("secret.properties").use {
       Properties().apply { load(it) }
     }
 
@@ -31,7 +23,7 @@ fun getConnection(vertx: Vertx): Pool {
       .setJdbcUrl(props.getProperty("DATABASE_URL"))
       .setUser(props.getProperty("DATABASE_USERNAME"))
       .setPassword(props.getProperty("DATABASE_PASSWORD"))
-  } catch (e: Exception) {
+  } catch (_: Exception) {
     try {
       val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
       if (isDocker) {
@@ -42,8 +34,8 @@ fun getConnection(vertx: Vertx): Pool {
       } else {
         error("Could not load the Properties file!")
       }
-    } catch (e: Exception) {
-      error("Could not read the Properties file and Docker backup check failed!")
+    } catch (_: Exception) {
+      error("Could not read the Properties file!")
     }
   }
 
@@ -51,7 +43,7 @@ fun getConnection(vertx: Vertx): Pool {
     .setMaxSize(16)
     .setName("ex-dock")
 
-  connection = JDBCPool.pool(vertx, connectOptions, poolOptions)
+  connection = JDBCPool.pool(this, connectOptions, poolOptions)
 
   return connection
 }

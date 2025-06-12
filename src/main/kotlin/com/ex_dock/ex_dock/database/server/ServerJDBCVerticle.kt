@@ -26,7 +26,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
   }
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections with the Server Data table
@@ -79,7 +79,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
     createServerDataConsumer.handler { message ->
       val serverData = message.body()
       val query = "INSERT INTO server_data (key, value) VALUES (?,?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeServerDataTuple(serverData, false))
+      val rowsFuture = client.preparedQuery(query).execute(serverData.toTuple(false))
 
       rowsFuture.onFailure{ res ->
         println("Failed to execute query: $res")
@@ -101,7 +101,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
     updateServerDataConsumer.handler { message ->
       val serverData = message.body()
       val query = "UPDATE server_data SET value =? WHERE key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeServerDataTuple(serverData, true))
+      val rowsFuture = client.preparedQuery(query).execute(serverData.toTuple(true))
 
       rowsFuture.onFailure{ res ->
         println("Failed to execute query: $res")
@@ -154,7 +154,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            allServerVersionList.add(makeServerVersion(row))
+            allServerVersionList.add(row.makeServerVersion())
           }
         }
 
@@ -181,7 +181,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
       }.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeServerVersion(rows.first()), serverDataDataDeliveryOptions)
+          message.reply(rows.first().makeServerVersion(), serverDataDataDeliveryOptions)
         } else {
           message.reply("No server version found!")
         }
@@ -197,7 +197,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
     createServerVersionConsumer.handler { message ->
       val serverVersion = message.body()
       val query = "INSERT INTO server_version (major, minor, patch, version_name, version_description) VALUES (?,?,?,?,?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeServerVersionTuple(serverVersion, false))
+      val rowsFuture = client.preparedQuery(query).execute(serverVersion.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -219,7 +219,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
     updateServerVersionConsumer.handler { message ->
       val serverVersion = message.body()
       val query = "UPDATE server_version SET major =?, minor =?, patch =?, version_name =?, version_description =? WHERE major = ? AND minor = ? AND patch = ?"
-      val rowsFuture = client.preparedQuery(query).execute(makeServerVersionTuple(serverVersion, true))
+      val rowsFuture = client.preparedQuery(query).execute(serverVersion.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -261,39 +261,39 @@ class ServerJDBCVerticle: AbstractVerticle() {
   /**
    * Make JSON fields from a row out of the database for the server data
    */
-  private fun makeServerData(row: Row): ServerDataData {
+  private fun Row.makeServerData(): ServerDataData {
     return ServerDataData(
-      key = row.getString("key"),
-      value = row.getString("value")
+      key = this.getString("key"),
+      value = this.getString("value")
     )
   }
 
   /**
    * Make JSON fields from a row out of the database for the server version
    */
-  private fun makeServerVersion(row: Row): ServerVersionData {
+  private fun Row.makeServerVersion(): ServerVersionData {
     return ServerVersionData(
-      major = row.getInteger("major"),
-      minor = row.getInteger("minor"),
-      patch = row.getInteger("patch"),
-      versionName = row.getString("version_name"),
-      versionDescription = row.getString("version_description")
+      major = this.getInteger("major"),
+      minor = this.getInteger("minor"),
+      patch = this.getInteger("patch"),
+      versionName = this.getString("version_name"),
+      versionDescription = this.getString("version_description")
     )
   }
 
   /**
    * Make a tuple for the server data for database insertion or update
    */
-  private fun makeServerDataTuple(body: ServerDataData, putRequest: Boolean): Tuple {
+  private fun ServerDataData.toTuple(putRequest: Boolean): Tuple {
     val serverDataTuple: Tuple = if (putRequest) {
       Tuple.of(
-        body.value,
-        body.key
+        this.value,
+        this.key
       )
     } else {
       Tuple.of(
-        body.key,
-        body.value
+        this.key,
+        this.value
       )
     }
 
@@ -303,27 +303,27 @@ class ServerJDBCVerticle: AbstractVerticle() {
   /**
    * Make a tuple for the server version for database insertion or update
    */
-  private fun makeServerVersionTuple(body: ServerVersionData, putRequest: Boolean): Tuple {
+  private fun ServerVersionData.toTuple(putRequest: Boolean): Tuple {
 
     val serverVersionTuple: Tuple
     if (putRequest) {
       serverVersionTuple = Tuple.of(
-        body.major,
-        body.minor,
-        body.patch,
-        body.versionName,
-        body.versionDescription,
-        body.major,
-        body.minor,
-        body.patch
+        this.major,
+        this.minor,
+        this.patch,
+        this.versionName,
+        this.versionDescription,
+        this.major,
+        this.minor,
+        this.patch
       )
     } else {
       serverVersionTuple = Tuple.of(
-        body.major,
-        body.minor,
-        body.patch,
-        body.versionName,
-        body.versionDescription
+        this.major,
+        this.minor,
+        this.patch,
+        this.versionName,
+        this.versionDescription
       )
     }
 
@@ -343,7 +343,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
     rowsFuture.onSuccess { res ->
       if (res.size() > 0) {
         res.value().forEach { row ->
-          serverDataDataList.add(makeServerData(row))
+          serverDataDataList.add(row.makeServerData())
         }
       }
 

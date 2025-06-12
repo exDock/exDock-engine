@@ -21,7 +21,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
   }
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     getAllCustomAttributes()
@@ -47,7 +47,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            customProductAttributesList.add(makeCustomAttribute(row))
+            customProductAttributesList.add(row.makeCustomAttribute())
           }
         }
 
@@ -71,7 +71,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeCustomAttribute(rows.first()), customProductAttributesDataDeliveryOptions)
+          message.reply(rows.first().makeCustomAttribute(), customProductAttributesDataDeliveryOptions)
         } else {
           message.reply("No custom attributes found")
         }
@@ -87,7 +87,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
         "INSERT INTO custom_product_attributes (attribute_key, scope, name, type, multiselect, required) " +
           "VALUES (?,?,?,?::cpa_type,?::bit(1),?::bit(1))"
 
-      val ctaTuple = makeCustomAttributeTuple(body, false)
+      val ctaTuple = body.toTuple(false)
       val rowsFuture = client.preparedQuery(query).execute(ctaTuple)
 
       rowsFuture.onFailure { res ->
@@ -114,7 +114,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
         "UPDATE custom_product_attributes SET scope=?, name=?, type=?::cpa_type, " +
           "multiselect=?::bit(1), required=?::bit(1) WHERE attribute_key=?"
 
-      val ctaTuple = makeCustomAttributeTuple(body, true)
+      val ctaTuple = body.toTuple(true)
       val rowsFuture = client.preparedQuery(query).execute(ctaTuple)
 
       rowsFuture.onFailure { res ->
@@ -156,61 +156,38 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
     }
   }
 
-  private fun makeCustomAttribute(row: Row): CustomProductAttributes {
+  private fun Row.makeCustomAttribute(): CustomProductAttributes {
     return CustomProductAttributes(
-      attributeKey = row.getString("attribute_key"),
-      scope = row.getInteger("scope"),
-      name = row.getString("name"),
-      type = convertStringToType(row.getString("type")),
-      multiselect = row.getBoolean("multiselect"),
-      required = row.getBoolean("required")
+      attributeKey = this.getString("attribute_key"),
+      scope = this.getInteger("scope"),
+      name = this.getString("name"),
+      type = this.getString("type").toType(),
+      multiselect = this.getBoolean("multiselect"),
+      required = this.getBoolean("required")
     )
   }
 
-  private fun makeCustomAttributeTuple(body: CustomProductAttributes, isPutRequest: Boolean): Tuple {
+  private fun CustomProductAttributes.toTuple(isPutRequest: Boolean): Tuple {
     val ctaTuple = if (isPutRequest) {
       Tuple.of(
-        body.scope,
-        body.name,
-        convertTypeToString(body.type),
-        body.multiselect.toInt(),
-        body.required.toInt(),
-        body.attributeKey,
+        this.scope,
+        this.name,
+        this.type.convertToString(),
+        this.multiselect.toInt(),
+        this.required.toInt(),
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.attributeKey,
-        body.scope,
-        body.name,
-        convertTypeToString(body.type),
-        body.multiselect.toInt(),
-        body.required.toInt(),
+        this.attributeKey,
+        this.scope,
+        this.name,
+        this.type.convertToString(),
+        this.multiselect.toInt(),
+        this.required.toInt(),
       )
     }
 
     return ctaTuple
   }
-
-  private fun convertTypeToString(type: Type): String {
-    return when (type) {
-      Type.STRING -> "string"
-      Type.BOOL -> "bool"
-      Type.FLOAT -> "float"
-      Type.INT -> "int"
-      Type.MONEY -> "money"
-    }
-  }
-
-  private fun convertStringToType(name: String): Type {
-    return when (name) {
-      "string" -> Type.STRING
-      "bool" -> Type.BOOL
-      "float" -> Type.FLOAT
-      "int" -> Type.INT
-      "money" -> Type.MONEY
-      else -> throw IllegalArgumentException("Invalid type: $name")
-    }
-  }
-
-  private fun Boolean.toInt() = if (this) 1 else 0
 }

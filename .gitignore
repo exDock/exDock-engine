@@ -190,3 +190,7 @@ nbdist/
 ### Sonarlint ###
 .idea/sonarlint/*
 .idea/modules.xml
+
+
+### Images ###
+src/main/resources/images/*

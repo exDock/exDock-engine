@@ -24,7 +24,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
   }
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections for basic categories
@@ -65,7 +65,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       }.onSuccess{ res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            categoryList.add(makeCategory(row))
+            categoryList.add(row.makeCategory())
           }
         }
         message.reply(categoryList, listDeliveryOptions)
@@ -90,7 +90,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         message.reply("Failed to execute query: $res")
       }.onSuccess{ res: RowSet<Row> ->
         if (res.size() > 0) {
-          message.reply(makeCategory(res.first()), categoriesDeliveryOptions)
+          message.reply(res.first().makeCategory(), categoriesDeliveryOptions)
         } else {
           message.reply("No category found")
         }
@@ -107,7 +107,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       val query = "INSERT INTO categories (upper_category, name, short_description, description) VALUES (?,?,?,?)"
       val category = message.body()
 
-      val queryTuple: Tuple = makeCategoryTuple(category, false)
+      val queryTuple: Tuple = category.toTuple(false)
 
       val rowsFuture = client.preparedQuery(query).execute(queryTuple)
 
@@ -133,7 +133,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         "UPDATE categories SET upper_category = ?, name = ?" +
           ", short_description = ?, description = ? WHERE category_id = ?"
       val category = message.body()
-      val queryTuple = makeCategoryTuple(category, true)
+      val queryTuple = category.toTuple(true)
 
       val rowsFuture = client.preparedQuery(query).execute(queryTuple)
 
@@ -184,7 +184,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            seoCategoryList.add(makeSeoCategory(row))
+            seoCategoryList.add(row.makeSeoCategory())
           }
         }
         message.reply(seoCategoryList, listDeliveryOptions)
@@ -208,7 +208,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           val row = res.first()
-          message.reply(makeSeoCategory(row), seoCategoriesDeliveryOptions)
+          message.reply(row.makeSeoCategory(), seoCategoriesDeliveryOptions)
         } else {
           message.reply("No category SEO found with this id!")
         }
@@ -226,7 +226,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         "INSERT INTO categories_seo (category_id, meta_title, meta_description, meta_keywords, page_index) " +
           "VALUES (?,?,?,?,?::p_index)"
       val categorySeo = message.body()
-      val queryTuple = makeSeoCategoryTuple(categorySeo, false)
+      val queryTuple = categorySeo.toTuple(false)
 
       val rowsFuture = client.preparedQuery(query).execute(queryTuple)
 
@@ -251,7 +251,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
           "WHERE category_id =?"
       val categorySeo = message.body()
 
-      val queryTuple = makeSeoCategoryTuple(categorySeo, true)
+      val queryTuple = categorySeo.toTuple(true)
 
       val rowsFuture = client.preparedQuery(query).execute(queryTuple)
 
@@ -305,7 +305,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            fullCategoryList.add(makeFullCategoryInfo(row))
+            fullCategoryList.add(row.makeFullCategoryInfo())
           }
         }
         message.reply(fullCategoryList, listDeliveryOptions)
@@ -332,7 +332,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res ->
         if (res.size() > 0) {
           val row = res.first()
-          message.reply(makeFullCategoryInfo(row), categoriesDeliveryOptions)
+          message.reply(row.makeFullCategoryInfo(), categoriesDeliveryOptions)
         } else {
           message.reply("No category found")
         }
@@ -349,6 +349,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       val query =
         "SELECT p.product_id, p.name AS product_name, p.short_name AS product_short_name, " +
           "p.description AS product_description, p.short_description AS product_short_description, " +
+          "p.sku AS product_sku, p.ean AS product_ean, p.manufacturer AS product_manufacturer, " +
           "c.category_id, c.upper_category, c.name, c.short_description, c.description " +
           "FROM products p JOIN categories_products cp ON cp.product_id = p.product_id " +
           "JOIN categories c ON cp.category_id = c.category_id WHERE c.category_id = ?"
@@ -362,7 +363,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res: RowSet<Row> ->
         if (res.size() > 0) {
           res.forEach { row ->
-            productList.add(makeCategoriesProducts(row))
+            productList.add(row.makeCategoriesProducts())
           }
         }
         message.reply(productList, listDeliveryOptions)
@@ -375,13 +376,13 @@ class CategoryJdbcVerticle: AbstractVerticle() {
    *
    * @param row The row from the database to be converted into JSON
    */
-  private fun makeCategory(row: Row): Categories {
+  private fun Row.makeCategory(): Categories {
     return Categories(
-      categoryId = row.getInteger("category_id"),
-      upperCategory = row.getInteger("upper_category"),
-      name = row.getString("name"),
-      shortDescription = row.getString("short_description"),
-      description = row.getString("description")
+      categoryId = this.getInteger("category_id"),
+      upperCategory = this.getInteger("upper_category"),
+      name = this.getString("name"),
+      shortDescription = this.getString("short_description"),
+      description = this.getString("description")
       )
   }
 
@@ -390,13 +391,13 @@ class CategoryJdbcVerticle: AbstractVerticle() {
    *
    * @param row The row from the database to be converted into JSON
    */
-  private fun makeSeoCategory(row: Row): CategoriesSeo {
+  private fun Row.makeSeoCategory(): CategoriesSeo {
     return CategoriesSeo(
-      categoryId = row.getInteger("category_id"),
-      metaTitle = row.getString("meta_title"),
-      metaDescription = row.getString("meta_description"),
-      metaKeywords = row.getString("meta_keywords"),
-      pageIndex = getEnum(row.getString("page_index"))
+      categoryId = this.getInteger("category_id"),
+      metaTitle = this.getString("meta_title"),
+      metaDescription = this.getString("meta_description"),
+      metaKeywords = this.getString("meta_keywords"),
+      pageIndex = this.getString("page_index").toPageIndex()
     )
   }
 
@@ -405,10 +406,10 @@ class CategoryJdbcVerticle: AbstractVerticle() {
    *
    * @param row The row from the database to be converted into JSON
    */
-  private fun makeFullCategoryInfo(row: Row): FullCategoryInfo {
+  private fun Row.makeFullCategoryInfo(): FullCategoryInfo {
     return FullCategoryInfo(
-      makeCategory(row),
-      makeSeoCategory(row)
+      this.makeCategory(),
+      this.makeSeoCategory()
     )
   }
 
@@ -418,15 +419,18 @@ class CategoryJdbcVerticle: AbstractVerticle() {
    * @param row The row from the database to be converted into JSON
    * @return A list of key-value pairs representing the JSON fields for the given row
    */
-  private fun makeCategoriesProducts(row: Row): CategoriesProducts {
+  private fun Row.makeCategoriesProducts(): CategoriesProducts {
     return CategoriesProducts(
-      makeCategory(row),
+      this.makeCategory(),
       Products(
-        productId = row.getInteger("product_id"),
-        name = row.getString("product_name"),
-        shortName = row.getString("product_short_name"),
-        description = row.getString("product_description"),
-        shortDescription = row.getString("product_short_description")
+        productId = this.getInteger("product_id"),
+        name = this.getString("product_name"),
+        shortName = this.getString("product_short_name"),
+        description = this.getString("product_description"),
+        shortDescription = this.getString("product_short_description"),
+        sku = this.getString("product_sku"),
+        ean = this.getString("product_ean"),
+        manufacturer = this.getString("product_manufacturer")
       )
     )
   }
@@ -437,23 +441,23 @@ class CategoryJdbcVerticle: AbstractVerticle() {
    * @param body The JSON object to be converted into a tuple
    * @return A tuple from the given JSON object
    */
-  private fun makeCategoryTuple(body: Categories, putRequest: Boolean): Tuple {
+  private fun Categories.toTuple(putRequest: Boolean): Tuple {
     val categoryTuple: Tuple
 
     if (putRequest) {
       categoryTuple = Tuple.of(
-        body.upperCategory,
-        body.name,
-        body.shortDescription,
-        body.description,
-        body.categoryId,
+        this.upperCategory,
+        this.name,
+        this.shortDescription,
+        this.description,
+        this.categoryId,
       )
     } else {
       categoryTuple = Tuple.of(
-        body.upperCategory,
-        body.name,
-        body.shortDescription,
-        body.description,
+        this.upperCategory,
+        this.name,
+        this.shortDescription,
+        this.description,
       )
     }
 
@@ -466,47 +470,27 @@ class CategoryJdbcVerticle: AbstractVerticle() {
    * @param body The JSON object to be converted into a tuple
    * @return A tuple from the given JSON object
    */
-  private fun makeSeoCategoryTuple(body: CategoriesSeo, putRequest: Boolean): Tuple {
+  private fun CategoriesSeo.toTuple(putRequest: Boolean): Tuple {
     val categorySeoTuple: Tuple
 
     if (putRequest) {
       categorySeoTuple = Tuple.of(
-        body.metaTitle,
-        body.metaDescription,
-        body.metaKeywords,
-        convertEnum(body.pageIndex),
-        body.categoryId,
+        this.metaTitle,
+        this.metaDescription,
+        this.metaKeywords,
+        this.pageIndex.convertToString(),
+        this.categoryId,
       )
     } else {
       categorySeoTuple = Tuple.of(
-        body.categoryId,
-        body.metaTitle,
-        body.metaDescription,
-        body.metaKeywords,
-        convertEnum(body.pageIndex)
+        this.categoryId,
+        this.metaTitle,
+        this.metaDescription,
+        this.metaKeywords,
+        this.pageIndex.convertToString()
       )
     }
 
     return categorySeoTuple
-  }
-
-  private fun getEnum(name: String): PageIndex {
-    when (name) {
-      "index, follow" -> return PageIndex.IndexFollow
-      "index, nofollow" -> return PageIndex.IndexNoFollow
-      "noindex, follow" -> return PageIndex.NoIndexFollow
-      "noindex, nofollow" -> return PageIndex.NoIndexNoFollow
-    }
-
-    return PageIndex.NoIndexNoFollow
-  }
-
-  private fun convertEnum(pageIndex: PageIndex): String {
-    return when (pageIndex) {
-      PageIndex.IndexFollow -> "index, follow"
-      PageIndex.IndexNoFollow -> "index, nofollow"
-      PageIndex.NoIndexFollow -> "noindex, follow"
-      PageIndex.NoIndexNoFollow -> "noindex, nofollow"
-    }
   }
 }

@@ -28,7 +28,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
   }
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     getAllEavWebsiteBool()
@@ -93,7 +93,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavWebsiteBoolList.add(makeEavWebsiteBool(row))
+            eavWebsiteBoolList.add(row.makeEavWebsiteBool())
           }
         }
 
@@ -118,7 +118,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavWebsiteBool(rows.first()), eavWebsiteBoolDeliveryOptions)
+          message.reply(rows.first().makeEavWebsiteBool(), eavWebsiteBoolDeliveryOptions)
         } else {
           message.reply("No website bool found")
         }
@@ -132,7 +132,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_website_bool (product_id, website_id, attribute_key, value) VALUES (?, ?, ?, ?::bit(1))"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteBoolTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -152,7 +152,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_website_bool SET value =?::bit(1) WHERE product_id =? AND website_id =? AND attribute_key =? "
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteBoolTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -201,7 +201,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavWebsiteFloats.add(makeEavWebsiteFloat(row))
+            eavWebsiteFloats.add(row.makeEavWebsiteFloat())
           }
         }
 
@@ -226,7 +226,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavWebsiteFloat(rows.first()), eavWebsiteFloatDeliveryOptions)
+          message.reply(rows.first().makeEavWebsiteFloat(), eavWebsiteFloatDeliveryOptions)
         } else {
           message.reply("No website float found")
         }
@@ -240,7 +240,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_website_float (product_id, website_id, attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteFloatTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -260,7 +260,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_website_float SET value =? WHERE product_id =? AND website_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteFloatTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -309,7 +309,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavWebsiteStringList.add(makeEavWebsiteString(row))
+            eavWebsiteStringList.add(row.makeEavWebsiteString())
           }
         }
 
@@ -334,7 +334,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavWebsiteString(rows.first()), eavWebsiteStringDeliveryOptions)
+          message.reply(rows.first().makeEavWebsiteString(), eavWebsiteStringDeliveryOptions)
         } else {
           message.reply("No website string found")
         }
@@ -348,7 +348,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_website_string (product_id, website_id, attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteStringTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -368,7 +368,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_website_string SET value =? WHERE product_id =? AND website_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteStringTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -417,7 +417,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavWebsiteIntList.add(makeEavWebsiteInt(row))
+            eavWebsiteIntList.add(row.makeEavWebsiteInt())
           }
         }
 
@@ -442,7 +442,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavWebsiteInt(rows.first()), eavWebsiteIntDeliveryOptions)
+          message.reply(rows.first().makeEavWebsiteInt(), eavWebsiteIntDeliveryOptions)
         } else {
           message.reply("No rows returned")
         }
@@ -456,7 +456,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_website_int (product_id, website_id ,attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteIntTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -476,7 +476,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_website_int SET value =? WHERE product_id =? AND website_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteIntTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -525,7 +525,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavWebsiteMoneyList.add(makeEavWebsiteMoney(row))
+            eavWebsiteMoneyList.add(row.makeEavWebsiteMoney())
           }
         }
 
@@ -550,7 +550,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavWebsiteMoney(rows.first()), eavWebsiteMoneyDeliveryOptions)
+          message.reply(rows.first().makeEavWebsiteMoney(), eavWebsiteMoneyDeliveryOptions)
         } else {
           message.reply("No Eav Website Money found")
         }
@@ -564,7 +564,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_website_money (product_id, website_id, attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteMoneyTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -584,7 +584,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_website_money SET value =? WHERE product_id =? AND website_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteMoneyTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -633,7 +633,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavWebsiteMultiSelectList.add(makeEavWebsiteMultiSelect(row))
+            eavWebsiteMultiSelectList.add(row.makeEavWebsiteMultiSelect())
           }
         }
 
@@ -658,7 +658,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavWebsiteMultiSelect(rows.first()), eavWebsiteMultiSelectDeliveryOptions)
+          message.reply(rows.first().makeEavWebsiteMultiSelect(), eavWebsiteMultiSelectDeliveryOptions)
         } else {
           message.reply("No EAV Website Multi-Select found")
         }
@@ -672,7 +672,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav_website_multi_select (product_id, website_id, attribute_key, value) VALUES (?, ?, ?, ?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteMultiSelectTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -692,7 +692,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav_website_multi_select SET value =? WHERE product_id =? AND website_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteMultiSelectTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -741,7 +741,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavList.add(makeEavWebsite(row))
+            eavList.add(row.makeEavWebsite())
           }
         }
 
@@ -766,7 +766,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       rowsFuture.onComplete { res ->
         val rows = res.result()
         if (rows.size() > 0) {
-          message.reply(makeEavWebsite(rows.first()), eavDeliveryOptions)
+          message.reply(rows.first().makeEavWebsite(), eavDeliveryOptions)
         } else {
           message.reply("No EAV found")
         }
@@ -780,7 +780,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "INSERT INTO eav (product_id, attribute_key) VALUES (?,?)"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteTuple(body, false))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(false))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -800,7 +800,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       val body = message.body()
       val query =
         "UPDATE eav SET product_id =?, attribute_key=? WHERE product_id =? AND attribute_key =?"
-      val rowsFuture = client.preparedQuery(query).execute(makeEavWebsiteTuple(body, true))
+      val rowsFuture = client.preparedQuery(query).execute(body.toTuple(true))
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
@@ -840,7 +840,8 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       "products.description, products.short_name, products.short_description, egb.value AS bool_value, " +
         "egf.value AS float_value, egs.value AS string_value, " +
         "egi.value AS int_value, egm.value AS money_value, " +
-        "egms.value AS multi_select_value, cpa.attribute_key, w.website_id AS website_id FROM products " +
+        "products.sku, products.ean, products.manufacturer, " +
+        "egms.value AS multi_select_value, cpa.attribute_key AS attribute_key, w.website_id AS website_id FROM products " +
         "LEFT JOIN public.eav_website_bool egb on products.product_id = egb.product_id " +
         "LEFT JOIN public.eav_website_float egf on products.product_id = egf.product_id " +
         "LEFT JOIN public.eav_website_int egi on products.product_id = egi.product_id " +
@@ -862,7 +863,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavWebsiteInfoList.add(makeEavWebsiteInfo(row))
+            eavWebsiteInfoList.add(row.makeEavWebsiteInfo())
           }
         }
 
@@ -879,6 +880,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         "products.description, products.short_name, products.short_description, egb.value AS bool_value, " +
         "egf.value AS float_value, egs.value AS string_value, " +
         "egi.value AS int_value, egm.value AS money_value, " +
+        "products.sku, products.ean, products.manufacturer, " +
         "egms.value AS multi_select_value, cpa.attribute_key, w.website_id AS website_id FROM products " +
         "LEFT JOIN public.eav_website_bool egb on products.product_id = egb.product_id " +
         "LEFT JOIN public.eav_website_float egf on products.product_id = egf.product_id " +
@@ -902,7 +904,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
         val rows = res.result()
         if (rows.size() > 0) {
           rows.forEach { row ->
-            eavWebsiteInfoList.add(makeEavWebsiteInfo(row))
+            eavWebsiteInfoList.add(row.makeEavWebsiteInfo())
           }
         }
 
@@ -911,223 +913,224 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
     }
   }
 
-  private fun makeEavWebsiteBool(row: Row): EavWebsiteBool {
+  private fun Row.makeEavWebsiteBool(): EavWebsiteBool {
     return EavWebsiteBool(
-      row.getInteger("product_id"),
-      row.getInteger("website_id"),
-      row.getString("attribute_key"),
-      row.getBoolean("value")
+      this.getInteger("product_id"),
+      this.getInteger("website_id"),
+      this.getString("attribute_key"),
+      this.getBoolean("value")
     )
   }
 
-  private fun makeEavWebsiteFloat(row: Row): EavWebsiteFloat {
+  private fun Row.makeEavWebsiteFloat(): EavWebsiteFloat {
     return EavWebsiteFloat(
-      row.getInteger("product_id"),
-      row.getInteger("website_id"),
-      row.getString("attribute_key"),
-      row.getFloat("value")
+      this.getInteger("product_id"),
+      this.getInteger("website_id"),
+      this.getString("attribute_key"),
+      this.getFloat("value")
     )
   }
 
-  private fun makeEavWebsiteString(row: Row): EavWebsiteString {
+  private fun Row.makeEavWebsiteString(): EavWebsiteString {
     return EavWebsiteString(
-      row.getInteger("product_id"),
-      row.getInteger("website_id"),
-      row.getString("attribute_key"),
-      row.getString("value")
+      this.getInteger("product_id"),
+      this.getInteger("website_id"),
+      this.getString("attribute_key"),
+      this.getString("value")
     )
   }
 
-  private fun makeEavWebsiteInt(row: Row): EavWebsiteInt {
+  private fun Row.makeEavWebsiteInt(): EavWebsiteInt {
     return EavWebsiteInt(
-      row.getInteger("product_id"),
-      row.getInteger("website_id"),
-      row.getString("attribute_key"),
-      row.getInteger("value")
+      this.getInteger("product_id"),
+      this.getInteger("website_id"),
+      this.getString("attribute_key"),
+      this.getInteger("value")
     )
   }
 
-  private fun makeEavWebsiteMoney(row: Row): EavWebsiteMoney {
+  private fun Row.makeEavWebsiteMoney(): EavWebsiteMoney {
     return EavWebsiteMoney(
-      row.getInteger("product_id"),
-      row.getInteger("website_id"),
-      row.getString("attribute_key"),
-      row.getDouble("value")
+      this.getInteger("product_id"),
+      this.getInteger("website_id"),
+      this.getString("attribute_key"),
+      this.getDouble("value")
     )
   }
 
-  private fun makeEavWebsiteMultiSelect(row: Row): EavWebsiteMultiSelect {
+  private fun Row.makeEavWebsiteMultiSelect(): EavWebsiteMultiSelect {
     return EavWebsiteMultiSelect(
-      row.getInteger("product_id"),
-      row.getInteger("website_id"),
-      row.getString("attribute_key"),
-      row.getInteger("value")
+      this.getInteger("product_id"),
+      this.getInteger("website_id"),
+      this.getString("attribute_key"),
+      this.getInteger("value")
     )
   }
 
-  private fun makeEavWebsite(row: Row): Eav {
+  private fun Row.makeEavWebsite(): Eav {
     return Eav(
-      row.getInteger("product_id"),
-      row.getString("attribute_key"),
+      this.getInteger("product_id"),
+      this.getString("attribute_key"),
     )
   }
 
-  private fun makeEavWebsiteInfo(row: Row): EavWebsiteInfo {
+  private fun Row.makeEavWebsiteInfo(): EavWebsiteInfo {
     return EavWebsiteInfo(
       Products(
-        row.getInteger("product_id"),
-        row.getString("name"),
-        row.getString("short_name"),
-        row.getString("description"),
-        row.getString("short_description")
+        this.getInteger("product_id"),
+        this.getString("name"),
+        this.getString("short_name"),
+        this.getString("description"),
+        this.getString("short_description"),
+        this.getString("sku"),
+        this.getString("ean"),
+        this.getString("manufacturer")
       ),
-      row.getString("attribute_key"),
-      row.getBoolean("bool_value"),
-      row.getFloat("float_value"),
-      row.getString("string_value"),
-      row.getInteger("int_value"),
-      row.getDouble("money_value"),
-      row.getInteger("multi_select_value"),
+      this.getString("attribute_key"),
+      try {this.getBoolean("bool_value")} catch (_: Exception) {null},
+      try {this.getFloat("float_value")} catch (_: Exception) {null},
+      try {this.getString("string_value")} catch (_: Exception) {null},
+      try {this.getInteger("int_value")} catch (_: Exception) {null},
+      try {this.getDouble("money_value")} catch (_: Exception) {null},
+      try {this.getInteger("multi_select_value")} catch (_: Exception) {null},
     )
   }
 
-  private fun makeEavWebsiteBoolTuple(body: EavWebsiteBool, isPutRequest: Boolean): Tuple {
+  private fun EavWebsiteBool.toTuple(isPutRequest: Boolean): Tuple {
     val eavWebsiteBoolTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value.toInt(),
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
+        this.value.toInt(),
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
-        body.value.toInt(),
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
+        this.value.toInt(),
       )
     }
 
     return eavWebsiteBoolTuple
   }
 
-  private fun makeEavWebsiteFloatTuple(body: EavWebsiteFloat, isPutRequest: Boolean): Tuple {
+  private fun EavWebsiteFloat.toTuple(isPutRequest: Boolean): Tuple {
     val eavWebsiteFloatTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavWebsiteFloatTuple
   }
 
-  private fun makeEavWebsiteStringTuple(body: EavWebsiteString, isPutRequest: Boolean): Tuple {
+  private fun EavWebsiteString.toTuple(isPutRequest: Boolean): Tuple {
     val eavWebsiteStringTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavWebsiteStringTuple
   }
 
-  private fun makeEavWebsiteIntTuple(body: EavWebsiteInt, isPutRequest: Boolean): Tuple {
+  private fun EavWebsiteInt.toTuple(isPutRequest: Boolean): Tuple {
     val eavWebsiteIntTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavWebsiteIntTuple
   }
 
-  private fun makeEavWebsiteMoneyTuple(body: EavWebsiteMoney, isPutRequest: Boolean): Tuple {
+  private fun EavWebsiteMoney.toTuple(isPutRequest: Boolean): Tuple {
     val eavWebsiteMoneyTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
-        body.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
+        this.value,
       )
     }
 
     return eavWebsiteMoneyTuple
   }
 
-  private fun makeEavWebsiteMultiSelectTuple(body: EavWebsiteMultiSelect, isPutRequest: Boolean): Tuple {
+  private fun EavWebsiteMultiSelect.toTuple(isPutRequest: Boolean): Tuple {
     val eavWebsiteMultiSelectTuple: Tuple = if (isPutRequest) {
       Tuple.of(
-        body.value,
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
+        this.value,
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.websiteId,
-        body.attributeKey,
-        body.value
+        this.productId,
+        this.websiteId,
+        this.attributeKey,
+        this.value
       )
     }
 
     return eavWebsiteMultiSelectTuple
   }
 
-  private fun makeEavWebsiteTuple(body: Eav, isPutRequest: Boolean): Tuple {
+  private fun Eav.toTuple(isPutRequest: Boolean): Tuple {
     val eavWebsiteTuple = if (isPutRequest) {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
-        body.productId,
-        body.attributeKey,
+        this.productId,
+        this.attributeKey,
+        this.productId,
+        this.attributeKey,
       )
     } else {
       Tuple.of(
-        body.productId,
-        body.attributeKey,
+        this.productId,
+        this.attributeKey,
       )
     }
 
     return eavWebsiteTuple
   }
-
-  private fun Boolean.toInt() = if (this) 1 else 0
 }

@@ -1,11 +1,15 @@
 package com.ex_dock.ex_dock.database
 
+import com.ex_dock.ex_dock.backend.v1.router.system.SystemVerticle
 import com.ex_dock.ex_dock.database.account.*
+import com.ex_dock.ex_dock.database.backend_block.*
+import com.ex_dock.ex_dock.database.auth.AuthenticationVerticle
 import com.ex_dock.ex_dock.database.category.*
 import com.ex_dock.ex_dock.database.checkout.CheckoutJdbcVerticle
-import com.ex_dock.ex_dock.database.codec.GenericCodec
-import com.ex_dock.ex_dock.database.codec.GenericListCodec
 import com.ex_dock.ex_dock.database.home.HomeJdbcVerticle
+import com.ex_dock.ex_dock.database.image.Image
+import com.ex_dock.ex_dock.database.image.ImageJdbcVerticle
+import com.ex_dock.ex_dock.database.image.ImageProduct
 import com.ex_dock.ex_dock.database.product.*
 import com.ex_dock.ex_dock.database.scope.FullScope
 import com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticle
@@ -26,13 +30,19 @@ import com.ex_dock.ex_dock.database.text_pages.TextPagesSeo
 import com.ex_dock.ex_dock.database.url.*
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
-import com.sun.tools.javac.jvm.Gen
+import com.ex_dock.ex_dock.helper.registerGenericCodec
+import com.ex_dock.ex_dock.helper.registerGenericListCodec
+import com.ex_dock.ex_dock.helper.sendError
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
 import io.vertx.core.eventbus.EventBus
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 
 class JDBCStarter : AbstractVerticle() {
+  companion object {
+    val logger = io.github.oshai.kotlinlogging.KotlinLogging.logger {}
+  }
 
   private var verticles: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
   private lateinit var eventBus: EventBus
@@ -42,18 +52,30 @@ class JDBCStarter : AbstractVerticle() {
 
     Future.all(verticles)
       .onComplete {
-        println("All JDBC verticles deployed")
+        logger.info { "All JDBC Verticles started successfully" }
         getAllCodecClasses()
         eventBus = vertx.eventBus()
 
         eventBus.request<String>("process.service.populateTemplates", "").onFailure {
+          eventBus.sendError(
+            PopulateException("Could not populate the database with standard data. Closing the server!"))
           throw PopulateException("Could not populate the database with standard data. Closing the server!")
         }.onSuccess {
-          println("Database populated with standard Data")
+          logger.info { "Database populated with standard data" }
           eventBus.request<String>("process.service.addAdminUser", "").onFailure {
+            eventBus.sendError(
+              PopulateException("Could not populate the database with standard data. Closing the server!"))
             throw PopulateException("Could not add admin user. Closing the server!")
           }.onSuccess {
-            starPromise.complete()
+            eventBus.request<String>("process.service.addTestProduct", "").onFailure {
+              throw PopulateException("Could not add test product. Closing the server!")
+            }.onSuccess {
+              eventBus.request<String>("process.service.addProductInfoBackendBlock", "").onFailure {
+                throw PopulateException("Could not add product info backend block. Closing the server!")
+              }.onSuccess {
+                starPromise.complete()
+              }
+            }
           }
         }
       }
@@ -63,126 +85,110 @@ class JDBCStarter : AbstractVerticle() {
   }
 
   private fun addAllVerticles() {
-    verticles.add(deployWorkerVerticleHelper(vertx, AccountJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, CategoryJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, CheckoutJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, HomeJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, ProductJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, TextPagesJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, ScopeJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, ServerJDBCVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, UrlJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(
-      deployWorkerVerticleHelper(
-        vertx,
-        ProductCompleteEavJdbcVerticle::class.qualifiedName.toString(),
-        5,
-        5
-      )
-    )
-    verticles.add(deployWorkerVerticleHelper(vertx, ProductGlobalEavJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(
-      deployWorkerVerticleHelper(
-        vertx,
-        ProductMultiSelectJdbcVerticle::class.qualifiedName.toString(),
-        5,
-        5
-      )
-    )
-    verticles.add(
-      deployWorkerVerticleHelper(
-        vertx,
-        ProductStoreViewEavJdbcVerticle::class.qualifiedName.toString(),
-        5,
-        5
-      )
-    )
-    verticles.add(
-      deployWorkerVerticleHelper(
-        vertx,
-        ProductWebsiteEavJdbcVerticle::class.qualifiedName.toString(),
-        5,
-        5
-      )
-    )
-    verticles.add(
-      deployWorkerVerticleHelper(
-        vertx,
-        ProductCustomAttributesJdbcVerticle::class.qualifiedName.toString(),
-        5,
-        5
-      )
-    )
-    verticles.add(deployWorkerVerticleHelper(vertx, TemplateJdbcVerticle::class.qualifiedName.toString(), 5, 5))
-    verticles.add(deployWorkerVerticleHelper(vertx, ServiceVerticle::class.qualifiedName.toString(), 1, 1))
-    verticles.add(deployWorkerVerticleHelper(vertx, CacheVerticle::class.qualifiedName.toString(), 5, 5))
+    verticles.add(vertx.deployWorkerVerticleHelper(AccountJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(CategoryJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(CheckoutJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(HomeJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ProductJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(TextPagesJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ScopeJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ServerJDBCVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(UrlJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ProductCompleteEavJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ProductGlobalEavJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ProductMultiSelectJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ProductStoreViewEavJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ProductWebsiteEavJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ProductCustomAttributesJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ServiceVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(CacheVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ImageJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(AuthenticationVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
   }
 
   private fun getAllCodecClasses() {
     vertx.eventBus()
-      .registerCodec(GenericCodec(MutableList::class.java))
-      .registerCodec(GenericCodec(Categories::class.java))
-      .registerCodec(GenericCodec(CategoriesSeo::class.java))
-      .registerCodec(GenericCodec(CategoriesProducts::class.java))
-      .registerCodec(GenericCodec(FullCategoryInfo::class.java))
-      .registerCodec(GenericCodec(CustomProductAttributes::class.java))
-      .registerCodec(GenericCodec(Products::class.java))
-      .registerCodec(GenericCodec(EavGlobalBool::class.java))
-      .registerCodec(GenericCodec(EavGlobalFloat::class.java))
-      .registerCodec(GenericCodec(EavGlobalInt::class.java))
-      .registerCodec(GenericCodec(EavGlobalMoney::class.java))
-      .registerCodec(GenericCodec(EavGlobalMultiSelect::class.java))
-      .registerCodec(GenericCodec(EavGlobalString::class.java))
-      .registerCodec(GenericCodec(Eav::class.java))
-      .registerCodec(GenericCodec(EavGlobalInfo::class.java))
-      .registerCodec(GenericCodec(ProductsSeo::class.java))
-      .registerCodec(GenericCodec(ProductsPricing::class.java))
-      .registerCodec(GenericCodec(FullProduct::class.java))
-      .registerCodec(GenericCodec(MultiSelectBool::class.java))
-      .registerCodec(GenericCodec(MultiSelectFloat::class.java))
-      .registerCodec(GenericCodec(MultiSelectString::class.java))
-      .registerCodec(GenericCodec(MultiSelectInt::class.java))
-      .registerCodec(GenericCodec(MultiSelectMoney::class.java))
-      .registerCodec(GenericCodec(MultiSelectInfo::class.java))
-      .registerCodec(GenericCodec(Websites::class.java))
-      .registerCodec(GenericCodec(StoreView::class.java))
-      .registerCodec(GenericCodec(EavStoreViewBool::class.java))
-      .registerCodec(GenericCodec(EavStoreViewFloat::class.java))
-      .registerCodec(GenericCodec(EavStoreViewString::class.java))
-      .registerCodec(GenericCodec(EavStoreViewInt::class.java))
-      .registerCodec(GenericCodec(EavStoreViewMoney::class.java))
-      .registerCodec(GenericCodec(EavStoreViewInfo::class.java))
-      .registerCodec(GenericCodec(EavStoreViewMultiSelect::class.java))
-      .registerCodec(GenericCodec(EavWebsiteBool::class.java))
-      .registerCodec(GenericCodec(EavWebsiteFloat::class.java))
-      .registerCodec(GenericCodec(EavWebsiteString::class.java))
-      .registerCodec(GenericCodec(EavWebsiteInt::class.java))
-      .registerCodec(GenericCodec(EavWebsiteMoney::class.java))
-      .registerCodec(GenericCodec(EavWebsiteInfo::class.java))
-      .registerCodec(GenericCodec(EavWebsiteMultiSelect::class.java))
-      .registerCodec(GenericCodec(FullScope::class.java))
-      .registerCodec(GenericCodec(ServerDataData::class.java))
-      .registerCodec(GenericCodec(ServerVersionData::class.java))
-      .registerCodec(GenericCodec(TextPages::class.java))
-      .registerCodec(GenericCodec(TextPagesSeo::class.java))
-      .registerCodec(GenericCodec(PageIndex::class.java))
-      .registerCodec(GenericCodec(FullTextPages::class.java))
-      .registerCodec(GenericCodec(TextPageUrls::class.java))
-      .registerCodec(GenericCodec(ProductUrls::class.java))
-      .registerCodec(GenericCodec(CategoryUrls::class.java))
-      .registerCodec(GenericCodec(FullUrlKeys::class.java))
-      .registerCodec(GenericCodec(FullUrlRequestInfo::class.java))
-      .registerCodec(GenericCodec(JoinList::class.java))
-      .registerCodec(GenericCodec(UrlKeys::class.java))
-      .registerCodec(GenericCodec(User::class.java))
-      .registerCodec(GenericCodec(UserCreation::class.java))
-      .registerCodec(GenericCodec(BackendPermissions::class.java))
-      .registerCodec(GenericCodec(FullUser::class.java))
-      .registerCodec(GenericCodec(Template::class.java))
-      .registerCodec(GenericCodec(Block::class.java))
-      .registerCodec(GenericCodec(Map::class.java))
+      .registerGenericCodec(MutableList::class)
+      .registerGenericCodec(Categories::class)
+      .registerGenericCodec(CategoriesSeo::class)
+      .registerGenericCodec(CategoriesProducts::class)
+      .registerGenericCodec(FullCategoryInfo::class)
+      .registerGenericCodec(CustomProductAttributes::class)
+      .registerGenericCodec(Products::class)
+      .registerGenericCodec(EavGlobalBool::class)
+      .registerGenericCodec(EavGlobalFloat::class)
+      .registerGenericCodec(EavGlobalInt::class)
+      .registerGenericCodec(EavGlobalMoney::class)
+      .registerGenericCodec(EavGlobalMultiSelect::class)
+      .registerGenericCodec(EavGlobalString::class)
+      .registerGenericCodec(Eav::class)
+      .registerGenericCodec(EavGlobalInfo::class)
+      .registerGenericCodec(ProductsSeo::class)
+      .registerGenericCodec(ProductsPricing::class)
+      .registerGenericCodec(FullProduct::class)
+      .registerGenericCodec(MultiSelectBool::class)
+      .registerGenericCodec(MultiSelectFloat::class)
+      .registerGenericCodec(MultiSelectString::class)
+      .registerGenericCodec(MultiSelectInt::class)
+      .registerGenericCodec(MultiSelectMoney::class)
+      .registerGenericCodec(MultiSelectInfo::class)
+      .registerGenericCodec(Websites::class)
+      .registerGenericCodec(StoreView::class)
+      .registerGenericCodec(EavStoreViewBool::class)
+      .registerGenericCodec(EavStoreViewFloat::class)
+      .registerGenericCodec(EavStoreViewString::class)
+      .registerGenericCodec(EavStoreViewInt::class)
+      .registerGenericCodec(EavStoreViewMoney::class)
+      .registerGenericCodec(EavStoreViewInfo::class)
+      .registerGenericCodec(EavStoreViewMultiSelect::class)
+      .registerGenericCodec(EavWebsiteBool::class)
+      .registerGenericCodec(EavWebsiteFloat::class)
+      .registerGenericCodec(EavWebsiteString::class)
+      .registerGenericCodec(EavWebsiteInt::class)
+      .registerGenericCodec(EavWebsiteMoney::class)
+      .registerGenericCodec(EavWebsiteInfo::class)
+      .registerGenericCodec(EavWebsiteMultiSelect::class)
+      .registerGenericCodec(FullScope::class)
+      .registerGenericCodec(ServerDataData::class)
+      .registerGenericCodec(ServerVersionData::class)
+      .registerGenericCodec(TextPages::class)
+      .registerGenericCodec(TextPagesSeo::class)
+      .registerGenericCodec(PageIndex::class)
+      .registerGenericCodec(FullTextPages::class)
+      .registerGenericCodec(TextPageUrls::class)
+      .registerGenericCodec(ProductUrls::class)
+      .registerGenericCodec(CategoryUrls::class)
+      .registerGenericCodec(FullUrlKeys::class)
+      .registerGenericCodec(FullUrlRequestInfo::class)
+      .registerGenericCodec(JoinList::class)
+      .registerGenericCodec(UrlKeys::class)
+      .registerGenericCodec(User::class)
+      .registerGenericCodec(UserCreation::class)
+      .registerGenericCodec(BackendPermissions::class)
+      .registerGenericCodec(FullUser::class)
+      .registerGenericCodec(Template::class)
+      .registerGenericCodec(Block::class)
+      .registerGenericCodec(Map::class)
+      .registerGenericCodec(UsernamePasswordCredentials::class)
+      .registerGenericCodec(BackendBlock::class)
+      .registerGenericCodec(BlockAttribute::class)
+      .registerGenericCodec(AttributeBlock::class)
+      .registerGenericCodec(BlockId::class)
+      .registerGenericCodec(EavAttributeBool::class)
+      .registerGenericCodec(EavAttributeFloat::class)
+      .registerGenericCodec(EavAttributeInt::class)
+      .registerGenericCodec(EavAttributeMoney::class)
+      .registerGenericCodec(EavAttributeString::class)
+      .registerGenericCodec(EavAttributeMultiSelect::class)
+      .registerGenericCodec(FullBlockInfo::class)
+      .registerGenericCodec(FullEavAttribute::class)
+      .registerGenericCodec(Image::class)
+      .registerGenericCodec(ImageProduct::class)
 
-      .registerCodec(GenericListCodec(FullUser::class))
+      .registerGenericListCodec(FullUser::class)
   }
 
 }
