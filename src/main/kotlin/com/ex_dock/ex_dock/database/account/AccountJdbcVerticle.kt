@@ -338,7 +338,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
         if (rows.size() > 0) {
           message.reply(rows.map { row -> row.makeFullUserObject() }, listDeliveryOptions)
         } else {
-          message.reply(emptyList<FullUser>(), fullUserDeliveryOptions)
+          message.reply(emptyList<FullUser>(), listDeliveryOptions)
         }
       }
     }
