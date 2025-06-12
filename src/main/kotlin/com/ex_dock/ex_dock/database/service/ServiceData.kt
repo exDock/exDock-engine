@@ -6,7 +6,7 @@ fun getAllStandardTemplatesData(): List<Template> {
   val templates: MutableList<Template> = mutableListOf()
 
   templates.add(Template(
-    "testKey",
+    "home",
     "<test>testData</test>",
     ""
   ))

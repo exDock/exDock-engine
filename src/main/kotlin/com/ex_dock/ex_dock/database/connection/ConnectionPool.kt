@@ -41,7 +41,6 @@ fun Vertx.getConnection(): Pool {
 
   val poolOptions = PoolOptions()
     .setMaxSize(16)
-    .setName("ex-dock")
 
   connection = JDBCPool.pool(this, connectOptions, poolOptions)
 

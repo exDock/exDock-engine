@@ -43,7 +43,14 @@ class CacheVerticle : AbstractVerticle() {
       // Iterate through all keys in the key string
       for (key in keyString) {
         futures.add(Future.future { promise ->
-          val cacheData = cache[key]
+          var cacheData = cache.getIfPresent(key)
+
+          if (cacheData == null) {
+            cacheData = CacheData(
+              Future.succeededFuture(listOf("No data Found!")),
+              0,
+            )
+          }
 
           cacheData.data.onFailure { err ->
             promise.fail(err.message)
@@ -143,7 +150,7 @@ class CacheVerticle : AbstractVerticle() {
       val cacheData = cache.getIfPresent(cacheKey)
 
       // Set the cache data flag if the cache entry exists
-      if (cacheData!= null) {
+      if (cacheData != null) {
         cache.refresh(cacheKey)
         message.reply("Cache flag was successfully set")
       }

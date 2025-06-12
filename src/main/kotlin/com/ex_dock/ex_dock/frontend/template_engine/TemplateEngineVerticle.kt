@@ -28,7 +28,7 @@ class TemplateEngineVerticle: AbstractVerticle() {
   private val maxHitCount = 100
 
   override fun start() {
-    client = getConnection(vertx)
+    client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     templateCache = Caffeine.newBuilder()
@@ -64,6 +64,8 @@ class TemplateEngineVerticle: AbstractVerticle() {
 
       val future: Future<Unit> = Future.future { promise ->
         val templateCacheData = templateCache[key]
+
+        println(templateCacheData)
 
         // Wait until the fetching of the template is done
         templateCacheData.templateData.onFailure { err ->
