@@ -1,6 +1,6 @@
 package com.ex_dock.ex_dock.database.connection
 
-import com.ex_dock.ex_dock.ClassLoaderDummy
+import com.ex_dock.ex_dock.helper.load
 import io.vertx.core.Vertx
 import io.vertx.jdbcclient.JDBCConnectOptions
 import io.vertx.jdbcclient.JDBCPool
@@ -17,24 +17,7 @@ fun Vertx.getConnection(): Pool {
   val connectOptions = JDBCConnectOptions()
 
   try {
-    val props = Properties()
-    val configFileName = "secret.properties"
-    val externalConfigPath = "/app/config/$configFileName"
-    val localExternalConfigPath = "config/$configFileName"
-    val configFile: File
-
-    val potentialExternalFile = File(externalConfigPath)
-    if (potentialExternalFile.exists()) {
-      configFile = potentialExternalFile
-      try {
-          FileInputStream(configFile).use { props.load(it) }
-      } catch (_: IOException) {}
-    } else {
-      configFile = File(localExternalConfigPath)
-      try {
-        FileInputStream(configFile).use { props.load(it) }
-      } catch (_: IOException) {}
-    }
+    val props = Properties().load()
 
     connectOptions
       .setJdbcUrl(props.getProperty("DATABASE_URL"))

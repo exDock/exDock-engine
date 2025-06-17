@@ -1,6 +1,6 @@
 package com.ex_dock.ex_dock.backend.v1.router.system
 
-import com.ex_dock.ex_dock.ClassLoaderDummy
+import com.ex_dock.ex_dock.helper.load
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.EventBus
@@ -28,35 +28,16 @@ class SystemVerticle: AbstractVerticle() {
     eventBus.consumer<Unit>("process.system.getVariables").handler { message ->
       val jsonSettings = JsonObject()
       val settingsMap = JsonArray()
-      lateinit var props: Properties
-      try {
-        props = ClassLoaderDummy::class.java.classLoader.getResourceAsStream("secret.properties").use {
-          Properties().apply { load(it) }
-        }
+      val props = Properties().load()
 
-        props.generateResponse(message, jsonSettings, settingsMap)
-      } catch (_: Exception) {
-        logger.warn { "Could not find custom settings using default settings" }
-        try {
-          props = ClassLoaderDummy::class.java.classLoader.getResourceAsStream("default.properties").use {
-            Properties().apply { load(it) }
-          }
-
-          props.generateResponse(message, jsonSettings, settingsMap)
-        } catch (_: Exception) {
-          logger.error { "Could not find default settings" }
-          message.fail(400, "Could not find settings")
-        }
-      }
+      props.generateResponse(message, jsonSettings, settingsMap)
     }
   }
 
   private fun saveSystemVariables() {
     eventBus.consumer<JsonObject>("process.system.saveVariables").handler { message ->
       try {
-        val props = ClassLoaderDummy::class.java.classLoader.getResourceAsStream("secret.properties").use {
-          Properties().apply { load(it) }
-        }
+        val props = Properties().load()
 
         props.entries.forEach { mutableEntry ->
           if (message.body().containsKey(mutableEntry.key.toString())) {
@@ -64,10 +45,9 @@ class SystemVerticle: AbstractVerticle() {
           }
         }
 
-        val path = ClassLoaderDummy::class.java.classLoader.getResource("secret.properties")?.toURI()
-        println(path)
-
-        println(File(path).delete())
+        val externalPath = "/app/config/secret.properties"
+        val localPath = "config/secret.properties"
+        val path = if (File(externalPath).exists()) externalPath else localPath
 
         props.store(File(path).outputStream(), null)
 

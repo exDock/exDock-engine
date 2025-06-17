@@ -1,15 +1,13 @@
 package com.ex_dock.ex_dock.backend.v1.router.docker
 
-import com.ex_dock.ex_dock.ClassLoaderDummy
 import com.ex_dock.ex_dock.backend.apiMountingPath
-import com.ex_dock.ex_dock.backend.v1.router.websocket.initWebsocket
 import com.ex_dock.ex_dock.backend.v1.router.websocket.setAuthTimer
+import com.ex_dock.ex_dock.helper.load
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.async.ResultCallback.Adapter
 import com.github.dockerjava.api.model.Statistics
 import com.github.dockerjava.core.DockerClientBuilder
 import io.github.oshai.kotlinlogging.KLogger
-import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
@@ -31,9 +29,7 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
   lateinit var dockerClient: DockerClient
 
   try {
-    val props = ClassLoaderDummy::class.java.classLoader.getResourceAsStream("secret.properties").use {
-      Properties().apply { load(it) }
-    }
+    val props = Properties().load()
 
     dockerContainerId = props.getProperty("DOCKER_ID")
     isDockerLoaded = true
