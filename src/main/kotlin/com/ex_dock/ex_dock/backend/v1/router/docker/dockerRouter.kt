@@ -43,8 +43,8 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
         val systemCpuLoad = osBean?.cpuLoad
 
         val cpuData = CpuUsage(System.currentTimeMillis(),
-          processCpuLoad ?: 0.0,
-          systemCpuLoad ?: 0.0,
+          processCpuLoad?.times(100) ?: 0.0,
+          systemCpuLoad?.times(100) ?: 0.0,
         )
 
         val jsonMessage = Json.encodeToString(CpuUsage.serializer(), cpuData)
@@ -178,3 +178,10 @@ data class CpuUsage(
   val processCpuLoad: Double,
   val systemCpuLoad: Double,
 )
+
+enum class ServerHealth(val status: String) {
+  UP("UP"),
+  DOWN("DOWN"),
+  MAINTENANCE("MAINTENANCE"),
+  RESTARTING("RESTARTING"),
+}
