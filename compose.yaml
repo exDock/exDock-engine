@@ -1,27 +1,27 @@
 services:
   ex-dock:
-    network_mode: host
     build: .
+    volumes:
+      - ./config:/app/config
     ports:
       - "8888:8888"
-#  database:
-#    image: postgres:14-alpine
-#    ports:
-#      - "8890:5432"
-#    environment:
-#      - POSTGRES_USER=postgres
-#      - POSTGRES_PASSWORD=docker
-#      - POSTGRES_DB=ex-dock
-#    volumes:
-#      - ./database/ex-dock.sql:/docker-entrypoint-initdb.d/datadump.sql
-  # This is only used for testing purposes
-  testDatabase:
+    networks:
+      - ex-dock
+  database:
     image: postgres:14-alpine
-    ports:
-      - "8890:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=docker
       - POSTGRES_DB=ex-dock
     volumes:
       - ./database/ex-dock.sql:/docker-entrypoint-initdb.d/datadump.sql
+    networks:
+      - ex-dock
+
+networks:
+  ex-dock:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.0.0/24
+          gateway: 10.10.0.1
