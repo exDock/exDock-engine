@@ -6,6 +6,9 @@ import io.vertx.jdbcclient.JDBCConnectOptions
 import io.vertx.jdbcclient.JDBCPool
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
+import java.io.File
+import java.io.FileInputStream
+import java.io.IOException
 import java.util.Properties
 
 
@@ -14,9 +17,23 @@ fun Vertx.getConnection(): Pool {
   val connectOptions = JDBCConnectOptions()
 
   try {
-    val props:
-        Properties = ClassLoaderDummy::class.java.classLoader.getResourceAsStream("secret.properties").use {
-      Properties().apply { load(it) }
+    val props = Properties()
+    val configFileName = "secret.properties"
+    val externalConfigPath = "/app/config/$configFileName"
+    val localExternalConfigPath = "config/$configFileName"
+    val configFile: File
+
+    val potentialExternalFile = File(externalConfigPath)
+    if (potentialExternalFile.exists()) {
+      configFile = potentialExternalFile
+      try {
+          FileInputStream(configFile).use { props.load(it) }
+      } catch (_: IOException) {}
+    } else {
+      configFile = File(localExternalConfigPath)
+      try {
+        FileInputStream(configFile).use { props.load(it) }
+      } catch (_: IOException) {}
     }
 
     connectOptions
