@@ -17,10 +17,6 @@ fun Router.initWebsocket(vertx: Vertx, absoluteMounting: Boolean = false, logger
   val websocketRouter = Router.router(vertx)
   val authTimeOutMillis = 10000L // 10 seconds timeout
 
-  websocketRouter["/test"].handler { ctx ->
-    ctx.end("Got request")
-  }
-
   websocketRouter.route("/error").handler { ctx ->
     ctx.request().toWebSocket().onSuccess { result ->
       val webSocket = result
