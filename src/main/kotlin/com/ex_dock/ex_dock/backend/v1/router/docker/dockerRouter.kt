@@ -2,75 +2,69 @@ package com.ex_dock.ex_dock.backend.v1.router.docker
 
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.websocket.setAuthTimer
-import com.ex_dock.ex_dock.helper.load
-import com.github.dockerjava.api.DockerClient
-import com.github.dockerjava.api.async.ResultCallback.Adapter
-import com.github.dockerjava.api.model.Statistics
-import com.github.dockerjava.core.DockerClientBuilder
+import com.sun.management.OperatingSystemMXBean
 import io.github.oshai.kotlinlogging.KLogger
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ServerWebSocket
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
-import java.util.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import java.lang.management.ManagementFactory
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.Delegates
 
 fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean = false) {
   val dockerRouter = Router.router(vertx)
   val eventBus = vertx.eventBus()
-  var isDockerLoaded: Boolean = false
   val connectedClients = ConcurrentHashMap<String, ServerWebSocket>()
   val userIdToConnectionId = ConcurrentHashMap<String, String>()
   val authTimeOutMillis = 10000L // 10 seconds timeout
 
-  lateinit var dockerContainerId: String
-  lateinit var dockerClient: DockerClient
-
-  try {
-    val props = Properties().load()
-
-    dockerContainerId = props.getProperty("DOCKER_ID")
-    isDockerLoaded = true
-  } catch (_: Exception) {}
-
   fun openDockerData(webSocket: ServerWebSocket) {
+    val osBean = ManagementFactory.getOperatingSystemMXBean() as? OperatingSystemMXBean
 
-    val statsCmd = dockerClient.statsCmd(dockerContainerId)
+    if (osBean == null) {
+      webSocket.close()
+    }
 
-    try {
-      statsCmd.exec(object : Adapter<Statistics>() {
-        override fun onNext(stats: Statistics) {
-          val cpuData = (stats.cpuStats.cpuUsage?.totalUsage ?: 0) - (stats.preCpuStats?.cpuUsage?.totalUsage ?: 0)
-          val systemDelta = (stats.cpuStats?.systemCpuUsage ?: 0) - (stats.preCpuStats?.systemCpuUsage ?: 0)
-          val numberOfCores = stats.cpuStats?.onlineCpus ?: 0
+    val delayMilis = 2000L
 
-          if (systemDelta > 0 && numberOfCores > 0) {
-            val cpuPercentage = (cpuData.toDouble() / systemDelta) * numberOfCores * 100.0
-            val jsonObject = JsonObject()
-              .put("CPU_delta", cpuData)
-              .put("SYSTEM_delta", systemDelta)
-              .put("number_of_cores", numberOfCores)
-              .put("CPU_percentage", cpuPercentage)
-            webSocket.writeTextMessage(jsonObject.encode())
-          } else {
-            webSocket.writeTextMessage("Could not calculate")
-          }
-        }
+    val timerId = vertx.setPeriodic(delayMilis) {
+      if (webSocket.isClosed) {
+        vertx.cancelTimer(it)
+        logger.info { "Canceled CPU data timer for closed websocket" }
+        return@setPeriodic
+      }
 
-        override fun onError(throwable: Throwable) {
-          logger.error { "Error getting docker data: ${throwable.message}" }
-        }
+      try {
+        val processCpuLoad = osBean?.processCpuLoad
+        val systemCpuLoad = osBean?.cpuLoad
 
-        override fun onComplete() {
-          logger.info { "Docker stats stream completed" }
-        }
-      }).awaitCompletion()
-    } catch (e: Exception) {
-      logger.error { "Error getting docker data: ${e.message}" }
-    } finally {
-      dockerClient.close()
+        val cpuData = CpuUsage(System.currentTimeMillis(),
+          processCpuLoad ?: 0.0,
+          systemCpuLoad ?: 0.0,
+        )
+
+        val jsonMessage = Json.encodeToString(CpuUsage.serializer(), cpuData)
+
+        webSocket.writeTextMessage(jsonMessage)
+      } catch (e: Exception) {
+        webSocket.close()
+        logger.error { e.message }
+      }
+    }
+
+    webSocket.closeHandler {
+      vertx.cancelTimer(timerId)
+      logger.info { "Canceled CPU data timer for closed websocket" }
+
+      val clientId = webSocket.binaryHandlerID()
+      connectedClients.remove(clientId)
+      if (userIdToConnectionId.containsValue(clientId)) {
+        userIdToConnectionId.entries.find { it.value == clientId }?.key?.let { userIdToConnectionId.remove(it) }
+      }
     }
   }
 
@@ -82,10 +76,6 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
       var timerId by Delegates.notNull<Long>()
       var firstAuthAttempt = true
 
-      if (!isDockerLoaded) {
-        webSocket.writeTextMessage("Docker client not loaded")
-        webSocket.close()
-      } else {
         timerId = vertx.setAuthTimer(authTimeOutMillis, authenticatedUserId, webSocket)
 
         val mainMessageHandler: (Buffer) -> Unit = { buffer ->
@@ -107,10 +97,6 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
               if (result.succeeded()) {
                 val userIdFromAuth = result.result().body()
                 authenticatedUserId = userIdFromAuth
-
-                if (connectedClients.isEmpty()) {
-                  dockerClient = DockerClientBuilder.getInstance().build()
-                }
 
                 userIdToConnectionId[userIdFromAuth] = clientId
                 connectedClients[userIdFromAuth] = webSocket
@@ -160,10 +146,6 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
             if (authenticatedUserId != null) {
               userIdToConnectionId.remove(authenticatedUserId)
             }
-
-            if (connectedClients.isEmpty()) {
-              dockerClient.close()
-            }
           }
 
           webSocket.exceptionHandler { error ->
@@ -178,7 +160,6 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
             }
           }
         }
-      }
     }.onFailure { _ ->
       logger.error { "Failed to upgrade to WebSocket" }
       ctx.response().setStatusCode(400).end("Failed to upgrade to WebSocket")
@@ -190,3 +171,10 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
     if (absoluteMounting) "$apiMountingPath/v1/docker*" else "/v1/docker*"
   ).subRouter(dockerRouter)
 }
+
+@Serializable
+data class CpuUsage(
+  val timeStamp: Long,
+  val processCpuLoad: Double,
+  val systemCpuLoad: Double,
+)
