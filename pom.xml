@@ -120,7 +120,7 @@
     <dependency>
       <groupId>io.pebbletemplates</groupId>
       <artifactId>pebble</artifactId>
-      <version>3.2.2</version>
+      <version>3.2.4</version>
     </dependency>
 
 
@@ -193,42 +193,9 @@
     </dependency>
 
     <dependency>
-      <groupId>com.github.docker-java</groupId>
-      <artifactId>docker-java</artifactId>
-      <version>3.5.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>io.ktor</groupId>
-      <artifactId>ktor-server-core</artifactId>
-      <version>${ktor.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.ktor</groupId>
-      <artifactId>ktor-server-netty</artifactId>
-      <version>${ktor.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.ktor</groupId>
-      <artifactId>ktor-server-websockets</artifactId>
-      <version>${ktor.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.ktor</groupId>
-      <artifactId>ktor-server-content-negotiation</artifactId>
-      <version>${ktor.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.ktor</groupId>
-      <artifactId>ktor-serialization-kotlinx-json</artifactId>
-      <version>${ktor.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>io.ktor</groupId>
-      <artifactId>ktor-server-test-host</artifactId>
-      <version>${ktor.version}</version>
-      <scope>test</scope>
+      <groupId>com.github.oshi</groupId>
+      <artifactId>oshi-core</artifactId>
+      <version>6.8.2</version>
     </dependency>
   </dependencies>
 
