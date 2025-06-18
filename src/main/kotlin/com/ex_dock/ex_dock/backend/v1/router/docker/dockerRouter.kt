@@ -11,7 +11,9 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import oshi.SystemInfo
 import java.lang.management.ManagementFactory
+import java.math.BigDecimal
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.Delegates
 
@@ -21,17 +23,19 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
   val connectedClients = ConcurrentHashMap<String, ServerWebSocket>()
   val userIdToConnectionId = ConcurrentHashMap<String, String>()
   val authTimeOutMillis = 10000L // 10 seconds timeout
+  var serverHealth = ServerHealth.UP
 
   fun openDockerData(webSocket: ServerWebSocket) {
-    val osBean = ManagementFactory.getOperatingSystemMXBean() as? OperatingSystemMXBean
+    val systemInfo = SystemInfo()
+    val hardware = systemInfo.hardware
+    val processor = hardware.processor
+    val os = systemInfo.operatingSystem
 
-    if (osBean == null) {
-      webSocket.close()
-    }
+    var prevTicks: LongArray? = null
 
     val delayMilis = 2000L
 
-    val timerId = vertx.setPeriodic(delayMilis) {
+    val timerId = vertx.setPeriodic(delayMilis) { it ->
       if (webSocket.isClosed) {
         vertx.cancelTimer(it)
         logger.info { "Canceled CPU data timer for closed websocket" }
@@ -39,12 +43,32 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
       }
 
       try {
-        val processCpuLoad = osBean?.processCpuLoad
-        val systemCpuLoad = osBean?.cpuLoad
+        val currentPid = os.processId
+        val osProcess = os.getProcess(currentPid)
+        val processCpuLoad = osProcess?.let { process ->
+          process.processCpuLoadCumulative / processor.logicalProcessorCount
+        } ?: 0.0
 
-        val cpuData = CpuUsage(System.currentTimeMillis(),
-          processCpuLoad?.times(100) ?: 0.0,
-          systemCpuLoad?.times(100) ?: 0.0,
+        val totalMemory = hardware.memory.total
+        val availableMemory = hardware.memory.available
+        val usedMemory = totalMemory - availableMemory
+
+        val currentTicks = processor.systemCpuLoadTicks
+        var systemCpuLoad = 0.0
+
+        if (prevTicks != null) {
+          systemCpuLoad = processor.getSystemCpuLoadBetweenTicks(prevTicks)
+        }
+        prevTicks = currentTicks
+
+        val cpuData = CpuUsage(
+          type = "serverStatus",
+          timeStamp = System.currentTimeMillis(),
+          processCpuLoad = processCpuLoad,
+          systemCpuLoad = systemCpuLoad,
+          serverHealth = serverHealth,
+          totalMemory = BigDecimal(totalMemory / 1024 / 1024 / 1024).setScale(2).toLong(),
+          usedMemory = BigDecimal(usedMemory / 1024 / 1024 / 1024).setScale(2).toLong(),
         )
 
         val jsonMessage = Json.encodeToString(CpuUsage.serializer(), cpuData)
@@ -174,9 +198,13 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
 
 @Serializable
 data class CpuUsage(
+  val type: String,
   val timeStamp: Long,
   val processCpuLoad: Double,
   val systemCpuLoad: Double,
+  val totalMemory: Long,
+  val usedMemory: Long,
+  val serverHealth: ServerHealth
 )
 
 enum class ServerHealth(val status: String) {
