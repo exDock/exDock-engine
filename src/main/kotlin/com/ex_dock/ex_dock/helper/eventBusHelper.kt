@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.helper
 
+import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import java.time.Instant
@@ -16,4 +17,8 @@ fun EventBus.sendError(error: Exception, targetType: String = "BROADCAST", targe
     .put("targetType", targetType)
     .put("targetIdentifier", targetIdentifier)
   )
+}
+
+fun EventBus.registerVerticleIds(verticleIds: List<String>) {
+  this.send("process.main.registerVerticleId", verticleIds, DeliveryOptions().setCodecName("ListCodec"))
 }

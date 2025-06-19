@@ -2,7 +2,6 @@ package com.ex_dock.ex_dock.backend.v1.router.docker
 
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.websocket.setAuthTimer
-import com.sun.management.OperatingSystemMXBean
 import io.github.oshai.kotlinlogging.KLogger
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
@@ -12,7 +11,6 @@ import io.vertx.ext.web.Router
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import oshi.SystemInfo
-import java.lang.management.ManagementFactory
 import java.math.BigDecimal
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.properties.Delegates
@@ -23,7 +21,7 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
   val connectedClients = ConcurrentHashMap<String, ServerWebSocket>()
   val userIdToConnectionId = ConcurrentHashMap<String, String>()
   val authTimeOutMillis = 10000L // 10 seconds timeout
-  var serverHealth = ServerHealth.UP
+  var serverHealth = ServerHealth.DOWN
 
   fun openDockerData(webSocket: ServerWebSocket) {
     val systemInfo = SystemInfo()
@@ -33,9 +31,9 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
 
     var prevTicks: LongArray? = null
 
-    val delayMilis = 2000L
+    val delayMillis = 2000L
 
-    val timerId = vertx.setPeriodic(delayMilis) { it ->
+    val timerId = vertx.setPeriodic(delayMillis) { it ->
       if (webSocket.isClosed) {
         vertx.cancelTimer(it)
         logger.info { "Canceled CPU data timer for closed websocket" }
@@ -67,8 +65,8 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
           processCpuLoad = processCpuLoad,
           systemCpuLoad = systemCpuLoad,
           serverHealth = serverHealth,
-          totalMemory = BigDecimal(totalMemory / 1024 / 1024 / 1024).setScale(2).toLong(),
-          usedMemory = BigDecimal(usedMemory / 1024 / 1024 / 1024).setScale(2).toLong(),
+          totalMemory = BigDecimal(totalMemory / 1024 / 1024).setScale(2).toLong(),
+          usedMemory = BigDecimal(usedMemory / 1024 / 1024).setScale(2).toLong(),
         )
 
         val jsonMessage = Json.encodeToString(CpuUsage.serializer(), cpuData)
@@ -188,6 +186,16 @@ fun Router.initDocker(vertx: Vertx, logger: KLogger, absoluteMounting: Boolean =
       logger.error { "Failed to upgrade to WebSocket" }
       ctx.response().setStatusCode(400).end("Failed to upgrade to WebSocket")
     }
+  }
+
+  eventBus.consumer<ServerHealth>("process.docker.serverHealth").handler { message ->
+    serverHealth = message.body()
+
+    if (serverHealth == ServerHealth.RESTARTING) {
+      eventBus.send("process.main.redeployVerticles", "")
+    }
+
+    message.reply("Success")
   }
 
 
