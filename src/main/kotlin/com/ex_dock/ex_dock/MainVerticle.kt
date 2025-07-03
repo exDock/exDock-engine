@@ -8,6 +8,7 @@ import com.ex_dock.ex_dock.frontend.checkout.router.initCheckout
 import com.ex_dock.ex_dock.frontend.home.router.initHome
 import com.ex_dock.ex_dock.frontend.product.router.initProduct
 import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
+import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.sendError
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.AbstractVerticle
@@ -23,7 +24,9 @@ import java.util.Properties
 class MainVerticle : AbstractVerticle() {
   companion object {
     val logger = KotlinLogging.logger {}
+    var areCodecsRegistered = false
   }
+  private val deployedVerticleIds = emptyList<String>().toMutableList()
 
   private val props : Properties = javaClass.classLoader.getResourceAsStream("secret.properties").use {
     Properties().apply { load(it) }
@@ -38,18 +41,45 @@ class MainVerticle : AbstractVerticle() {
   */
   override fun start(startPromise: Promise<Void>) {
     vertx.deployVerticle(ExtensionsLauncher())
-      .onSuccess{ _ -> (
+      .onSuccess{ verticleId ->
         logger.info { "MainVerticle started successfully" }
-      )}
+        deployedVerticleIds.add(verticleId)
+      }
       .onFailure { err ->
         logger.error { "Failed to start MainVerticle: $err" }
         startPromise.fail(err)
       }
 
+    val eventBus = vertx.eventBus()
     val mainRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
     val eventBus = vertx.eventBus()
+
+    eventBus.registerGenericCodec(List::class)
+    eventBus.consumer<List<String>>("process.main.registerVerticleId").handler { message ->
+      val verticleIds: List<String> = message.body()
+      verticleIds.forEach { value ->
+        deployedVerticleIds.add(value)
+      }
+      message.reply("")
+    }
+
+    eventBus.consumer<Unit>("process.main.redeployVerticles").handler { message ->
+      deployedVerticleIds.forEach { verticleId ->
+        vertx.undeploy(verticleId)
+        logger.info { "Undeployed verticle with ID: $verticleId" }
+      }
+      deployedVerticleIds.clear()
+
+      vertx.deployVerticle(ExtensionsLauncher()).onFailure { error ->
+        logger.error { "Failed to deploy ExtensionsLauncher verticle: $error" }
+        message.fail(500, "Failed to deploy ExtensionsLauncher verticle")
+      }.onSuccess { verticleId ->
+        deployedVerticleIds.add(verticleId)
+        message.reply("")
+      }
+    }
 
     sessionHandler.setCookieSameSite(CookieSameSite.STRICT)
 

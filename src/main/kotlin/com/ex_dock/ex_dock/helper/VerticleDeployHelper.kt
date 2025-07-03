@@ -12,27 +12,12 @@ import kotlin.reflect.KClass
 class VerticleDeployHelper {
   companion object {
     val logger = KotlinLogging.logger {}
-
-    @Deprecated("Function is moved outside of class", ReplaceWith("deployVerticleHelper()"))
-    fun deployHelper(vertx: Vertx, name: String): Future<Void> {
-      return deployVerticleHelper(vertx, name)
-    }
-  }
-
-  @Deprecated("Function is moved outside of class", ReplaceWith("deployWorkerVerticleHelper()"))
-  fun deployWorkerHelper(vertx: Vertx, name: String, workerPoolSize: Int, instances: Int): Future<Void> {
-    return deployWorkerVerticleHelper(vertx, name, workerPoolSize, instances)
-  }
-
-  @Deprecated("Function is moved outside of class", ReplaceWith("deployVirtualVerticleHelper()"))
-  fun deployVirtualVerticle(vertx: Vertx, name: String): Future<Void> {
-    return deployVirtualVerticleHelper(vertx, name)
   }
 }
 
 
-fun deployVerticleHelper(vertx: Vertx, name: String): Future<Void> {
-  val promise: Promise<Void> = Promise.promise<Void>()
+fun deployVerticleHelper(vertx: Vertx, name: String): Future<String> {
+  val promise: Promise<String> = Promise.promise()
   vertx.deployVerticle(name)
     .onComplete{ res ->
       if (res.failed()) {
@@ -40,20 +25,20 @@ fun deployVerticleHelper(vertx: Vertx, name: String): Future<Void> {
         promise.fail(res.cause())
       } else {
         MainVerticle.logger.info { "Verticle deployed successfully: $name" }
-        promise.complete()
+        promise.complete(res.result())
       }
     }
 
   return promise.future()
 }
 
-fun Vertx.deployVerticleHelper(name: KClass<*>): Future<Void> {
+fun Vertx.deployVerticleHelper(name: KClass<*>): Future<String> {
   return deployVerticleHelper(this, name.qualifiedName.toString())
 }
 
 
-fun deployWorkerVerticleHelper(vertx: Vertx, name: String, workerPoolSize: Int, instances: Int): Future<Void> {
-  val promise: Promise<Void> = Promise.promise<Void>()
+fun deployWorkerVerticleHelper(vertx: Vertx, name: String, workerPoolSize: Int, instances: Int): Future<String> {
+  val promise: Promise<String> = Promise.promise()
   val options: DeploymentOptions = DeploymentOptions()
     .setThreadingModel(ThreadingModel.WORKER)
     .setWorkerPoolName(name)
@@ -73,14 +58,14 @@ fun deployWorkerVerticleHelper(vertx: Vertx, name: String, workerPoolSize: Int, 
         promise.fail(res.cause())
       } else {
         MainVerticle.logger.info { "Verticle deployed to worker successfully: $name" }
-        promise.complete()
+        promise.complete(res.result())
       }
     }
 
   return promise.future()
 }
 
-fun Vertx.deployWorkerVerticleHelper(name: KClass<*>, workerPoolSize: Int = 1, instances: Int = workerPoolSize): Future<Void> {
+fun Vertx.deployWorkerVerticleHelper(name: KClass<*>, workerPoolSize: Int = 1, instances: Int = workerPoolSize): Future<String> {
   return deployWorkerVerticleHelper(this, name.qualifiedName.toString(), workerPoolSize, instances)
 }
 

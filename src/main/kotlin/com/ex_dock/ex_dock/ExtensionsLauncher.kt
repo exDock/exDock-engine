@@ -3,6 +3,7 @@ package com.ex_dock.ex_dock
 import com.ex_dock.ex_dock.database.JDBCStarter
 import com.ex_dock.ex_dock.frontend.FrontendVerticle
 import com.ex_dock.ex_dock.helper.deployVerticleHelper
+import com.ex_dock.ex_dock.helper.registerVerticleIds
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
@@ -15,7 +16,7 @@ class ExtensionsLauncher: AbstractVerticle() {
     val logger = KotlinLogging.logger {}
   }
 
-  private var extension: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
+  private val verticleIds = emptyList<String>().toMutableList()
 
   private lateinit var props: Properties
 
@@ -36,17 +37,12 @@ override fun start(startPromise: Promise<Void>) {
 
     // Wait for JDBC Verticle to start first
     deployVerticleHelper(vertx, JDBCStarter::class.qualifiedName.toString())
-      .onComplete{ _ ->
-        // Wait for all extensions to be started
-        Future.all(extension)
-          .onComplete { _ ->
-            logger.info { "All extensions started successfully" }
-            startPromise.complete()
-          }
-          .onFailure {
-            logger.error { "Error starting extensions: ${it.message}" }
-            startPromise.fail(it)
-          }
+      .onFailure{ error ->
+        logger.error { "Failed to deploy JDBC verticle: $error" }
+        startPromise.fail(error)
+      }.onSuccess {  verticleId ->
+        verticleIds.add(verticleId)
+        vertx.eventBus().registerVerticleIds(verticleIds)
       }
 }
 
@@ -54,6 +50,10 @@ override fun start(startPromise: Promise<Void>) {
     val client = WebClient.create(vertx)
 
     // ADD frontend Verticles
-    extension.add(deployVerticleHelper(vertx, FrontendVerticle::class.qualifiedName.toString()))
+    vertx.deployVerticleHelper(FrontendVerticle::class).onFailure { error ->
+      logger.error { "Failed to deploy frontend verticle: $error" }
+    }.onSuccess { verticleId ->
+      verticleIds.add(verticleId)
+    }
   }
 }

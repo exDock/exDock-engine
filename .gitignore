@@ -186,6 +186,7 @@ nbdist/
 
 ### Secret Variables ###
 /src/main/resources/secret.properties
+/config/secret.properties
 
 ### Sonarlint ###
 .idea/sonarlint/*
