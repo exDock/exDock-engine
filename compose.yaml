@@ -15,6 +15,7 @@ services:
       - POSTGRES_DB=ex-dock
     volumes:
       - ./database/ex-dock.sql:/docker-entrypoint-initdb.d/datadump.sql
+      - ./application-files:/app/application-files
     ports:
       - "8890:5432"
     networks:

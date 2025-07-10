@@ -2,7 +2,7 @@ package com.ex_dock.ex_dock.backend.v1.router.auth
 
 import java.security.KeyPair
 import java.security.KeyPairGenerator
-import java.util.Base64
+import java.util.*
 
 class AuthProvider {
   private val generator: KeyPairGenerator = KeyPairGenerator.getInstance("RSA")

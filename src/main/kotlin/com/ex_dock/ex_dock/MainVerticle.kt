@@ -50,7 +50,6 @@ class MainVerticle : AbstractVerticle() {
         startPromise.fail(err)
       }
 
-    val eventBus = vertx.eventBus()
     val mainRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
