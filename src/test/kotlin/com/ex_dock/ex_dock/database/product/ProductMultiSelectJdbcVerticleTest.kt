@@ -544,8 +544,8 @@ class ProductMultiSelectJdbcVerticleTest {
     }
   }
 
-  private fun deployVerticles(vertx: Vertx): MutableList<Future<Void>> {
-    val verticleList: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
+  private fun deployVerticles(vertx: Vertx): MutableList<Future<String>> {
+    val verticleList: MutableList<Future<String>> = emptyList<Future<String>>().toMutableList()
 
     verticleList.add(
       deployWorkerVerticleHelper(
