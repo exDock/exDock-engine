@@ -3,6 +3,8 @@ package com.ex_dock.ex_dock.backend.v1.router.system
 import com.ex_dock.ex_dock.helper.load
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonArray
@@ -10,18 +12,20 @@ import io.vertx.core.json.JsonObject
 import java.io.File
 import java.util.Properties
 
-class SystemVerticle: AbstractVerticle() {
+class SystemVerticle: VerticleBase() {
   companion object {
     val logger = KotlinLogging.logger {}
   }
 
   private lateinit var eventBus: EventBus
 
-  override fun start() {
+  override fun start(): Future<*>? {
     eventBus = vertx.eventBus()
 
     getSystemVariables()
     saveSystemVariables()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun getSystemVariables() {

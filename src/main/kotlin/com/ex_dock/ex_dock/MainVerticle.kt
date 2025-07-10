@@ -12,7 +12,9 @@ import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.sendError
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
 import io.vertx.core.Promise
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions
@@ -21,7 +23,7 @@ import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.SessionStore
 import java.util.Properties
 
-class MainVerticle : AbstractVerticle() {
+class MainVerticle : VerticleBase() {
   companion object {
     val logger = KotlinLogging.logger {}
     var areCodecsRegistered = false
@@ -39,7 +41,7 @@ class MainVerticle : AbstractVerticle() {
   *
   * @return Nothing is returned from this function.
   */
-  override fun start(startPromise: Promise<Void>) {
+  override fun start(): Future<*> {
     vertx.deployVerticle(ExtensionsLauncher())
       .onSuccess{ verticleId ->
         logger.info { "MainVerticle started successfully" }
@@ -47,7 +49,6 @@ class MainVerticle : AbstractVerticle() {
       }
       .onFailure { err ->
         logger.error { "Failed to start MainVerticle: $err" }
-        startPromise.fail(err)
       }
 
     val eventBus = vertx.eventBus()
@@ -93,21 +94,17 @@ class MainVerticle : AbstractVerticle() {
     mainRouter.initCheckout(vertx)
     mainRouter.initAccount(vertx)
 
-    vertx
+    return vertx
       .createHttpServer(
         HttpServerOptions()
           .setRegisterWebSocketWriteHandlers(true)
       )
       .requestHandler(mainRouter)
-      .listen(props.getProperty("FRONTEND_PORT").toInt()) { http ->
-        if (http.succeeded()) {
-          logger.info { "HTTP server started on port ${props.getProperty("FRONTEND_PORT")}" }
-          startPromise.complete()
-        } else {
-          logger.error { "Failed to start HTTP server: ${http.cause()}" }
-          vertx.eventBus().sendError(ServerStartException("Failed to start the HTTP server"))
-          startPromise.fail(http.cause())
-        }
+      .listen(props.getProperty("FRONTEND_PORT").toInt()).onFailure { error ->
+        logger.error { "Failed to start HTTP server: $error" }
+        vertx.eventBus().sendError(Exception("Failed to start the HTTP server"))
+      }.onSuccess { http ->
+        logger.info { "HTTP server started on port ${props.getProperty("FRONTEND_PORT")}" }
       }
   }
 }
