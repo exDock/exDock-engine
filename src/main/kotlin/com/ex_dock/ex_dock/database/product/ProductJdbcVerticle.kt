@@ -7,6 +7,8 @@ import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.database.image.Image
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
@@ -16,7 +18,7 @@ import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
 
-class ProductJdbcVerticle: AbstractVerticle() {
+class ProductJdbcVerticle: VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private val failedMessage: String = "failed"
@@ -30,7 +32,7 @@ class ProductJdbcVerticle: AbstractVerticle() {
     private const val CACHE_ADDRESS = "products"
   }
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -58,6 +60,8 @@ class ProductJdbcVerticle: AbstractVerticle() {
     // Initialize all eventbus connections to the full products info tables
     getAllFullProducts()
     getFullProductById()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun getAllProducts() {

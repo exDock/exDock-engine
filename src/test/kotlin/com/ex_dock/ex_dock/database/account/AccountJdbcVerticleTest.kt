@@ -86,9 +86,9 @@ class AccountJdbcVerticleTest {
         var body: List<User> = msg.result().body()
         if (body[0].email != "test@test.com") testContext.failNow(
           "user is not as expected.\n" +
-              "body[0]:\n" +
-              "- expected: \"test@test.com\"" +
-              "- actual: \"${body[0].email}\""
+            "body[0]:\n" +
+            "- expected: \"test@test.com\"" +
+            "- actual: \"${body[0].email}\""
         )
         testContext.completeNow()
       }
@@ -112,7 +112,9 @@ class AccountJdbcVerticleTest {
 
     var updateUser: User
 
-    vertx.deployVerticle(AccountJdbcVerticle(), testContext.succeeding {
+    vertx.deployVerticle(AccountJdbcVerticle()).onFailure { error ->
+      testContext.failNow(error)
+    }.onSuccess { _ ->
       eventBus.request<User>("process.account.createUser", testUserCreation, userCreationDeliveryOptions).onFailure {
         testContext.failNow(it)
       }.onComplete { createMsg ->
@@ -236,7 +238,7 @@ class AccountJdbcVerticleTest {
           }
         }
       }
-    })
+    }
   }
 
   @Test
@@ -253,48 +255,50 @@ class AccountJdbcVerticleTest {
     lateinit var testUser: User
 
     vertx.deployVerticle(
-      AccountJdbcVerticle(),
-      testContext.succeeding {
-        eventBus.request<User>("process.account.createUser", testUserCreation, userCreationDeliveryOptions).onFailure {
-          println("failure in testBackendPermissions on: process.account.createUser")
+      AccountJdbcVerticle()
+    ).onFailure {
+      testContext.failNow(it)
+    }.onComplete { _ ->
+      eventBus.request<User>("process.account.createUser", testUserCreation, userCreationDeliveryOptions).onFailure {
+        println("failure in testBackendPermissions on: process.account.createUser")
+        testContext.failNow(it)
+      }.onComplete { createUserMsg ->
+        assert(createUserMsg.succeeded())
+        testUser = createUserMsg.result().body()
+        permissionId = testUser.userId
+
+        permissionResult = BackendPermissions(
+          userId = testUser.userId,
+          userPermission = Permission.fromString("none"),
+          serverSettings = Permission.fromString("none"),
+          template = Permission.fromString("none"),
+          categoryContent = Permission.fromString("none"),
+          categoryProducts = Permission.fromString("none"),
+          productContent = Permission.fromString("none"),
+          productPrice = Permission.fromString("none"),
+          productWarehouse = Permission.fromString("none"),
+          textPages = Permission.fromString("none"),
+          apiKey = null
+        )
+        backendPermissionsList.add(permissionResult)
+
+        assertEquals(createUserMsg.result().body(), testUser)
+        eventBus.request<BackendPermissions>(
+          "process.account.createBackendPermissions",
+          permissionResult,
+          backendPermissionsDeliveryOptions
+        ).onFailure {
+          println("failure in testBackendPermissions on: process.account.createBackendPermissions")
           testContext.failNow(it)
-        }.onComplete { createUserMsg ->
-          assert(createUserMsg.succeeded())
-          testUser = createUserMsg.result().body()
-          permissionId = testUser.userId
+        }.onComplete { createMsg ->
+          assert(createMsg.succeeded())
+          assertEquals(permissionResult, createMsg.result().body())
 
-          permissionResult = BackendPermissions(
-            userId = testUser.userId,
-            userPermission = Permission.fromString("none"),
-            serverSettings = Permission.fromString("none"),
-            template = Permission.fromString("none"),
-            categoryContent = Permission.fromString("none"),
-            categoryProducts = Permission.fromString("none"),
-            productContent = Permission.fromString("none"),
-            productPrice = Permission.fromString("none"),
-            productWarehouse = Permission.fromString("none"),
-            textPages = Permission.fromString("none"),
-            apiKey = null
-          )
-          backendPermissionsList.add(permissionResult)
-
-          assertEquals(createUserMsg.result().body(), testUser)
-          eventBus.request<BackendPermissions>(
-            "process.account.createBackendPermissions",
-            permissionResult,
-            backendPermissionsDeliveryOptions
-          ).onFailure {
-            println("failure in testBackendPermissions on: process.account.createBackendPermissions")
-            testContext.failNow(it)
-          }.onComplete { createMsg ->
-            assert(createMsg.succeeded())
-            assertEquals(permissionResult, createMsg.result().body())
-
-            eventBus.request<MutableList<BackendPermissions>>("process.account.getAllBackendPermissions", "")
-              .onFailure {
-                println("failure in testBackendPermissions on: process.account.getAllBackendPermissions")
-                testContext.failNow(it)
-              }.onComplete { getAllMsg ->
+          eventBus.request<MutableList<BackendPermissions>>("process.account.getAllBackendPermissions", "")
+            .onFailure {
+              println("failure in testBackendPermissions on: process.account.getAllBackendPermissions")
+              testContext.failNow(it)
+            }.onComplete { getAllMsg ->
 //              assert(getAllMsg.succeeded())
 //              assertEquals(backendPermissionsList, getAllMsg.result().body())
 
@@ -384,10 +388,9 @@ class AccountJdbcVerticleTest {
                   }
                 }
             }
-          }
         }
       }
-    )
+    }
   }
 
   @Test
@@ -411,7 +414,9 @@ class AccountJdbcVerticleTest {
 
     var testPermission: BackendPermissions
 
-    vertx.deployVerticle(AccountJdbcVerticle(), testContext.succeeding {
+    vertx.deployVerticle(AccountJdbcVerticle()).onFailure{ error ->
+      testContext.failNow(error)
+    }.onSuccess { _ ->
       eventBus.request<User>("process.account.createUser", testUserCreation, userDeliveryOptions).onFailure {
         testContext.failNow(it)
       }.onComplete { createUserMsg ->
@@ -494,6 +499,6 @@ class AccountJdbcVerticleTest {
           }
         }
       }
-    })
+    }
   }
 }

@@ -103,7 +103,7 @@ class ProductWebsiteEavJdbcVerticleTest {
       .registerCodec(GenericCodec(EavWebsiteMoney::class))
       .registerCodec(GenericCodec(EavWebsiteInfo::class))
       .registerCodec(GenericCodec(EavWebsiteMultiSelect::class))
-    Future.all(deployVerticles(vertx)).onFailure {
+    Future.all<String>(deployVerticles(vertx)).onFailure {
       testContext.failNow(it)
     }.onComplete {
       eventBus.request<Products>("process.products.createProduct", product, productDeliveryOptions).onFailure {
@@ -738,8 +738,8 @@ class ProductWebsiteEavJdbcVerticleTest {
     eavList.add(eav)
   }
 
-  private fun deployVerticles(vertx: Vertx): MutableList<Future<Void>> {
-    val verticleList: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
+  private fun deployVerticles(vertx: Vertx): MutableList<Future<String>> {
+    val verticleList: MutableList<Future<String>> = emptyList<Future<String>>().toMutableList()
 
     verticleList.add(
       deployWorkerVerticleHelper(

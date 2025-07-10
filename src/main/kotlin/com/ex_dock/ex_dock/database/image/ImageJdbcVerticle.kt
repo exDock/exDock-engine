@@ -2,6 +2,8 @@ package com.ex_dock.ex_dock.database.image
 
 import com.ex_dock.ex_dock.database.connection.getConnection
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.sqlclient.Pool
@@ -9,14 +11,14 @@ import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
 
-class ImageJdbcVerticle: AbstractVerticle() {
+class ImageJdbcVerticle: VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
   private val imageDeliveryOptions = DeliveryOptions().setCodecName("ImageCodec")
   private val imageProductDeliveryOptions = DeliveryOptions().setCodecName("ImageProductCodec")
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -34,6 +36,8 @@ class ImageJdbcVerticle: AbstractVerticle() {
     createImageProduct()
     editImageProduct()
     deleteImageProduct()
+
+    return Future.succeededFuture<Unit>()
   }
 
   /**

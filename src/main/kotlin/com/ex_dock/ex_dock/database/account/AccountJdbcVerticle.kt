@@ -4,6 +4,7 @@ import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.jdbcclient.JDBCPool
@@ -12,7 +13,7 @@ import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
 
-class AccountJdbcVerticle: AbstractVerticle() {
+class AccountJdbcVerticle: VerticleBase() {
 
   private lateinit var client: Pool
 
@@ -40,7 +41,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
   private val fullUserListDeliveryOptions = DeliveryOptions().setCodecName("FullUserListCodec")
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -62,6 +63,8 @@ class AccountJdbcVerticle: AbstractVerticle() {
     getAllFullUser()
     getFullUserByEmail()
     getFullUserByUserId()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun getAllUsers() {

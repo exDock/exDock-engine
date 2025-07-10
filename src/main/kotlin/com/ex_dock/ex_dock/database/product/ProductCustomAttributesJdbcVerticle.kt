@@ -3,13 +3,15 @@ package com.ex_dock.ex_dock.database.product
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 
-class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
+class ProductCustomAttributesJdbcVerticle: VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private val failedMessage: String = "failed"
@@ -20,7 +22,7 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
     private const val CACHE_ADDRESS = "custom_attributes"
   }
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -29,6 +31,8 @@ class ProductCustomAttributesJdbcVerticle: AbstractVerticle() {
     createCustomAttribute()
     updateCustomAttribute()
     deleteCustomAttribute()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun getAllCustomAttributes() {

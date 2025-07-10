@@ -5,6 +5,7 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.CompositeFuture
 import io.vertx.core.Future
 import io.vertx.core.Promise
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.jdbcclient.JDBCPool
@@ -13,7 +14,7 @@ import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
 
-class BackendBlockJdbcVerticle : AbstractVerticle() {
+class BackendBlockJdbcVerticle : VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
@@ -27,7 +28,7 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
   private val eavMultiSelectDeliveryOptions = DeliveryOptions().setCodecName("EavAttributeMultiSelectCodec")
   private val eavStringDeliveryOptions = DeliveryOptions().setCodecName("EavAttributeStringCodec")
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -81,6 +82,8 @@ class BackendBlockJdbcVerticle : AbstractVerticle() {
     getFullBlockInfoById()
     getFullBackendBlock()
     getFullBackendBlockByBlockNames()
+
+    return Future.succeededFuture<Unit>()
   }
 
   /**

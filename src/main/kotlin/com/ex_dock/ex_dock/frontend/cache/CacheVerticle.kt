@@ -5,11 +5,12 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import java.util.concurrent.TimeUnit
 
-class CacheVerticle : AbstractVerticle() {
+class CacheVerticle : VerticleBase() {
   private lateinit var cache: LoadingCache<String, CacheData>
   private val mapDeliveryOptions = DeliveryOptions().setCodecName("MapCodec")
   private val expireDuration = 10L
@@ -18,7 +19,7 @@ class CacheVerticle : AbstractVerticle() {
 
   private lateinit var eventBus: EventBus
 
-  override fun start() {
+  override fun start(): Future<*>? {
     eventBus = vertx.eventBus()
 
     // Initialize the cache with a CacheLoader that handles cache population and refresh
@@ -30,6 +31,8 @@ class CacheVerticle : AbstractVerticle() {
     // Initialize the eventbus address to handle the cache requests
     getData()
     cacheInvalidateHandler()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun getData() {
@@ -63,7 +66,7 @@ class CacheVerticle : AbstractVerticle() {
       }
 
       // Wait for all cache keys to be processed before replying
-      Future.all(futures).onComplete { ar ->
+      Future.all<Unit>(futures).onComplete { ar ->
         if (ar.succeeded()) {
           // Once all the futures are completed, send the response back
           message.reply(cacheMap.toMap(), mapDeliveryOptions)

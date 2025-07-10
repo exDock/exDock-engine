@@ -81,7 +81,7 @@ class ProductGlobalEavJdbcVerticleTest {
       .registerCodec(GenericCodec(Eav::class))
       .registerCodec(GenericCodec(EavGlobalInfo::class))
       .registerCodec(GenericCodec(MutableList::class))
-    Future.all(deployVerticles(vertx)).onFailure{
+    Future.all<String>(deployVerticles(vertx)).onFailure{
       testContext.failNow(it)
     }.onComplete {
       eventBus.request<Products>("process.products.createProduct", product, productDeliveryOptions).onFailure {
@@ -661,8 +661,8 @@ class ProductGlobalEavJdbcVerticleTest {
     eavGlobalInfoList.add(expectedFullEav)
   }
 
-  private fun deployVerticles(vertx: Vertx): MutableList<Future<Void>> {
-    val verticleList: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
+  private fun deployVerticles(vertx: Vertx): MutableList<Future<String>> {
+    val verticleList: MutableList<Future<String>> = emptyList<Future<String>>().toMutableList()
 
     verticleList.add(
       deployWorkerVerticleHelper(

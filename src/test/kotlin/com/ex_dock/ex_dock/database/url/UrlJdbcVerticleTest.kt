@@ -121,7 +121,7 @@ class UrlJdbcVerticleTest {
       .registerCodec(GenericCodec(FullUrlKeys::class))
       .registerCodec(GenericCodec(FullUrlRequestInfo::class))
       .registerCodec(GenericCodec(JoinList::class))
-    Future.all(deployNeededVerticles(vertx)).onComplete {
+    Future.all<String>(deployNeededVerticles(vertx)).onComplete {
       eventBus.request<UrlKeys>("process.url.createUrlKey", url, urlKeysDeliveryOptions).onFailure {
         testContext.failNow(it)
       }.onComplete { createUrlMsg ->
@@ -459,8 +459,8 @@ class UrlJdbcVerticleTest {
     fullUrl.product = product
   }
 
-  private fun deployNeededVerticles(vertx: Vertx): MutableList<Future<Void>> {
-    val verticleList: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
+  private fun deployNeededVerticles(vertx: Vertx): MutableList<Future<String>> {
+    val verticleList: MutableList<Future<String>> = emptyList<Future<String>>().toMutableList()
 
     verticleList.add(deployWorkerVerticleHelper(
       vertx,

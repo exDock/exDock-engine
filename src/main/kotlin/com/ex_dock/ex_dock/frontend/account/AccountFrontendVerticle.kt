@@ -1,14 +1,16 @@
 package com.ex_dock.ex_dock.frontend.account
 
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
 import io.vertx.core.Promise
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 
-class AccountFrontendVerticle: AbstractVerticle() {
+class AccountFrontendVerticle: VerticleBase() {
 
   private lateinit var eventBus: EventBus
 
-  override fun start(startPromise: Promise<Void>?) {
-
+  override fun start(): Future<*> {
+    return super.start()
   }
 }

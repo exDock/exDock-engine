@@ -1,16 +1,20 @@
 package com.ex_dock.ex_dock.frontend.home
 
 import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 
-class HomeFrontendVerticle: AbstractVerticle() {
+class HomeFrontendVerticle: VerticleBase() {
 
   private lateinit var eventBus: EventBus
 
-  override fun start() {
+  override fun start(): Future<*>? {
     eventBus = vertx.eventBus()
 
     getHomePage()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun getHomePage() {
