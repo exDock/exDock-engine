@@ -54,7 +54,6 @@ class MainVerticle : AbstractVerticle() {
     val mainRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
-    val eventBus = vertx.eventBus()
 
     eventBus.registerGenericCodec(List::class)
     eventBus.consumer<List<String>>("process.main.registerVerticleId").handler { message ->
