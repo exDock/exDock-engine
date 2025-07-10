@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.account
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.eventbus.DeliveryOptions
@@ -22,6 +23,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
     const val FAILED = "failed"
     const val NO_USER = "User does not exist"
     const val USER_DELETED_SUCCESS = "User deleted successfully"
+    const val CACHE_ADDRESS = "accounts"
 
     const val BACKEND_PERMISSION_CREATION_FAILED = "Failed to create backend permissions"
     const val BACKEND_PERMISSION_UPDATE_FAILED = "Failed to update backend permissions"
@@ -35,8 +37,8 @@ class AccountJdbcVerticle: AbstractVerticle() {
   private val backendPermissionsDeliveryOptions = DeliveryOptions().setCodecName("BackendPermissionsCodec")
   private val backendPermissionsListDeliveryOptions = DeliveryOptions().setCodecName("BackendPermissionsListCodec")
   private val fullUserDeliveryOptions = DeliveryOptions().setCodecName("FullUserCodec")
-  private val fullUserListDeliveryOptions = DeliveryOptions().setCodecName("FullUserListCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+  private val fullUserListDeliveryOptions = DeliveryOptions().setCodecName("FullUserListCodec")
 
   override fun start() {
     client = vertx.getConnection()
@@ -123,12 +125,13 @@ class AccountJdbcVerticle: AbstractVerticle() {
       rowsFuture.onSuccess { res ->
         val userCreation: UserCreation = message.body()
         val lastInsertID: Row = res.property(JDBCPool.GENERATED_KEYS)
-        val user: User = User(
+        val user = User(
           userId = lastInsertID.getInteger(0),
           email = userCreation.email,
           password = userCreation.password
         )
 
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(user, userDeliveryOptions)
       }
     }
@@ -149,6 +152,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onSuccess { res ->
         if (res.value().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, userDeliveryOptions)
         } else {
           message.fail(404, NO_USER)
@@ -178,6 +182,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
 
         userRowsFuture.onSuccess { res ->
           if (res.value().rowCount() > 0) {
+            setCacheFlag(eventBus, CACHE_ADDRESS)
             message.reply(USER_DELETED_SUCCESS)
           } else {
             message.fail(404, NO_USER)
@@ -252,6 +257,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onSuccess { res ->
         if (res.value().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(message.body(), backendPermissionsDeliveryOptions)
         } else {
           message.fail(400, BACKEND_PERMISSION_CREATION_FAILED)
@@ -281,6 +287,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onSuccess { res ->
         if (res.value().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, backendPermissionsDeliveryOptions)
         } else {
           message.fail(400, BACKEND_PERMISSION_UPDATE_FAILED)
@@ -304,6 +311,7 @@ class AccountJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onSuccess { res ->
         if (res.value().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(BACKEND_PERMISSION_DELETED)
         } else {
           message.fail(400, BACKEND_PERMISSION_DELETE_FAILED)

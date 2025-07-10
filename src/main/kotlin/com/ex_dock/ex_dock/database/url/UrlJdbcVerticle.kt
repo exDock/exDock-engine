@@ -5,6 +5,7 @@ import com.ex_dock.ex_dock.database.category.toPageIndex
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.database.product.Products
 import com.ex_dock.ex_dock.database.text_pages.TextPages
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -22,6 +23,10 @@ class UrlJdbcVerticle: AbstractVerticle() {
   private val productUrlsDeliveryOptions = DeliveryOptions().setCodecName("ProductUrlsCodec")
   private val fullUrlsDeliveryOptions = DeliveryOptions().setCodecName("FullUrlKeysCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS = "urls"
+  }
 
   override fun start() {
     client = vertx.getConnection()
@@ -132,6 +137,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.result().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, urlKeysDeliveryOptions)
         } else {
           message.reply("Failed to create url key")
@@ -158,6 +164,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.result().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, urlKeysDeliveryOptions)
         } else {
           println("No url key found to update!")
@@ -184,6 +191,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.result().rowCount() > 0) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply("Url key deleted successfully")
         } else {
           println("No url key found to delete!")
@@ -265,6 +273,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, textPageUrlsDeliveryOptions)
         } else {
           message.reply("Failed to create text page url")
@@ -292,6 +301,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, textPageUrlsDeliveryOptions)
         } else {
           message.reply("Failed to update text page url")
@@ -317,6 +327,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply("Text page url deleted successfully")
         } else {
           message.reply("Failed to delete text page url")
@@ -397,6 +408,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, categoryUrlsDeliveryOptions)
         } else {
           message.reply("Failed to create category url")
@@ -424,6 +436,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, categoryUrlsDeliveryOptions)
         } else {
           message.reply("Failed to update category url")
@@ -449,6 +462,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply("Category url deleted successfully")
         } else {
           message.reply("Failed to delete category url")
@@ -529,6 +543,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, productUrlsDeliveryOptions)
         } else {
           message.reply("Failed to create product url")
@@ -556,6 +571,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, productUrlsDeliveryOptions)
         } else {
           message.reply("Failed to update product url")
@@ -581,6 +597,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply("Product url deleted successfully")
         } else {
           message.reply("Failed to delete product url")

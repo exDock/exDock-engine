@@ -52,7 +52,10 @@ class JDBCStarter : AbstractVerticle() {
     addAllVerticles()
 
     Future.all(verticles)
-      .onComplete {
+      .onFailure { error ->
+        logger.error { error.message }
+      }
+      .onSuccess { _ ->
         logger.info { "All JDBC Verticles started successfully" }
 
         if (!MainVerticle.areCodecsRegistered) {

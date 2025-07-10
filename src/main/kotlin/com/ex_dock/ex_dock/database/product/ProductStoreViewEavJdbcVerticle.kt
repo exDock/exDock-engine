@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -19,9 +20,12 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
   private val eavStoreViewMoneyDeliveryOptions = DeliveryOptions().setCodecName("EavStoreViewMoneyCodec")
   private val eavStoreViewMultiSelectDeliveryOptions = DeliveryOptions().setCodecName("EavStoreViewMultiSelectCodec")
   private val eavStoreViewStringDeliveryOptions = DeliveryOptions().setCodecName("EavStoreViewStringCodec")
-  private val eavStoreViewInfoDeliveryOptions = DeliveryOptions().setCodecName("EavStoreViewInfoCodec")
   private val eavDeliveryOptions = DeliveryOptions().setCodecName("EavCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS = "store_view_eav"
+  }
 
 
   override fun start() {
@@ -137,6 +141,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewBoolDeliveryOptions)
       }
     }
@@ -156,6 +161,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewBoolDeliveryOptions)
       }
     }
@@ -174,6 +180,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV storeView bool deleted successfully")
       }
     }
@@ -242,6 +249,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewFloatDeliveryOptions)
       }
     }
@@ -261,6 +269,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewFloatDeliveryOptions)
       }
     }
@@ -279,6 +288,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV storeView float deleted successfully")
       }
     }
@@ -347,6 +357,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewStringDeliveryOptions)
       }
     }
@@ -366,6 +377,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewStringDeliveryOptions)
       }
     }
@@ -384,6 +396,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV storeView string deleted successfully")
       }
     }
@@ -452,6 +465,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewIntDeliveryOptions)
       }
     }
@@ -471,6 +485,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewIntDeliveryOptions)
       }
     }
@@ -489,6 +504,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV storeView int deleted successfully")
       }
     }
@@ -557,6 +573,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewMoneyDeliveryOptions)
       }
     }
@@ -576,6 +593,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewMoneyDeliveryOptions)
       }
     }
@@ -594,6 +612,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV storeView money deleted successfully")
       }
     }
@@ -662,6 +681,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewMultiSelectDeliveryOptions)
       }
     }
@@ -681,6 +701,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavStoreViewMultiSelectDeliveryOptions)
       }
     }
@@ -699,6 +720,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV storeView multi-select deleted successfully")
       }
     }
@@ -767,6 +789,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavDeliveryOptions)
       }
     }
@@ -786,6 +809,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavDeliveryOptions)
       }
     }
@@ -804,6 +828,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV storeView deleted successfully")
       }
     }

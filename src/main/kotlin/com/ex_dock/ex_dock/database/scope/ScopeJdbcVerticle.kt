@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.scope
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -16,6 +17,10 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
   private val storeViewDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("StoreViewCodec")
   private val fullScopeDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("FullScopeCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS = "scopes"
+  }
 
   override fun start() {
     client = vertx.getConnection()
@@ -117,6 +122,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
           body.websiteId = res.result().property(JDBCPool.GENERATED_KEYS).getInteger(0)
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, websiteDeliveryOptions)
         } else {
           message.reply("Failed to create website")
@@ -143,6 +149,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, websiteDeliveryOptions)
         } else {
           message.reply("Failed to update website")
@@ -168,6 +175,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply("Website deleted successfully")
         } else {
           message.reply("Failed to delete website")
@@ -253,6 +261,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
           body.storeViewId = res.result().property(JDBCPool.GENERATED_KEYS).getInteger(0)
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, storeViewDeliveryOptions)
         } else {
           message.reply("Failed to create store view")
@@ -279,6 +288,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply(body, storeViewDeliveryOptions)
         } else {
           message.reply("Failed to update store view")
@@ -304,6 +314,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
 
       rowsFuture.onComplete { res ->
         if (res.succeeded()) {
+          setCacheFlag(eventBus, CACHE_ADDRESS)
           message.reply("Store view deleted successfully")
         } else {
           message.reply("Failed to delete store view")
