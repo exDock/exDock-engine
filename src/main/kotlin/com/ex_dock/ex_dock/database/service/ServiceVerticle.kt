@@ -26,13 +26,11 @@ class ServiceVerticle: AbstractVerticle() {
     addProductInfoBackendBlock()
     addTestProduct()
     imageConverter()
-    addProductInfoBackendBlock()
-    addTestProduct()
   }
 
   private fun populateTemplateTable() {
     eventBus.consumer<Any?>("process.service.populateTemplates").handler { message ->
-      val templateList = getAllStandardTemplates()
+      val templateList = getAllStandardTemplatesData()
       val query = "INSERT INTO templates (template_key, template_data, data_string) SELECT ?, ?, ? " +
         "WHERE NOT EXISTS(SELECT * FROM templates WHERE template_key = ?)"
       for (template in templateList) {

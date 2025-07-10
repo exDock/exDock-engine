@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -19,6 +20,10 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
   private val multiSelectMoneyDeliveryOptions = DeliveryOptions().setCodecName("MultiSelectMoneyCodec")
   private val multiSelectStringDeliveryOptions = DeliveryOptions().setCodecName("MultiSelectStringCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS = "multi_select"
+  }
 
   override fun start() {
     client = vertx.getConnection()
@@ -121,6 +126,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectBoolDeliveryOptions)
       }
     }
@@ -140,6 +146,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectBoolDeliveryOptions)
       }
     }
@@ -158,6 +165,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("Multi-select attribute bool deleted successfully")
       }
     }
@@ -226,6 +234,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectFloatDeliveryOptions)
       }
     }
@@ -245,6 +254,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectFloatDeliveryOptions)
       }
     }
@@ -263,6 +273,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("Multi-select attribute float deleted successfully")
       }
     }
@@ -331,6 +342,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectStringDeliveryOptions)
       }
     }
@@ -350,6 +362,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body,  multiSelectStringDeliveryOptions)
       }
     }
@@ -368,6 +381,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("Multi-select attribute string deleted successfully")
       }
     }
@@ -436,6 +450,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectIntDeliveryOptions)
       }
     }
@@ -455,6 +470,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectIntDeliveryOptions)
       }
     }
@@ -468,6 +484,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       val rowsFuture = client.preparedQuery(query).execute(Tuple.of(body.attributeKey))
 
       rowsFuture.onFailure { res ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         println("Failed to execute query: $res")
         message.reply(failedMessage)
       }
@@ -541,6 +558,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectMoneyDeliveryOptions)
       }
     }
@@ -560,6 +578,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, multiSelectMoneyDeliveryOptions)
       }
     }
@@ -578,6 +597,7 @@ class ProductMultiSelectJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("Multi-select attribute money deleted successfully")
       }
     }

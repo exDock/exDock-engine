@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.server
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.eventbus.DeliveryOptions
@@ -18,6 +19,11 @@ class ServerJDBCVerticle: AbstractVerticle() {
   private val serverDataDataDeliveryOptions = DeliveryOptions().setCodecName("ServerDataDataCodec")
   private val serverVersionDataDeliveryOptions = DeliveryOptions().setCodecName("ServerVersionDataCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS_DATA = "server_data"
+    private const val CACHE_ADDRESS_VERSION = "server_version"
+  }
 
   override fun start() {
     client = vertx.getConnection()
@@ -81,6 +87,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS_DATA)
         message.reply(serverData, serverDataDataDeliveryOptions)
       }
     }
@@ -102,6 +109,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS_DATA)
         message.reply(serverData, serverDataDataDeliveryOptions)
       }
     }
@@ -123,6 +131,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS_DATA)
         message.reply("Server data deleted successfully!")
       }
     }
@@ -196,6 +205,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS_VERSION)
         message.reply(serverVersion, serverVersionDataDeliveryOptions)
       }
     }
@@ -217,6 +227,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS_VERSION)
         message.reply(serverVersion, serverDataDataDeliveryOptions)
       }
     }
@@ -241,6 +252,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS_VERSION)
         message.reply("Server version deleted successfully!")
       }
     }
@@ -322,7 +334,7 @@ class ServerJDBCVerticle: AbstractVerticle() {
    * Answer the server data message with the retrieved data
    */
   private fun answerServerDataMessage(rowsFuture: Future<RowSet<Row>>, message: Message<String>) {
-    var serverDataDataList: MutableList<ServerDataData> = emptyList<ServerDataData>().toMutableList()
+    val serverDataDataList: MutableList<ServerDataData> = emptyList<ServerDataData>().toMutableList()
 
     rowsFuture.onFailure { res ->
       println("Failed to execute query: $res")

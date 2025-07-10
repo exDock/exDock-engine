@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -19,9 +20,12 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
   private val eavWebsiteMoneyDeliveryOptions = DeliveryOptions().setCodecName("EavWebsiteMoneyCodec")
   private val eavWebsiteMultiSelectDeliveryOptions = DeliveryOptions().setCodecName("EavWebsiteMultiSelectCodec")
   private val eavWebsiteStringDeliveryOptions = DeliveryOptions().setCodecName("EavWebsiteStringCodec")
-  private val eavWebsiteInfoDeliveryOptions = DeliveryOptions().setCodecName("EavWebsiteInfoCodec")
   private val eavDeliveryOptions = DeliveryOptions().setCodecName("EavCodec")
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS = "website_eav"
+  }
 
   override fun start() {
     client = vertx.getConnection()
@@ -136,6 +140,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteBoolDeliveryOptions)
       }
     }
@@ -155,6 +160,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteBoolDeliveryOptions)
       }
     }
@@ -173,6 +179,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV website bool deleted successfully")
       }
     }
@@ -241,6 +248,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteFloatDeliveryOptions)
       }
     }
@@ -260,6 +268,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteFloatDeliveryOptions)
       }
     }
@@ -278,6 +287,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV website float deleted successfully")
       }
     }
@@ -346,6 +356,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteStringDeliveryOptions)
       }
     }
@@ -365,6 +376,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteStringDeliveryOptions)
       }
     }
@@ -383,6 +395,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV website string deleted successfully")
       }
     }
@@ -451,6 +464,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteIntDeliveryOptions)
       }
     }
@@ -470,6 +484,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteIntDeliveryOptions)
       }
     }
@@ -488,6 +503,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV website int deleted successfully")
       }
     }
@@ -556,6 +572,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteMoneyDeliveryOptions)
       }
     }
@@ -575,6 +592,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteMoneyDeliveryOptions)
       }
     }
@@ -593,6 +611,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV website money deleted successfully")
       }
     }
@@ -661,6 +680,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteMultiSelectDeliveryOptions)
       }
     }
@@ -680,6 +700,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavWebsiteMultiSelectDeliveryOptions)
       }
     }
@@ -698,6 +719,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV website multi-select deleted successfully")
       }
     }
@@ -766,6 +788,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavDeliveryOptions)
       }
     }
@@ -785,6 +808,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, eavDeliveryOptions)
       }
     }
@@ -803,6 +827,7 @@ class ProductWebsiteEavJdbcVerticle: AbstractVerticle() {
       }
 
       rowsFuture.onComplete { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("EAV website deleted successfully")
       }
     }

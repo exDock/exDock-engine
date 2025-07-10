@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.database.category
 
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.database.product.Products
+import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
@@ -17,6 +18,10 @@ class CategoryJdbcVerticle: AbstractVerticle() {
   private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
   private val categoriesDeliveryOptions = DeliveryOptions().setCodecName("CategoriesCodec")
   private val seoCategoriesDeliveryOptions = DeliveryOptions().setCodecName("CategoriesSeoCodec")
+
+  companion object {
+    private const val CACHE_ADDRESS = "categories"
+  }
 
   override fun start() {
     client = vertx.getConnection()
@@ -112,6 +117,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
       }.onSuccess { res ->
         val categoryId = res.value().property(JDBCPool.GENERATED_KEYS).getInteger(0)
         category.categoryId = categoryId
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(category, categoriesDeliveryOptions)
       }
     }
@@ -135,6 +141,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         println("Failed to execute query: $res")
         message.reply("Failed to execute query: $res")
       }.onSuccess { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(category, categoriesDeliveryOptions)
       }
     }
@@ -155,6 +162,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         println("Failed to execute query: $res")
         message.reply("Failed to execute query: $res")
       }.onSuccess { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("Category deleted successfully!")
       }
     }
@@ -226,6 +234,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         println("Failed to execute query: $res")
         message.reply("Failed to execute query: $res")
       }.onSuccess{ _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(categorySeo, seoCategoriesDeliveryOptions)
       }
     }
@@ -250,6 +259,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         println("Failed to execute query: $res")
         message.reply("Failed to execute query: $res")
       }.onSuccess { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(categorySeo, seoCategoriesDeliveryOptions)
       }
     }
@@ -270,6 +280,7 @@ class CategoryJdbcVerticle: AbstractVerticle() {
         println("Failed to execute query: $res")
         message.reply("Failed to execute query: $res")
       }.onSuccess { _ ->
+        setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply("SEO category deleted successfully!")
       }
     }
