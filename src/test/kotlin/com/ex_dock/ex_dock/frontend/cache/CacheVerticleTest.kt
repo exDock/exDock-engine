@@ -31,7 +31,7 @@ class CacheVerticleTest {
 
       val futuresMutable: MutableList<Future<Any>> = futures.filterNotNull().toMutableList()
 
-      Future.all(futuresMutable).onFailure { err ->
+      Future.all<String>(futuresMutable).onFailure { err ->
         testContext.failNow(err)
       }.onSuccess {
         testContext.completeNow()
