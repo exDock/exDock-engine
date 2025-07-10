@@ -18,6 +18,7 @@
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 
     <vertx.version>4.5.9</vertx.version>
+    <ktor.version>2.3.11</ktor.version>
     <junit-jupiter.version>5.9.1</junit-jupiter.version>
 
     <main.verticle>com.ex_dock.ex_dock.MainVerticle</main.verticle>
@@ -46,7 +47,7 @@
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-reflect</artifactId>
-      <version>2.0.20</version>
+      <version>2.0.0</version>
     </dependency>
 
     <dependency>
@@ -119,7 +120,7 @@
     <dependency>
       <groupId>io.pebbletemplates</groupId>
       <artifactId>pebble</artifactId>
-      <version>3.2.2</version>
+      <version>3.2.4</version>
     </dependency>
 
 
@@ -184,6 +185,18 @@
       <artifactId>kotlinx-serialization-json</artifactId>
       <version>1.7.3</version>
     </dependency>
+
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.3.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.oshi</groupId>
+      <artifactId>oshi-core</artifactId>
+      <version>6.8.2</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -196,7 +209,17 @@
         <version>${kotlin.version}</version>
         <configuration>
           <jvmTarget>17</jvmTarget>
+          <compilerPlugins>
+            <plugin>kotlinx-serialization</plugin>
+          </compilerPlugins>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-maven-serialization</artifactId>
+            <version>${kotlin.version}</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>compile</id>
@@ -222,6 +245,18 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>META-INF/*.SIG</exclude>
+                    <exclude>META-INF/SIG-*</exclude>
+                  </excludes>
+                </filter>
+              </filters>
               <transformers>
                 <transformer
                   implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -257,6 +292,7 @@
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.13.0</version>
             <configuration>
                 <source>21</source>
                 <target>21</target>

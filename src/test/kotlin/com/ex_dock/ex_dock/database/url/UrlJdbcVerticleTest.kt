@@ -459,8 +459,8 @@ class UrlJdbcVerticleTest {
     fullUrl.product = product
   }
 
-  private fun deployNeededVerticles(vertx: Vertx): MutableList<Future<Void>> {
-    val verticleList: MutableList<Future<Void>> = emptyList<Future<Void>>().toMutableList()
+  private fun deployNeededVerticles(vertx: Vertx): MutableList<Future<String>> {
+    val verticleList: MutableList<Future<String>> = emptyList<Future<String>>().toMutableList()
 
     verticleList.add(deployWorkerVerticleHelper(
       vertx,
