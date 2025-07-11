@@ -22,7 +22,7 @@
     <junit-jupiter.version>5.9.1</junit-jupiter.version>
 
     <main.verticle>com.ex_dock.ex_dock.MainVerticle</main.verticle>
-    <launcher.class>io.vertx.core.Launcher</launcher.class>
+    <launcher.class>io.vertx.launcher.application.VertxApplication</launcher.class>
   </properties>
 
   <dependencyManagement>
@@ -47,7 +47,7 @@
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-reflect</artifactId>
-      <version>2.1.10</version>
+      <version>${kotlin.version}</version>
     </dependency>
 
     <dependency>
@@ -76,6 +76,11 @@
       <artifactId>junit-jupiter-engine</artifactId>
       <version>${junit-jupiter.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-launcher-application</artifactId>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -282,9 +287,8 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>${exec-maven-plugin.version}</version>
         <configuration>
-          <mainClass>io.vertx.core.Launcher</mainClass>
+          <mainClass>${launcher.class}</mainClass>
           <arguments>
-            <argument>run</argument>
             <argument>${main.verticle}</argument>
           </arguments>
         </configuration>
