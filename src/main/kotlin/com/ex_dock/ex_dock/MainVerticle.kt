@@ -11,7 +11,6 @@ import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.sendError
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
 import io.vertx.core.VerticleBase
@@ -54,6 +53,12 @@ class MainVerticle : VerticleBase() {
     val mainRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
+    val eventBus: EventBus = vertx.eventBus()
+
+    if (!areCodecsRegistered) {
+      eventBus.registerGenericCodec(ServerStartException::class)
+      areCodecsRegistered = true
+    }
 
     eventBus.registerGenericCodec(List::class)
     eventBus.consumer<List<String>>("process.main.registerVerticleId").handler { message ->

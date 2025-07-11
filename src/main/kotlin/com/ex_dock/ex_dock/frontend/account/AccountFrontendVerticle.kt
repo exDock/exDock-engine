@@ -1,8 +1,6 @@
 package com.ex_dock.ex_dock.frontend.account
 
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
-import io.vertx.core.Promise
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 

@@ -3,7 +3,6 @@ package com.ex_dock.ex_dock.frontend.cache
 import com.ex_dock.ex_dock.database.service.InvalidCacheKeyException
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions

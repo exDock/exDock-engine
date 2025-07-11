@@ -1,7 +1,6 @@
 package com.ex_dock.ex_dock.database.image
 
 import com.ex_dock.ex_dock.database.connection.getConnection
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions

@@ -2,7 +2,6 @@ package com.ex_dock.ex_dock.backend.v1.router.system
 
 import com.ex_dock.ex_dock.helper.load
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus

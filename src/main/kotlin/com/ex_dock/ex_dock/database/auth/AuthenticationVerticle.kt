@@ -1,10 +1,8 @@
 package com.ex_dock.ex_dock.database.auth
 
-import com.ex_dock.ex_dock.database.account.BackendPermissions
 import com.ex_dock.ex_dock.database.account.FullUser
 import com.ex_dock.ex_dock.database.account.convertUser
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
@@ -15,8 +13,6 @@ import io.vertx.ext.auth.authentication.TokenCredentials
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
-import java.security.KeyPair
-import java.security.KeyPairGenerator
 import java.util.*
 
 class AuthenticationVerticle: VerticleBase() {

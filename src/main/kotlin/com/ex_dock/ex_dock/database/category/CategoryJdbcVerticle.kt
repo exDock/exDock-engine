@@ -3,7 +3,6 @@ package com.ex_dock.ex_dock.database.category
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.database.product.Products
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
