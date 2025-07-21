@@ -11,7 +11,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <kotlin.version>2.1.0</kotlin.version>
+    <kotlin.version>2.2.0</kotlin.version>
 
     <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
@@ -211,7 +211,7 @@
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-maven-plugin</artifactId>
-        <version>2.1.0</version>
+        <version>${kotlin.version}</version>
         <configuration>
           <jvmTarget>17</jvmTarget>
           <compilerPlugins>
@@ -222,7 +222,7 @@
           <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-maven-serialization</artifactId>
-            <version>2.1.0</version>
+            <version>${kotlin.version}</version>
           </dependency>
         </dependencies>
         <executions>

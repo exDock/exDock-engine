@@ -2,9 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/.github/ex-dock.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/database/ex-dock-old.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/database/ex-dock.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/database/test/ex-dock_url_test.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/ex_dock/ex_dock/database/product/ProductJdbcVerticle.kt" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/main/kotlin/com/ex_dock/ex_dock/database/server/ServerJDBCVerticle.kt" dialect="GenericSQL" />
     <file url="PROJECT" dialect="PostgreSQL" />
