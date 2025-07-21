@@ -8,7 +8,6 @@ import com.github.benmanes.caffeine.cache.LoadingCache
 import io.pebbletemplates.pebble.PebbleEngine
 import io.pebbletemplates.pebble.loader.StringLoader
 import io.pebbletemplates.pebble.template.PebbleTemplate
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus

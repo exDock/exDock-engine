@@ -1,7 +1,6 @@
 package com.ex_dock.ex_dock
 
 import com.ex_dock.ex_dock.backend.enableBackendRouter
-import com.ex_dock.ex_dock.database.service.ServerStartException
 import com.ex_dock.ex_dock.frontend.account.router.initAccount
 import com.ex_dock.ex_dock.frontend.category.router.initCategory
 import com.ex_dock.ex_dock.frontend.checkout.router.initCheckout
@@ -11,17 +10,15 @@ import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.sendError
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.Promise
 import io.vertx.core.VerticleBase
-import io.vertx.core.eventbus.EventBus
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.SessionStore
-import java.util.Properties
+import java.util.*
 
 class MainVerticle : VerticleBase() {
   companion object {

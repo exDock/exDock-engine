@@ -1,14 +1,11 @@
 package com.ex_dock.ex_dock.database.url
 
 import com.ex_dock.ex_dock.database.category.Categories
-import com.ex_dock.ex_dock.database.category.toPageIndex
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.database.product.Products
 import com.ex_dock.ex_dock.database.text_pages.TextPages
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
-import io.vertx.core.Verticle
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus

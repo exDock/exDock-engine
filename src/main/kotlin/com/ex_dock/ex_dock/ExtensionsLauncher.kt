@@ -5,9 +5,7 @@ import com.ex_dock.ex_dock.frontend.FrontendVerticle
 import com.ex_dock.ex_dock.helper.deployVerticleHelper
 import com.ex_dock.ex_dock.helper.registerVerticleIds
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
-import io.vertx.core.Promise
 import io.vertx.core.VerticleBase
 import io.vertx.ext.web.client.WebClient
 import java.util.*

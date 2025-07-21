@@ -4,7 +4,6 @@ import com.ex_dock.ex_dock.database.account.Permission
 import com.ex_dock.ex_dock.database.account.hash
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.helper.convertImage
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus

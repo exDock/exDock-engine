@@ -8,7 +8,6 @@ import com.ex_dock.ex_dock.frontend.product.ProductFrontendVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
 import com.ex_dock.ex_dock.frontend.text_pages.TextPagesFrontendVerticle
 import com.ex_dock.ex_dock.helper.deployVerticleHelper
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 

@@ -6,10 +6,7 @@ import io.vertx.jdbcclient.JDBCConnectOptions
 import io.vertx.jdbcclient.JDBCPool
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.PoolOptions
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
-import java.util.Properties
+import java.util.*
 
 
 fun Vertx.getConnection(): Pool {
