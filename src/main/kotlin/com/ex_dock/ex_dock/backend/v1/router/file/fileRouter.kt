@@ -1,16 +1,18 @@
 package com.ex_dock.ex_dock.backend.v1.router.file
 
 import com.ex_dock.ex_dock.database.backend_block.FullBlockInfo
-import com.google.gson.Gson
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.nio.file.Paths
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.io.path.isDirectory
 
+@OptIn(ExperimentalEncodingApi::class)
 fun Router.initFileRouter(vertx: Vertx) {
   val fileRouter = Router.router(vertx)
 
@@ -22,8 +24,8 @@ fun Router.initFileRouter(vertx: Vertx) {
   }
 
   fileRouter["/getAll/:path"].handler { ctx ->
-    val folders = emptyList<String>().toMutableList()
-    val files = emptyList<String>().toMutableList()
+    val folders = emptyList<EngineFile>().toMutableList()
+    val files = emptyList<EngineFile>().toMutableList()
     var path = ctx.pathParam("path")
     path = path.replace("%2F", "/")
     path = "application-files/$path"
@@ -37,10 +39,10 @@ fun Router.initFileRouter(vertx: Vertx) {
       fullPath.toFile().listFiles()?.forEach { file ->
         if (file.isDirectory) {
           val engineFile = EngineFile(file.name, "folder", file.length().toInt())
-          folders.add(Json.encodeToString(EngineFile.serializer(), engineFile))
+          folders.add(engineFile)
         } else {
           val engineFile = EngineFile(file.name, file.extension, file.length().toInt())
-          files.add(Json.encodeToString(EngineFile.serializer(), engineFile))
+          files.add(engineFile)
         }
       }
 
@@ -49,21 +51,28 @@ fun Router.initFileRouter(vertx: Vertx) {
         .end(JsonObject().put("files", fullList).encode())
     } else {
       val contentType: String = when (fullPath.toFile().extension) {
-        "png" -> "image/png"
-        "jpg" -> "image/jpeg"
-        "jpeg" -> "image/jpeg"
-        "gif" -> "image/gif"
-        "avif" -> "image/avif"
-        "md" -> "text/markdown"
-        "mp4" -> "video/mp4"
-        "pdf" -> "application/pdf"
-        "txt" -> "text/plain"
-        "webp" -> "image/webp"
-        else -> "application/octet-stream"
+        "png" -> "image"
+        "jpg" -> "image"
+        "jpeg" -> "image"
+        "gif" -> "image"
+        "avif" -> "image"
+        "md" -> "markdown"
+        "mp4" -> "mp4"
+        "pdf" -> "pdf"
+        "txt" -> "plain"
+        "webp" -> "image"
+        else -> "unknown"
       }
 
-      ctx.response().putHeader("Content-Type", contentType)
-        .end(Buffer.buffer(fullPath.toFile().readBytes()))
+      ctx.response().putHeader("Content-Type", "application/octet-stream")
+        .end(
+          JsonObject()
+            .put("contentType", contentType)
+            .put("fileName", fullPath.toFile().name)
+            .put("fileSize", fullPath.toFile().length())
+            .put("fileExtension", fullPath.toFile().extension)
+            .put("data", Base64.Default.encode(fullPath.toFile().readBytes())).encode()
+        )
     }
   }
 
@@ -84,14 +93,14 @@ fun Router.initFileRouter(vertx: Vertx) {
         val fullList = getRootFiles()
 
         block.blockAttributes.forEach { blockAttribute ->
-          if (blockAttribute.attributeName == "files") {
+          if (blockAttribute.attributeName == "Files") {
             val attributeJson = JsonObject()
             attributeJson.put("attribute_id", blockAttribute.attributeId)
             attributeJson.put("attribute_name", blockAttribute.attributeName)
             attributeJson.put("attribute_type", blockAttribute.attributeType)
             attributeJson.put(
               "current_attribute_value",
-              Gson().toJson(fullList)
+              fullList
             )
             blockAttributesList.add(attributeJson)
           }
@@ -102,24 +111,26 @@ fun Router.initFileRouter(vertx: Vertx) {
         jsonResponse.put(block.backendBlock.blockName, blockInformationJson)
       }
 
-      ctx.end(jsonResponse.toString())
+      ctx.end(jsonResponse.encode())
     }
   }
 
   this.route("/file*").subRouter(fileRouter)
 }
 
-fun getRootFiles(): List<String> {
-  val folders = emptyList<String>().toMutableList()
-  val files = emptyList<String>().toMutableList()
+fun getRootFiles(): List<EngineFile> {
+  val folders = emptyList<EngineFile>().toMutableList()
+  val files = emptyList<EngineFile>().toMutableList()
   val path = "application-files"
   val fullPath = Paths.get(path)
 
   fullPath.toFile().listFiles()?.forEach { file ->
     if (file.isDirectory) {
-      folders.add(file.name)
+      val engineFile = EngineFile(file.name, "folder", file.length().toInt())
+      folders.add(engineFile)
     } else {
-      files.add(file.name)
+      val engineFile = EngineFile(file.name, file.extension, file.length().toInt())
+      files.add(engineFile)
     }
   }
 

@@ -4,6 +4,7 @@ import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.backend.v1.router.auth.enableAuthRouter
 import com.ex_dock.ex_dock.backend.v1.router.docker.initDocker
 import com.ex_dock.ex_dock.backend.v1.router.enableBackendV1Router
+import com.ex_dock.ex_dock.backend.v1.router.file.initFileRouter
 import com.ex_dock.ex_dock.backend.v1.router.websocket.initWebsocket
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import io.github.oshai.kotlinlogging.KLogger
@@ -44,8 +45,6 @@ fun Router.enableBackendRouter(vertx: Vertx, logger: KLogger) {
     Pair(authProvider.privateKey, authProvider.publicKey),
     pairDeliveryOptions
   )
-
-  backendRouter.route().handler(CorsHandler.create())
 
   backendRouter.enableAuthRouter(vertx)
 

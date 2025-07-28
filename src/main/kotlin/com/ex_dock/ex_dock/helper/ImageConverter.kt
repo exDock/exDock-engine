@@ -15,7 +15,7 @@ import javax.imageio.stream.ImageOutputStream
 fun convertImage(path: String) {
   // Set all the path locations
   val validExtensions = listOf("png", "jpg", "webp")
-  val imagePath = System.getProperty("user.dir") + "\\src\\main\\resources\\images\\"
+  val imagePath = System.getProperty("user.dir") + "\\application-files\\"
   val pathSplit = path.split(".")
   val directorySplit = pathSplit[0].split("\\")
   val fileName = directorySplit.last()

@@ -18,6 +18,7 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.SessionStore
 import java.util.Properties
@@ -57,7 +58,6 @@ class MainVerticle : VerticleBase() {
 
     if (!areCodecsRegistered) {
       eventBus.registerGenericCodec(ServerStartException::class)
-      areCodecsRegistered = true
     }
 
     eventBus.registerGenericCodec(List::class)
@@ -88,6 +88,7 @@ class MainVerticle : VerticleBase() {
     sessionHandler.setCookieSameSite(CookieSameSite.STRICT)
 
     mainRouter.route().handler(sessionHandler)
+    mainRouter.route().handler(CorsHandler.create())
 
     mainRouter.enableBackendRouter(vertx, logger)
 

@@ -77,6 +77,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
                 "images",
                 jsonElement.findValueByFieldName("images").convertJsonElement()
               )
+              blockInformationJson.put("attributes", blockAttributesList)
             } else {
               blockInformationJson.put("attributes", blockAttributesList)
             }
@@ -115,8 +116,8 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
 
   // TODO: routing
   backendV1Router.initImage(vertx)
-  backendV1Router.initFileRouter(vertx)
   backendV1Router.enableSystemRouter(vertx)
+  backendV1Router.initFileRouter(vertx)
 
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
