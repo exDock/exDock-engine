@@ -1,7 +1,8 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
-import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -10,20 +11,22 @@ import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 
-class ProductCompleteEavJdbcVerticle : AbstractVerticle() {
+class ProductCompleteEavJdbcVerticle : VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private val failedMessage: String = "failed"
   private var list = mutableListOf<Any?>()
   private var currentListName = ""
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
     getAllCompleteProductEavData()
     getAllCompleteProductEavDataByProductIdOld()
     getAllCompleteProductEavDataByProductId()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun getAllCompleteProductEavData() {

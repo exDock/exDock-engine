@@ -8,15 +8,15 @@ import com.github.benmanes.caffeine.cache.LoadingCache
 import io.pebbletemplates.pebble.PebbleEngine
 import io.pebbletemplates.pebble.loader.StringLoader
 import io.pebbletemplates.pebble.template.PebbleTemplate
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Tuple
 import java.io.StringWriter
 import java.util.concurrent.TimeUnit
 
-class TemplateEngineVerticle: AbstractVerticle() {
+class TemplateEngineVerticle: VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private lateinit var templateCache: LoadingCache<String, TemplateCacheData>
@@ -27,7 +27,7 @@ class TemplateEngineVerticle: AbstractVerticle() {
   private val refreshDuration = 1L
   private val maxHitCount = 100
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -42,6 +42,8 @@ class TemplateEngineVerticle: AbstractVerticle() {
     singleUseTemplate()
     getCompiledTemplate()
     invalidateCacheKey()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun singleUseTemplate() {

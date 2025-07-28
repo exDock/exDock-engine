@@ -4,8 +4,8 @@ import com.ex_dock.ex_dock.database.account.Permission
 import com.ex_dock.ex_dock.database.account.hash
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.helper.convertImage
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 import io.vertx.jdbcclient.JDBCPool
 import io.vertx.sqlclient.Pool
@@ -13,11 +13,11 @@ import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.RowSet
 import io.vertx.sqlclient.Tuple
 
-class ServiceVerticle: AbstractVerticle() {
+class ServiceVerticle: VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -26,6 +26,8 @@ class ServiceVerticle: AbstractVerticle() {
     addProductInfoBackendBlock()
     addTestProduct()
     imageConverter()
+
+    return super.start()
   }
 
   private fun populateTemplateTable() {
@@ -341,7 +343,7 @@ class ServiceVerticle: AbstractVerticle() {
         message.fail(500, "Failed to execute query")
       }
 
-      Future.all(blockFutures).onFailure {
+      Future.all<RowSet<Row>>(blockFutures).onFailure {
         println("Failed to execute all queries: $it")
         message.fail(500, "Failed to execute all queries")
       }.onComplete { _ ->
@@ -432,7 +434,7 @@ class ServiceVerticle: AbstractVerticle() {
 //          "sale_dates", "sale_date_start", "", idBlockId, "tax_class", "tax_class", "tax_class"))
 
 
-        Future.all(blockFutures).onFailure {
+        Future.all<RowSet<Row>>(blockFutures).onFailure {
           println("Failed to execute all queries: $it")
           message.fail(500, "Failed to execute all queries")
         }.onComplete {

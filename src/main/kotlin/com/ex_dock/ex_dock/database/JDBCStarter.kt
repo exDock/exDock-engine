@@ -4,8 +4,8 @@ import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.backend.v1.router.docker.ServerHealth
 import com.ex_dock.ex_dock.backend.v1.router.system.SystemVerticle
 import com.ex_dock.ex_dock.database.account.*
-import com.ex_dock.ex_dock.database.backend_block.*
 import com.ex_dock.ex_dock.database.auth.AuthenticationVerticle
+import com.ex_dock.ex_dock.database.backend_block.*
 import com.ex_dock.ex_dock.database.category.*
 import com.ex_dock.ex_dock.database.checkout.CheckoutJdbcVerticle
 import com.ex_dock.ex_dock.database.home.HomeJdbcVerticle
@@ -32,14 +32,13 @@ import com.ex_dock.ex_dock.database.text_pages.TextPagesSeo
 import com.ex_dock.ex_dock.database.url.*
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.helper.*
-import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
-import io.vertx.core.Promise
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 
-class JDBCStarter : AbstractVerticle() {
+class JDBCStarter : VerticleBase() {
   companion object {
     val logger = io.github.oshai.kotlinlogging.KotlinLogging.logger {}
   }
@@ -48,14 +47,14 @@ class JDBCStarter : AbstractVerticle() {
   private val verticleIds = emptyList<String>().toMutableList()
   private lateinit var eventBus: EventBus
 
-  override fun start(starPromise: Promise<Void>) {
+  override fun start(): Future<*> {
     addAllVerticles()
 
-    Future.all(verticles)
+    return Future.all<String>(verticles)
       .onFailure { error ->
         logger.error { error.message }
       }
-      .onSuccess { _ ->
+      .onSuccess { future ->
         logger.info { "All JDBC Verticles started successfully" }
 
         if (!MainVerticle.areCodecsRegistered) {
@@ -88,14 +87,10 @@ class JDBCStarter : AbstractVerticle() {
               }.onSuccess {
                 eventBus.send("process.docker.serverHealth", ServerHealth.UP,
                   DeliveryOptions().setCodecName("ServerHealthCodec"))
-                starPromise.complete()
               }
             }
           }
         }
-      }
-      .onFailure { error ->
-        println("Failed to deploy JDBC verticles: $error")
       }
   }
 

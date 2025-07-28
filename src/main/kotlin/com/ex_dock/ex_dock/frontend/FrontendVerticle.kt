@@ -8,10 +8,11 @@ import com.ex_dock.ex_dock.frontend.product.ProductFrontendVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
 import com.ex_dock.ex_dock.frontend.text_pages.TextPagesFrontendVerticle
 import com.ex_dock.ex_dock.helper.deployVerticleHelper
-import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 
-class FrontendVerticle: AbstractVerticle() {
-  override fun start() {
+class FrontendVerticle: VerticleBase() {
+  override fun start(): Future<*>? {
     deployVerticleHelper(vertx, HomeFrontendVerticle::class.qualifiedName.toString())
     deployVerticleHelper(vertx, ProductFrontendVerticle::class.qualifiedName.toString())
     deployVerticleHelper(vertx, CategoryFrontendVerticle::class.qualifiedName.toString())
@@ -20,5 +21,7 @@ class FrontendVerticle: AbstractVerticle() {
     deployVerticleHelper(vertx, TextPagesFrontendVerticle::class.qualifiedName.toString())
 
     deployVerticleHelper(vertx, TemplateEngineVerticle::class.qualifiedName.toString())
+
+    return Future.succeededFuture<Unit>()
   }
 }

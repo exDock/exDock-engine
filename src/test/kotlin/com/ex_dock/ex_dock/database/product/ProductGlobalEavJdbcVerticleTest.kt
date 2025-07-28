@@ -81,7 +81,7 @@ class ProductGlobalEavJdbcVerticleTest {
       .registerCodec(GenericCodec(Eav::class))
       .registerCodec(GenericCodec(EavGlobalInfo::class))
       .registerCodec(GenericCodec(MutableList::class))
-    Future.all(deployVerticles(vertx)).onFailure{
+    Future.all<String>(deployVerticles(vertx)).onFailure{
       testContext.failNow(it)
     }.onComplete {
       eventBus.request<Products>("process.products.createProduct", product, productDeliveryOptions).onFailure {

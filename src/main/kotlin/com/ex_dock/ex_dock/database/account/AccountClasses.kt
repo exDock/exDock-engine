@@ -69,7 +69,7 @@ fun io.vertx.ext.auth.User.addPermission(permission: Permission, task: String, a
 fun io.vertx.ext.auth.User.addAuth(name: String, authHandler: ExDockAuthHandler): io.vertx.ext.auth.User {
   val authorizations = this.principal().getJsonArray("authorizations")
   if (authHandler.saveAuthorization.contains(PermissionBasedAuthorization.create(name))) {
-    this.authorizations().add(
+    this.authorizations().put(
       name,
       PermissionBasedAuthorization.create(name)
     )
@@ -78,7 +78,7 @@ fun io.vertx.ext.auth.User.addAuth(name: String, authHandler: ExDockAuthHandler)
     this.principal().put("authorizations", authorizations)
   } else {
     authHandler.saveAuthorization.add(PermissionBasedAuthorization.create(name))
-    this.authorizations().add(
+    this.authorizations().put(
       name,
       PermissionBasedAuthorization.create(name)
     )
@@ -98,7 +98,7 @@ enum class Permission(name: String) {
 
   companion object {
     fun fromString(value: String): Permission {
-      return values().find { it.name == value.lowercase() } ?: NONE
+      return entries.find { it.name == value.lowercase() } ?: NONE
     }
 
     fun toString(permission: Permission): String {

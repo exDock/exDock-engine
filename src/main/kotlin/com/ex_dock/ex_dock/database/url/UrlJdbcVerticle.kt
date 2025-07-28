@@ -1,19 +1,19 @@
 package com.ex_dock.ex_dock.database.url
 
 import com.ex_dock.ex_dock.database.category.Categories
-import com.ex_dock.ex_dock.database.category.toPageIndex
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.database.product.Products
 import com.ex_dock.ex_dock.database.text_pages.TextPages
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
-import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 
-class UrlJdbcVerticle: AbstractVerticle() {
+class UrlJdbcVerticle: VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private val failedMessage: String = "failed"
@@ -28,7 +28,7 @@ class UrlJdbcVerticle: AbstractVerticle() {
     private const val CACHE_ADDRESS = "urls"
   }
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -63,6 +63,8 @@ class UrlJdbcVerticle: AbstractVerticle() {
     // Initialize all eventbus connections with the full_urls table structure
     getAllFullUrls()
     getFullUrlByKey()
+
+    return super.start()
   }
 
   /**

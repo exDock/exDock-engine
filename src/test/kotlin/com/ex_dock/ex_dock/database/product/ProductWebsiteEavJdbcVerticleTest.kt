@@ -103,7 +103,7 @@ class ProductWebsiteEavJdbcVerticleTest {
       .registerCodec(GenericCodec(EavWebsiteMoney::class))
       .registerCodec(GenericCodec(EavWebsiteInfo::class))
       .registerCodec(GenericCodec(EavWebsiteMultiSelect::class))
-    Future.all(deployVerticles(vertx)).onFailure {
+    Future.all<String>(deployVerticles(vertx)).onFailure {
       testContext.failNow(it)
     }.onComplete {
       eventBus.request<Products>("process.products.createProduct", product, productDeliveryOptions).onFailure {

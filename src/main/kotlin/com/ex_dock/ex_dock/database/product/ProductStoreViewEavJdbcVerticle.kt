@@ -2,7 +2,8 @@ package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
-import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
@@ -10,7 +11,7 @@ import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 
-class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
+class ProductStoreViewEavJdbcVerticle: VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private val failedMessage: String = "failed"
@@ -28,7 +29,7 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
   }
 
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -76,6 +77,8 @@ class ProductStoreViewEavJdbcVerticle: AbstractVerticle() {
 
     getALlEavStoreViewInfo()
     getEavStoreViewInfoByKey()
+
+    return Future.succeededFuture<Unit>()
   }
 
   private fun getAllEavStoreViewBool() {

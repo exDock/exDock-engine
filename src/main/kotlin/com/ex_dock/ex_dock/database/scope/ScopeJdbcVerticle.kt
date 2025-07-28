@@ -2,7 +2,8 @@ package com.ex_dock.ex_dock.database.scope
 
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
-import io.vertx.core.AbstractVerticle
+import io.vertx.core.Future
+import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.jdbcclient.JDBCPool
@@ -10,7 +11,7 @@ import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Row
 import io.vertx.sqlclient.Tuple
 
-class ScopeJdbcVerticle:  AbstractVerticle() {
+class ScopeJdbcVerticle:  VerticleBase() {
   private lateinit var client: Pool
   private lateinit var eventBus: EventBus
   private val websiteDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("WebsitesCodec")
@@ -22,7 +23,7 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
     private const val CACHE_ADDRESS = "scopes"
   }
 
-  override fun start() {
+  override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
 
@@ -43,6 +44,8 @@ class ScopeJdbcVerticle:  AbstractVerticle() {
     // Initialize all eventbus connections for the Full Scope tables
     getAllScopes()
     getScopeById()
+
+    return Future.succeededFuture<Unit>()
   }
 
   /**

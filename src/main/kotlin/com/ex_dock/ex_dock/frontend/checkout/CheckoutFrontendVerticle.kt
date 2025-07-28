@@ -1,6 +1,6 @@
 package com.ex_dock.ex_dock.frontend.checkout
 
-import io.vertx.core.AbstractVerticle
+import io.vertx.core.VerticleBase
 
-class CheckoutFrontendVerticle : AbstractVerticle() {
+class CheckoutFrontendVerticle : VerticleBase() {
 }

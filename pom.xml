@@ -11,18 +11,18 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <kotlin.version>2.0.0</kotlin.version>
+    <kotlin.version>2.2.0</kotlin.version>
 
     <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
 
-    <vertx.version>4.5.9</vertx.version>
+    <vertx.version>5.0.1</vertx.version>
     <ktor.version>2.3.11</ktor.version>
     <junit-jupiter.version>5.9.1</junit-jupiter.version>
 
     <main.verticle>com.ex_dock.ex_dock.MainVerticle</main.verticle>
-    <launcher.class>io.vertx.core.Launcher</launcher.class>
+    <launcher.class>io.vertx.launcher.application.VertxApplication</launcher.class>
   </properties>
 
   <dependencyManagement>
@@ -42,12 +42,12 @@
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib</artifactId>
-      <version>2.0.0</version>
+      <version>${kotlin.version}</version>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-reflect</artifactId>
-      <version>2.0.0</version>
+      <version>${kotlin.version}</version>
     </dependency>
 
     <dependency>
@@ -63,7 +63,7 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-client</artifactId>
-      <version>4.5.10</version>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -79,18 +79,23 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
+      <artifactId>vertx-launcher-application</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
       <artifactId>vertx-lang-kotlin-coroutines</artifactId>
-      <version>4.5.9</version>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
-      <version>4.5.9</version>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-jdbc-client</artifactId>
-      <version>4.5.9</version>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>io.agroal</groupId>
@@ -110,7 +115,7 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-templ-handlebars</artifactId>
-      <version>4.5.10</version>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.mindrot</groupId>
@@ -147,13 +152,13 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-jwt</artifactId>
-      <version>4.5.11</version>
+      <version>${vertx.version}</version>
     </dependency>
 
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-common</artifactId>
-      <version>4.5.11</version>
+      <version>${vertx.version}</version>
     </dependency>
 
     <dependency>
@@ -282,9 +287,8 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>${exec-maven-plugin.version}</version>
         <configuration>
-          <mainClass>io.vertx.core.Launcher</mainClass>
+          <mainClass>${launcher.class}</mainClass>
           <arguments>
-            <argument>run</argument>
             <argument>${main.verticle}</argument>
           </arguments>
         </configuration>
