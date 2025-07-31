@@ -16,9 +16,22 @@ services:
     volumes:
       - ./database/ex-dock.sql:/docker-entrypoint-initdb.d/datadump.sql
     ports:
-      - "8890:5432"
+      - "8891:5432"
     networks:
       - ex-dock
+
+  mongoDatabase:
+    image: mongodb/mongodb-community-server:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+    ports:
+      - "8890:27017"
+    networks:
+      - ex-dock
+    env_file:
+      - .env
 
 networks:
   ex-dock:
