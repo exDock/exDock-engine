@@ -121,6 +121,7 @@ class JDBCStarter : VerticleBase() {
       .registerGenericCodec(Image::class)
       .registerGenericCodec(ImageProduct::class)
       .registerGenericCodec(ServerHealth::class)
+      .registerGenericCodec(ProductInfo::class)
 
       .registerGenericListCodec(FullUser::class)
   }

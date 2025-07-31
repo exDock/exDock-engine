@@ -6,7 +6,18 @@ data class Image(
   val imageUrl: String,
   val imageName: String,
   val imageExtensions: String,
-)
+) {
+  companion object {
+    fun fromJson(json: JsonObject): Image {
+      val imageUrl = json.getString("image_url")
+      val imageName = json.getString("image_name")
+      val imageExtensions = json.getString("image_extensions")
+
+      return Image(imageUrl, imageName, imageExtensions)
+    }
+  }
+
+}
 
 data class ImageProduct(
   val imageUrl: String,

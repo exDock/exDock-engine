@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.category.PageIndex
 import com.ex_dock.ex_dock.database.category.convertToString
+import com.ex_dock.ex_dock.database.category.toPageIndex
 import com.ex_dock.ex_dock.database.image.Image
 import com.ex_dock.ex_dock.database.image.toDocument
 import io.vertx.core.json.JsonArray
@@ -29,7 +30,63 @@ data class ProductInfo(
   var categories: List<String>,
   var attributes: List<Pair<String, Any>>,
   var images: List<Image>,
-)
+) {
+  companion object {
+    fun fromJson(jsonObject: JsonObject): ProductInfo {
+      val productId = jsonObject.getString("_id")
+      val name = jsonObject.getString("name")
+      val shortName = jsonObject.getString("short_name")
+      val description = jsonObject.getString("description")
+      val shortDescription = jsonObject.getString("short_description")
+      val sku = jsonObject.getString("sku")
+      val ean = jsonObject.getString("ean")
+      val location = jsonObject.getString("location")
+      val manufacturer = jsonObject.getString("manufacturer")
+      val metaTitle = jsonObject.getString("meta_title")
+      val metaDescription = jsonObject.getString("meta_description")
+      val metaKeywords = jsonObject.getString("meta_keywords")
+      val pageIndex = jsonObject.getString("page_index").toPageIndex()
+      val price = jsonObject.getDouble("price")
+      val salePrice = jsonObject.getDouble("sale_price")
+      val costPrice = jsonObject.getDouble("cost_price")
+      val taxClass = jsonObject.getString("tax_class")
+      val saleDates = jsonObject.getJsonArray("sale_dates").map { it as String? }
+      val categories = jsonObject.getJsonArray("categories").map { it as String }
+      val attributes = jsonObject.getJsonArray("attributes").map { attribute ->
+        attribute as JsonObject
+        Pair(attribute.getString("name"), attribute.getValue("value"))
+      }
+
+      val images = jsonObject.getJsonArray("images").map { image ->
+        Image.fromJson(image as JsonObject)
+      }
+
+      return ProductInfo(
+        productId,
+        name,
+        shortName,
+        description,
+        shortDescription,
+        sku,
+        ean,
+        location,
+        manufacturer,
+        metaTitle,
+        metaDescription,
+        metaKeywords,
+        pageIndex,
+        price,
+        salePrice,
+        costPrice,
+        taxClass,
+        saleDates,
+        categories,
+        attributes,
+        images,
+      )
+    }
+  }
+}
 
 fun ProductInfo.toDocument(): JsonObject {
   val saleDatesArray = JsonArray()
@@ -54,7 +111,7 @@ fun ProductInfo.toDocument(): JsonObject {
   }
 
   val document = JsonObject()
-  document.put("product_id", productId)
+  document.put("_id", productId)
   document.put("name", name)
   document.put("short_name", shortName)
   document.put("description", description)

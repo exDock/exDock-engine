@@ -1,19 +1,26 @@
 package com.ex_dock.ex_dock.helper
 
+import com.ex_dock.ex_dock.MainVerticle
+import com.ex_dock.ex_dock.database.image.Image
+import com.ex_dock.ex_dock.database.product.ProductInfo
 import com.luciad.imageio.webp.WebPWriteParam
+import io.vertx.core.eventbus.DeliveryOptions
+import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonObject
 import java.awt.image.BufferedImage
 import java.io.*
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.Base64
+import java.util.Properties
 import javax.imageio.IIOImage
 import javax.imageio.ImageIO
 import javax.imageio.ImageWriteParam
 import javax.imageio.ImageWriter
 import javax.imageio.stream.ImageOutputStream
 
-fun convertImage(path: String, imageBytes: String) {
+fun convertImage(path: String, imageBytes: String, eventBus: EventBus) {
   // Set all the path locations
   val validExtensions = listOf("png", "jpeg", "jpg", "webp").toMutableList()
   val imagePath = System.getProperty("user.dir") + "\\application-files"
@@ -25,10 +32,15 @@ fun convertImage(path: String, imageBytes: String) {
   mutableDirectorySplit.forEach { part ->
     directory += part + "\\"
   }
+  val properties = Properties().load()
 
-  val extension = pathSplit.last().split(".")[1]
+  val extension = pathSplit.last().split(".")[1].lowercase()
   val fileName: String = pathSplit.last().split(".")[0]
+  var productId = ""
   for (pathItem in pathSplit) {
+    if (pathItem == pathSplit[pathSplit.size - 2]) {
+      productId = pathItem.split("-")[0]
+    }
     if (pathItem != pathSplit.last()) {
       directory += "\\$pathItem"
     }
@@ -46,17 +58,50 @@ fun convertImage(path: String, imageBytes: String) {
   val newFile = File(newFilePath)
   println(newFile.createNewFile())
   newFile.writeBytes(decodedBytes)
-  if (extension == "jpg" || extension == "jpeg") {
-    validExtensions.remove("jpg")
-    validExtensions.remove("jpeg")
-  } else {
-    validExtensions.remove(extension)
-    validExtensions.remove("jpeg")
+  when (extension) {
+      "jpg" -> {
+        validExtensions.remove("jpeg")
+      }
+      "jpeg" -> {
+        validExtensions.remove("jpg")
+      }
+      else -> {
+        validExtensions.remove("jpeg")
+      }
   }
 
   // Get the new uploaded image
   convertToWebp("$directory\\$fileName", extension, newFile)
   convertToBasicExtensions("$directory\\$fileName", extension, validExtensions, newFile)
+
+  // Update the product to include the new images
+  directory = path.replace("/", "%2F").replace(pathSplit.last(), "")
+  eventBus.request<JsonObject>("process.product.getProductById", productId).onFailure { err ->
+    MainVerticle.logger.error { err.localizedMessage }
+  }.onSuccess { res ->
+    val product = ProductInfo.fromJson(res.body())
+    val newImages = product.images.toMutableList()
+    val extensionStrings = emptyList<String>().toMutableList()
+    validExtensions.forEach { ext ->
+      extensionStrings.add("\"$ext\"")
+    }
+
+    newImages.add(
+      Image.fromJson(
+        JsonObject()
+          .put("image_url", "${properties.getProperty("BASE_URL")}:${properties.getProperty("FRONTEND_PORT")}/api/openImage/get/$directory%2F$fileName.${validExtensions.first()}")
+          .put("image_name", "$fileName.jpg")
+          .put("image_extensions", extensionStrings)
+      )
+    )
+    product.images = newImages
+
+    eventBus.request<JsonObject>("process.product.updateProduct", product, DeliveryOptions().setCodecName("ProductInfoCodec")).onFailure { err ->
+      MainVerticle.logger.error { err.localizedMessage }
+    }.onSuccess { _ ->
+      MainVerticle.logger.info { "Image conversion completed" }
+    }
+  }
 }
 
 fun convertToWebp(name: String, extension: String, file: File) {
