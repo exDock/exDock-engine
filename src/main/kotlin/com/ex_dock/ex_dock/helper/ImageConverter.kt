@@ -6,51 +6,57 @@ import java.io.*
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.Base64
 import javax.imageio.IIOImage
 import javax.imageio.ImageIO
 import javax.imageio.ImageWriteParam
 import javax.imageio.ImageWriter
 import javax.imageio.stream.ImageOutputStream
 
-fun convertImage(path: String) {
+fun convertImage(path: String, imageBytes: String) {
   // Set all the path locations
-  val validExtensions = listOf("png", "jpg", "webp")
-  val imagePath = System.getProperty("user.dir") + "\\src\\main\\resources\\images\\"
-  val pathSplit = path.split(".")
+  val validExtensions = listOf("png", "jpeg", "jpg", "webp").toMutableList()
+  val imagePath = System.getProperty("user.dir") + "\\application-files"
+  val pathSplit = path.split("/")
   val directorySplit = pathSplit[0].split("\\")
-  val fileName = directorySplit.last()
   var directory = imagePath
   val mutableDirectorySplit = directorySplit.toMutableList()
   mutableDirectorySplit.removeAt(mutableDirectorySplit.size - 1)
   mutableDirectorySplit.forEach { part ->
     directory += part + "\\"
   }
-  directory += "\\"
+
+  val extension = pathSplit.last().split(".")[1]
+  val fileName: String = pathSplit.last().split(".")[0]
+  for (pathItem in pathSplit) {
+    if (pathItem != pathSplit.last()) {
+      directory += "\\$pathItem"
+    }
+  }
   val directoryPath = Paths.get(directory)
-  val extension = pathSplit[1]
 
   // Check if the directory already exists, otherwise make the directory
   if (!Files.exists(directoryPath)) {
     File(directory).mkdirs()
   }
 
-  val folder = File(imagePath)
-  // Get the new uploaded image
-  for (file in folder.listFiles()!!) {
-    if (!validExtensions.contains(file.extension)) {
-      val newName = File("$directory$fileName.$extension")
-      file.renameTo(newName)
-      convertToWebp("$directory$fileName", extension, newName)
-      convertToBasicExtensions("$directory$fileName", extension, validExtensions, newName)
-    }
+  // Upload new file to the folder
+  val newFilePath = directory + "\\" + pathSplit.last()
+  val decodedBytes = Base64.getDecoder().decode(imageBytes)
+  val newFile = File(newFilePath)
+  println(newFile.createNewFile())
+  newFile.writeBytes(decodedBytes)
+  if (extension == "jpg" || extension == "jpeg") {
+    validExtensions.remove("jpg")
+    validExtensions.remove("jpeg")
+  } else {
+    validExtensions.remove(extension)
+    validExtensions.remove("jpeg")
   }
 
-  // Delete original file if not renamed earlier
-  for (file in folder.listFiles()!!) {
-    if (!validExtensions.contains(file.name)) {
-      file.delete()
-    }
-  }
+  // Get the new uploaded image
+  convertToWebp("$directory\\$fileName", extension, newFile)
+  convertToBasicExtensions("$directory\\$fileName", extension, validExtensions, newFile)
 }
 
 fun convertToWebp(name: String, extension: String, file: File) {

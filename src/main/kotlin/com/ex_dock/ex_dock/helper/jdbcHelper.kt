@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.helper
 
+import com.ex_dock.ex_dock.MainVerticle
 import io.vertx.core.Future
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.Message
@@ -9,6 +10,7 @@ val listDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("ListC
 
 fun Future<List<JsonObject>>.replyListMessage(message: Message<String>) {
   this.onFailure {
+    MainVerticle.logger.error { it.localizedMessage }
     message.fail(500, it.localizedMessage)
   }
 
@@ -19,6 +21,7 @@ fun Future<List<JsonObject>>.replyListMessage(message: Message<String>) {
 
 fun Future<List<JsonObject>>.replySingleMessage(message: Message<String>) {
   this.onFailure {
+    MainVerticle.logger.error { it.localizedMessage }
     message.fail(500, it.localizedMessage)
   }
 

@@ -17,6 +17,7 @@ import com.ex_dock.ex_dock.database.server.ServerDataData
 import com.ex_dock.ex_dock.database.server.ServerJDBCVerticle
 import com.ex_dock.ex_dock.database.server.ServerVersionData
 import com.ex_dock.ex_dock.database.service.PopulateException
+import com.ex_dock.ex_dock.database.service.ServiceVerticle
 //import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.database.template.Template
 import com.ex_dock.ex_dock.database.template.TemplateJdbcVerticle
@@ -99,7 +100,7 @@ class JDBCStarter : VerticleBase() {
     verticles.add(vertx.deployWorkerVerticleHelper(ScopeJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(ServerJDBCVerticle::class))
 //    verticles.add(vertx.deployWorkerVerticleHelper(UrlJdbcVerticle::class))
-//    verticles.add(vertx.deployWorkerVerticleHelper(ServiceVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ServiceVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(CacheVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
 //    verticles.add(vertx.deployWorkerVerticleHelper(ImageJdbcVerticle::class))
