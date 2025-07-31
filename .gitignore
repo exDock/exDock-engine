@@ -195,3 +195,4 @@ nbdist/
 
 ### Images ###
 src/main/resources/images/*
+application-files/products/*
