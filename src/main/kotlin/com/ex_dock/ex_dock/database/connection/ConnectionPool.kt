@@ -1,33 +1,70 @@
 package com.ex_dock.ex_dock.database.connection
 
 import com.ex_dock.ex_dock.helper.load
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
 import io.vertx.core.Vertx
-import io.vertx.jdbcclient.JDBCConnectOptions
-import io.vertx.jdbcclient.JDBCPool
-import io.vertx.sqlclient.Pool
-import io.vertx.sqlclient.PoolOptions
+import io.vertx.core.json.JsonObject
+import io.vertx.ext.mongo.MongoClient
 import java.util.*
 
 
-fun Vertx.getConnection(): Pool {
-  val connection: Pool
-  val connectOptions = JDBCConnectOptions()
+//fun Vertx.getConnection(): Pool {
+//  val connection: Pool
+//  val connectOptions = JDBCConnectOptions()
+//
+//  try {
+//    val props = Properties().load()
+//
+//    connectOptions
+//      .setJdbcUrl(props.getProperty("DATABASE_URL"))
+//      .setUser(props.getProperty("DATABASE_USERNAME"))
+//      .setPassword(props.getProperty("DATABASE_PASSWORD"))
+//  } catch (_: Exception) {
+//    try {
+//      val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
+//      if (isDocker) {
+//        connectOptions
+//          .setJdbcUrl("jdbc:postgresql://localhost:8890/ex-dock")
+//          .setUser("postgres")
+//          .setPassword("docker")
+//      } else {
+//        error("Could not load the Properties file!")
+//      }
+//    } catch (_: Exception) {
+//      error("Could not read the Properties file!")
+//    }
+//  }
+//
+//  val poolOptions = PoolOptions()
+//    .setMaxSize(16)
+//
+//  connection = JDBCPool.pool(this, connectOptions, poolOptions)
+//
+//  return connection
+//}
+
+fun Vertx.getConnection(): MongoClient {
+  var client: MongoClient
+  val connectOptions = JsonObject()
 
   try {
     val props = Properties().load()
+    val p = Properties()
+    p.setProperty("database", "ex-dock")
 
     connectOptions
-      .setJdbcUrl(props.getProperty("DATABASE_URL"))
-      .setUser(props.getProperty("DATABASE_USERNAME"))
-      .setPassword(props.getProperty("DATABASE_PASSWORD"))
+      .put("connection_string", props.getProperty("DATABASE_STRING"))
+      .put("db_name", "ex-dock")
+
+    client = MongoClient.createShared(this, connectOptions)
+    return client
+
   } catch (_: Exception) {
     try {
       val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
       if (isDocker) {
-        connectOptions
-          .setJdbcUrl("jdbc:postgresql://localhost:8890/ex-dock")
-          .setUser("postgres")
-          .setPassword("docker")
+
       } else {
         error("Could not load the Properties file!")
       }
@@ -36,10 +73,6 @@ fun Vertx.getConnection(): Pool {
     }
   }
 
-  val poolOptions = PoolOptions()
-    .setMaxSize(16)
-
-  connection = JDBCPool.pool(this, connectOptions, poolOptions)
-
-  return connection
+  client = MongoClient.create(this, connectOptions)
+  return client
 }

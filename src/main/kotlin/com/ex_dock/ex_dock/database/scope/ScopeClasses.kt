@@ -1,17 +1,19 @@
 package com.ex_dock.ex_dock.database.scope
 
-data class Websites(
-  var websiteId: Int?,
-  var websiteName: String
-)
+import io.vertx.core.json.JsonObject
 
-data class StoreView(
-  var storeViewId: Int,
-  var websiteId: Int?,
+data class Scope(
+  var scopeId: String?,
+  var websiteName: String,
   var storeViewName: String
 )
 
-data class FullScope(
-  var website: Websites,
-  var storeView: StoreView
-)
+fun Scope.toDocument(): JsonObject {
+  val document = JsonObject()
+
+  document.put("scope_id", scopeId)
+  document.put("website_name", websiteName)
+  document.put("store_view_name", storeViewName)
+
+  return document
+}

@@ -1,10 +1,8 @@
 package com.ex_dock.ex_dock.database.backend_block
 
-data class BackendBlock(
-  var blockId: Int?,
-  var blockName: String,
-  var blockType: String,
-)
+import com.ex_dock.ex_dock.database.product.Type
+import io.vertx.core.json.JsonArray
+import io.vertx.core.json.JsonObject
 
 data class BlockAttribute(
   var attributeId: String,
@@ -12,77 +10,79 @@ data class BlockAttribute(
   var attributeType: String,
 )
 
-data class AttributeBlock(
-  var backendBlock: BackendBlock,
-  var blockAttribute: BlockAttribute,
-)
+data class BlockInfo(
+  var blockId: String?,
+  var pageName: String,
+  var productId: Int?,
+  var categoryId: Int?,
+  var blockName: String,
+  var blockType: String,
+  var blockAttributes: List<BlockAttribute>
+) {
+  companion object {
+    fun fromJson(jsonObject: JsonObject): BlockInfo {
+      val blockAttributes = emptyList<BlockAttribute>().toMutableList()
+      val attributeArray = jsonObject.getJsonArray("block_attributes")
 
-data class BlockId(
-  var blockId: Int,
-  var productId: Int,
-  var categoryId: Int,
-)
+      attributeArray.forEach { attribute ->
+        val jsonAttribute = attribute as JsonObject
+        val attribute = BlockAttribute(
+          attributeId = jsonAttribute.getString("attribute_id"),
+          attributeName = jsonAttribute.getString("attribute_name"),
+          attributeType = jsonAttribute.getString("attribute_type")
+        )
 
-data class EavAttributeBool(
-  var attributeId: String,
-  var attributeKey: String,
-  var value: Boolean,
-)
+        blockAttributes.add(attribute)
+      }
 
-data class EavAttributeFloat(
-  var attributeId: String,
-  var attributeKey: String,
-  var value: Float,
-)
+      val block = BlockInfo(
+        blockId = jsonObject.getString("block_id"),
+        pageName = jsonObject.getString("page_name"),
+        productId = jsonObject.getInteger("product_id"),
+        categoryId = jsonObject.getInteger("category_id"),
+        blockName = jsonObject.getString("block_name"),
+        blockType = jsonObject.getString("block_type"),
+        blockAttributes = blockAttributes
+      )
 
-data class EavAttributeString(
-  var attributeId: String,
-  var attributeKey: String,
-  var value: String,
-)
+      return block
+    }
 
-data class EavAttributeInt(
-  var attributeId: String,
-  var attributeKey: String,
-  var value: Int,
-)
+    fun fromJsonList(list: List<JsonObject>): List<BlockInfo> {
+      val result = mutableListOf<BlockInfo>()
+      list.forEach {
+        result.add(fromJson(it))
+      }
 
-data class EavAttributeMoney(
-  var attributeId: String,
-  var attributeKey: String,
-  var value: Double,
-)
+      return result
+    }
+  }
+}
 
-data class EavAttributeMultiSelect(
-  var attributeId: String,
-  var attributeKey: String,
-  var value: Int,
-)
+fun BlockAttribute.toDocument(): JsonObject {
+  val document = JsonObject()
+  document.put("attribute_id", attributeId)
+  document.put("attribute_name", attributeName)
+  document.put("attribute_type", attributeType)
 
-data class EavAttributeList(
-  var attributeId: String,
-  var attributeKey: String,
-)
+  return document
+}
 
-data class FullBlockInfo(
-  var blockId: BlockId,
-  var backendBlock: BackendBlock,
-  var blockAttributes: List<BlockAttribute>,
-  var eavAttributeBool: List<EavAttributeBool>,
-  var eavAttributeFloat: List<EavAttributeFloat>,
-  var eavAttributeInt: List<EavAttributeInt>,
-  var eavAttributeMoney: List<EavAttributeMoney>,
-  var eavAttributeMultiSelect: List<EavAttributeMultiSelect>,
-  var eavAttributeString: List<EavAttributeString>,
-  var eavAttributeList: List<EavAttributeList>,
-)
+fun BlockInfo.toDocument(): JsonObject {
+  val blockAttributes = JsonArray()
+  this.blockAttributes.forEach { attribute ->
+    blockAttributes.add(attribute.toDocument())
+  }
 
-data class FullEavAttribute(
-  var eavAttributeBool: List<EavAttributeBool>,
-  var eavAttributeFloat: List<EavAttributeFloat>,
-  var eavAttributeInt: List<EavAttributeInt>,
-  var eavAttributeMoney: List<EavAttributeMoney>,
-  var eavAttributeMultiSelect: List<EavAttributeMultiSelect>,
-  var eavAttributeString: List<EavAttributeString>,
-  var eavAttributeList: List<EavAttributeList>,
-)
+  val document = JsonObject()
+  document.put("block_id", blockId)
+  document.put("product_id", productId)
+  document.put("category_id", categoryId)
+  document.put("page_name", pageName)
+  document.put("block_name", blockName)
+  document.put("block_type", blockType)
+  document.put("block_attributes", blockAttributes)
+
+  return document
+
+}

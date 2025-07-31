@@ -1,32 +1,43 @@
 package com.ex_dock.ex_dock.database.category
 
-import com.ex_dock.ex_dock.database.product.Products
+import io.vertx.core.json.JsonArray
+import io.vertx.core.json.JsonObject
 
-data class Categories(
-  var categoryId: Int?,
-  var upperCategory: Int?,
+//import com.ex_dock.ex_dock.database.product.Products
+
+data class CategoryInfo(
+  var categoryId: String?,
+  var upperCategory: String?,
   var name: String,
   var shortDescription: String,
-  var description: String
-)
-
-data class CategoriesProducts(
-  val categoryId: Categories,
-  val productId: Products
-)
-
-data class CategoriesSeo(
-  val categoryId: Int,
+  var description: String,
   var metaTitle: String?,
   var metaDescription: String?,
   var metaKeywords: String?,
-  var pageIndex: PageIndex
+  var pageIndex: PageIndex,
+  var products: List<String>
 )
 
-data class FullCategoryInfo(
-  val categories: Categories,
-  val categoriesSeo: CategoriesSeo
-)
+fun CategoryInfo.toDocument(): JsonObject {
+  val productIds = JsonArray()
+  this.products.forEach { productId ->
+    productIds.add(productId)
+  }
+
+  val document = JsonObject()
+  document.put("category_id", categoryId)
+  document.put("upper_category", upperCategory)
+  document.put("name", name)
+  document.put("short_description", shortDescription)
+  document.put("description", description)
+  document.put("meta_title", metaTitle)
+  document.put("meta_description", metaDescription)
+  document.put("meta_keywords", metaKeywords)
+  document.put("page_index", pageIndex.convertToString())
+  document.put("products", productIds)
+
+  return document
+}
 
 enum class PageIndex(pIndex: String) {
   IndexFollow("index, follow"),
