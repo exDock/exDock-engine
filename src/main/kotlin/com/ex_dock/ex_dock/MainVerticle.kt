@@ -16,6 +16,7 @@ import io.vertx.core.VerticleBase
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.SessionStore
 import java.util.*
@@ -81,6 +82,7 @@ class MainVerticle : VerticleBase() {
     sessionHandler.setCookieSameSite(CookieSameSite.STRICT)
 
     mainRouter.route().handler(sessionHandler)
+    mainRouter.route().handler(BodyHandler.create())
 
     mainRouter.enableBackendRouter(vertx, logger)
 
