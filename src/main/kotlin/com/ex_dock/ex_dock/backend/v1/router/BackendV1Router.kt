@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.backend.v1.router
 
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
+import com.ex_dock.ex_dock.backend.v1.router.file.initFileRouter
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import com.ex_dock.ex_dock.backend.v1.router.system.enableSystemRouter
@@ -108,6 +109,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   // TODO: routing
   backendV1Router.initImage(vertx)
   backendV1Router.enableSystemRouter(vertx)
+  backendV1Router.initFileRouter(vertx)
 
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
