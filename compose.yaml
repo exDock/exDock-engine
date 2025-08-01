@@ -1,6 +1,9 @@
 services:
   ex-dock:
     build: .
+    depends_on:
+      database:
+        condition: service_healthy
     volumes:
       - ./config:/app/config
     ports:
@@ -20,6 +23,11 @@ services:
       - ex-dock
     env_file:
       - .env
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 2s
+      retries: 10
 
 networks:
   ex-dock:

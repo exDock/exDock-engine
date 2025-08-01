@@ -2,8 +2,6 @@ package com.ex_dock.ex_dock.database.connection
 
 import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.helper.load
-import com.mongodb.ConnectionString
-import com.mongodb.MongoClientSettings
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
