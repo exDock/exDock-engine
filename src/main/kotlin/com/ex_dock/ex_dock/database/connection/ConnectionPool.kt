@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.connection
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.helper.load
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
@@ -29,6 +30,7 @@ fun Vertx.getConnection(): MongoClient {
     try {
       val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
       if (isDocker) {
+        MainVerticle.logger.info { "Found GitHub instance!" }
         val p = Properties()
         p.setProperty("database", "ex-dock")
 
@@ -45,7 +47,4 @@ fun Vertx.getConnection(): MongoClient {
       error("Could not read the Properties file!")
     }
   }
-
-  client = MongoClient.create(this, connectOptions)
-  return client
 }
