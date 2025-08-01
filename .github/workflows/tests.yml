@@ -52,7 +52,7 @@ jobs:
           ## TextPages
           - "com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticleTest"
           ## Url
-          #          - "com.ex_dock.ex_dock.database.url.UrlJdbcVerticleTest"
+          - "com.ex_dock.ex_dock.database.url.UrlJdbcVerticleTest"
           ## Utils
           - "com.ex_dock.ex_dock.database.utils.JdbcSetupTest"
     steps:
@@ -69,4 +69,4 @@ jobs:
         run: |
           ls
           docker compose -f .ci/compose.yaml -p ci up -d --quiet-pull
-          mvn test -Dtest=${{ matrix.test_class }} --no-transfer-progress
+          mvn test -Dtest=${{ matrix.test_class }} --no-transfer-progress -e
