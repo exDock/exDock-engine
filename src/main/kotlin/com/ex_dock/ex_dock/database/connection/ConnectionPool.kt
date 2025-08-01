@@ -23,6 +23,8 @@ fun Vertx.getConnection(): MongoClient {
       .put("connection_string", props.getProperty("DATABASE_STRING"))
       .put("db_name", "ex-dock")
 
+    MainVerticle.logger.info { "Found local instance!" }
+
     client = MongoClient.createShared(this, connectOptions)
     return client
 
@@ -35,7 +37,7 @@ fun Vertx.getConnection(): MongoClient {
         p.setProperty("database", "ex-dock")
 
         connectOptions
-          .put("connection_string", "mongodb://admin:docker@database:8890/")
+          .put("connection_string", "mongodb://admin:docker@database:27017/")
           .put("db_name", "ex-dock")
 
         client = MongoClient.createShared(this, connectOptions)
