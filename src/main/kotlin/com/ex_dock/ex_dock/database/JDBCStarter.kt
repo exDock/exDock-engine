@@ -1,31 +1,36 @@
 package com.ex_dock.ex_dock.database
 
+//import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.backend.v1.router.docker.ServerHealth
 import com.ex_dock.ex_dock.backend.v1.router.system.SystemVerticle
-import com.ex_dock.ex_dock.database.account.*
+import com.ex_dock.ex_dock.database.account.AccountJdbcVerticle
+import com.ex_dock.ex_dock.database.account.FullUser
 import com.ex_dock.ex_dock.database.auth.AuthenticationVerticle
-import com.ex_dock.ex_dock.database.backend_block.*
-import com.ex_dock.ex_dock.database.category.*
+import com.ex_dock.ex_dock.database.backend_block.BackendBlockJdbcVerticle
+import com.ex_dock.ex_dock.database.backend_block.BlockAttribute
+import com.ex_dock.ex_dock.database.category.CategoryJdbcVerticle
+import com.ex_dock.ex_dock.database.category.PageIndex
 import com.ex_dock.ex_dock.database.checkout.CheckoutJdbcVerticle
 import com.ex_dock.ex_dock.database.home.HomeJdbcVerticle
 import com.ex_dock.ex_dock.database.image.Image
 import com.ex_dock.ex_dock.database.image.ImageProduct
-import com.ex_dock.ex_dock.database.product.*
+import com.ex_dock.ex_dock.database.product.ProductInfo
+import com.ex_dock.ex_dock.database.product.ProductJdbcVerticle
 import com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticle
 import com.ex_dock.ex_dock.database.server.ServerDataData
 import com.ex_dock.ex_dock.database.server.ServerJDBCVerticle
 import com.ex_dock.ex_dock.database.server.ServerVersionData
-import com.ex_dock.ex_dock.database.service.PopulateException
 import com.ex_dock.ex_dock.database.service.ServiceVerticle
-//import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.database.template.Template
-import com.ex_dock.ex_dock.database.template.TemplateJdbcVerticle
 import com.ex_dock.ex_dock.database.text_pages.TextPages
 import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
-import com.ex_dock.ex_dock.database.url.*
+import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
-import com.ex_dock.ex_dock.helper.*
+import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
+import com.ex_dock.ex_dock.helper.registerGenericCodec
+import com.ex_dock.ex_dock.helper.registerGenericListCodec
+import com.ex_dock.ex_dock.helper.registerVerticleIds
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
@@ -62,29 +67,10 @@ class JDBCStarter : VerticleBase() {
         }
         eventBus.registerVerticleIds(verticleIds)
 
-        eventBus.request<String>("process.service.populateTemplates", "").onFailure {
-          eventBus.sendError(
-            PopulateException("Could not populate the database with standard data. Closing the server!"))
-          throw PopulateException("Could not populate the database with standard data. Closing the server!")
-        }.onSuccess {
-          logger.info { "Database populated with standard data" }
-          eventBus.request<String>("process.service.addAdminUser", "").onFailure {
-            eventBus.sendError(
-              PopulateException("Could not populate the database with standard data. Closing the server!"))
-            throw PopulateException("Could not add admin user. Closing the server!")
-          }.onSuccess {
-            eventBus.request<String>("process.service.addTestProduct", "").onFailure {
-              throw PopulateException("Could not add test product. Closing the server!")
-            }.onSuccess {
-              eventBus.request<String>("process.service.addProductInfoBackendBlock", "").onFailure {
-                throw PopulateException("Could not add product info backend block. Closing the server!")
-              }.onSuccess {
-                eventBus.send("process.docker.serverHealth", ServerHealth.UP,
-                  DeliveryOptions().setCodecName("ServerHealthCodec"))
-              }
-            }
-          }
-        }
+        eventBus.send(
+          "process.docker.serverHealth", ServerHealth.UP,
+          DeliveryOptions().setCodecName("ServerHealthCodec")
+        )
       }
   }
 

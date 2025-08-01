@@ -230,9 +230,6 @@
         <version>${kotlin.version}</version>
         <configuration>
           <jvmTarget>17</jvmTarget>
-          <compilerPlugins>
-            <plugin>kotlinx-serialization</plugin>
-          </compilerPlugins>
         </configuration>
         <dependencies>
           <dependency>

@@ -3,7 +3,7 @@ package com.ex_dock.ex_dock.database.url
 import io.vertx.core.json.JsonObject
 
 data class UrlKeys(
-  var urlKey: String,
+  var urlKey: String?,
   var upperKey: String,
   var requestedId: String,
   var pageType: PageType
