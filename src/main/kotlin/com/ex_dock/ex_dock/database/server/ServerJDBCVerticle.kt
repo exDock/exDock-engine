@@ -114,7 +114,7 @@ class ServerJDBCVerticle: VerticleBase() {
       val key = message.body()
       val query = JsonObject()
         .put("key", key)
-      val rowsFuture = client.removeDocument("server_data", query)
+      val rowsFuture = client.removeDocuments("server_data", query)
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")

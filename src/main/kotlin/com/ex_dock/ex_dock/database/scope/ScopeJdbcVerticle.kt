@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.database.scope
 
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
+import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.replyListMessage
 import com.ex_dock.ex_dock.helper.replySingleMessage
 import io.vertx.core.Future
@@ -18,10 +19,7 @@ import io.vertx.sqlclient.Tuple
 class ScopeJdbcVerticle:  VerticleBase() {
   private lateinit var client: MongoClient
   private lateinit var eventBus: EventBus
-  private val websiteDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("WebsitesCodec")
-  private val storeViewDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("StoreViewCodec")
-  private val fullScopeDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("FullScopeCodec")
-  private val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
+  private val fullScopeDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("ScopeCodec")
 
   companion object {
     private const val CACHE_ADDRESS = "scopes"
@@ -57,7 +55,7 @@ class ScopeJdbcVerticle:  VerticleBase() {
     getScopeByWebsiteIdConsumer.handler { message ->
       val websiteId = message.body()
       val query = JsonObject()
-        .put("scope_id", websiteId)
+        .put("_id", websiteId)
 
       client.find("scopes", query).replySingleMessage(message)
     }
@@ -88,6 +86,7 @@ class ScopeJdbcVerticle:  VerticleBase() {
   private fun createScope() {
     val createScopeConsumer = eventBus.consumer<Scope>("process.scope.createScope")
     createScopeConsumer.handler { message ->
+      println("Received createScope message in ScopeJdbcVerticle")
       val scope = message.body()
       val document = scope.toDocument()
 
@@ -99,8 +98,10 @@ class ScopeJdbcVerticle:  VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        scope.scopeId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          scope.scopeId = lastInsertID
+        }
 
         setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(scope, fullScopeDeliveryOptions)
@@ -125,8 +126,10 @@ class ScopeJdbcVerticle:  VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        body.scopeId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          body.scopeId = lastInsertID
+        }
 
         setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, fullScopeDeliveryOptions)

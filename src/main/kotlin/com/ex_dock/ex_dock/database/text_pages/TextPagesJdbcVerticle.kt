@@ -48,7 +48,7 @@ class TextPagesJdbcVerticle: VerticleBase() {
     getTextPageByIdConsumer.handler { message ->
       val id = message.body()
       val query = JsonObject()
-        .put("text_pages_id", id)
+        .put("_id", id)
       client.find("text_pages", query).replySingleMessage(message)
     }
   }
@@ -67,8 +67,10 @@ class TextPagesJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        textPages.textPagesId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          textPages.textPagesId = lastInsertID
+        }
 
         message.reply(textPages, textPagesDeliveryOptions)
       }

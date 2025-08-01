@@ -73,8 +73,10 @@ class BackendBlockJdbcVerticle : VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        backendBlock.blockId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          backendBlock.blockId = lastInsertID
+        }
 
         message.reply(backendBlock, backendBlockDeliveryOptions)
       }
@@ -99,8 +101,10 @@ class BackendBlockJdbcVerticle : VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        body.blockId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          body.blockId = lastInsertID
+        }
 
         message.reply(body, backendBlockDeliveryOptions)
       }

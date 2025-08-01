@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.database.template
 
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.helper.replyListMessage
+import com.ex_dock.ex_dock.helper.replySingleMessage
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
@@ -48,7 +49,7 @@ class TemplateJdbcVerticle: VerticleBase() {
       val query = JsonObject()
         .put("template_key", key)
 
-      client.find("templates", query).replyListMessage(message)
+      client.find("templates", query).replySingleMessage(message)
     }
   }
 

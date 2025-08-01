@@ -67,8 +67,10 @@ class CategoryJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        category.categoryId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          category.categoryId = lastInsertID
+        }
 
         setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(category, categoriesDeliveryOptions)
@@ -94,8 +96,10 @@ class CategoryJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        body.categoryId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          body.categoryId = lastInsertID
+        }
 
         setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, categoriesDeliveryOptions)

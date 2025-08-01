@@ -22,8 +22,6 @@ class AccountJdbcVerticle: VerticleBase() {
     const val FAILED = "failed"
     const val USER_DELETED_SUCCESS = "User deleted successfully"
     const val CACHE_ADDRESS = "accounts"
-
-    const val BACKEND_PERMISSION_DELETED = "Backend Permissions were successfully deleted!"
   }
 
   private val fullUserDeliveryOptions = DeliveryOptions().setCodecName("FullUserCodec")
@@ -85,8 +83,10 @@ class AccountJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        user.userId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          user.userId = lastInsertID
+        }
 
         setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(user, fullUserDeliveryOptions)
@@ -113,8 +113,10 @@ class AccountJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
-        body.userId = lastInsertID
+        val lastInsertID: String? = res
+        if (lastInsertID != null) {
+          body.userId = lastInsertID
+        }
 
         setCacheFlag(eventBus, CACHE_ADDRESS)
         message.reply(body, fullUserDeliveryOptions)
