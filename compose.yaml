@@ -7,20 +7,8 @@ services:
       - "8888:8888"
     networks:
       - ex-dock
-  database:
-    image: postgres:14-alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=ex-dock
-    volumes:
-      - ./database/ex-dock.sql:/docker-entrypoint-initdb.d/datadump.sql
-    ports:
-      - "8891:5432"
-    networks:
-      - ex-dock
 
-  mongoDatabase:
+  database:
     image: mongodb/mongodb-community-server:latest
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
