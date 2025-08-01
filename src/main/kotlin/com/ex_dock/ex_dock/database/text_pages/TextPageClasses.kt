@@ -12,11 +12,26 @@ data class TextPages(
   var metaDescription: String?,
   var metaKeywords: String?,
   var pageIndex: PageIndex
-  )
+  ) {
+  companion object {
+    fun fromJson(json: JsonObject): TextPages {
+      val textPagesId = json.getString("_id")
+      val name = json.getString("name")
+      val shortText = json.getString("short_text")
+      val text = json.getString("text")
+      val metaTitle = json.getString("meta_title")
+      val metaDescription = json.getString("meta_description")
+      val metaKeywords = json.getString("meta_keywords")
+      val pageIndex = PageIndex.valueOf(json.getString("page_index"))
+
+      return TextPages(textPagesId, name, shortText, text, metaTitle, metaDescription, metaKeywords, pageIndex)
+    }
+  }
+}
 
 fun TextPages.toDocument(): JsonObject {
   val document = JsonObject()
-  document.put("text_pages_id", textPagesId)
+  document.put("_id", textPagesId)
   document.put("name", name)
   document.put("short_text", shortText)
   document.put("text", text)

@@ -16,17 +16,17 @@ data class FullUser(
 ) {
   companion object {
     fun fromJson(json: JsonObject): FullUser {
-      val userId = json.getString("userId")
+      val userId = json.getString("_id")
       val email = json.getString("email")
       val password = json.getString("password")
       val permissions = json.getJsonArray("permissions")
-      val apiKey = json.getString("apiKey")
+      val apiKey = json.getString("api_key")
 
       val permissionList = permissions.map { permission -> permission as JsonObject }
         .map { permission ->
           Pair(
-            permission.getString("name"),
-            Permission.fromString(permission.getString("type"))
+            permission.getString("first"),
+            Permission.fromString(permission.getString("second"))
           )
         }
 
@@ -57,20 +57,22 @@ fun FullUser.toDocument(): JsonObject {
   this.permissions.forEach { (permissionName, permissionType) ->
     permissionArray.add(
       JsonObject()
-        .put("name", permissionName)
-        .put("type", permissionType.name)
+        .put("first", permissionName)
+        .put("second", Permission.toString(permissionType))
     )
   }
 
   val document = JsonObject()
-    .put("email", this.email)
-    .put("password", this.password.hash())
-    .put("permissions", permissionArray)
-    .put("api_key", this.apiKey.orEmpty())
 
   if (this.userId != null) {
     document.put("_id", this.userId)
   }
+
+  document
+    .put("email", this.email)
+    .put("password", this.password.hash())
+    .put("permissions", permissionArray)
+    .put("api_key", this.apiKey.orEmpty())
 
   return document
 }
@@ -111,7 +113,7 @@ fun io.vertx.ext.auth.User.addAuth(name: String, authHandler: ExDockAuthHandler)
   return this
 }
 
-enum class Permission(name: String) {
+enum class Permission(permissionName: String) {
   NONE("None"),
   READ("Read"),
   WRITE("Write"),
@@ -119,7 +121,7 @@ enum class Permission(name: String) {
 
   companion object {
     fun fromString(value: String): Permission {
-      return entries.find { it.name == value.lowercase() } ?: NONE
+      return entries.find { it.name.lowercase().replace("_", "-") == value.lowercase() } ?: NONE
     }
 
     fun toString(permission: Permission): String {

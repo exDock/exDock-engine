@@ -36,7 +36,7 @@ data class BlockInfo(
       }
 
       val block = BlockInfo(
-        blockId = jsonObject.getString("block_id"),
+        blockId = jsonObject.getString("_id"),
         pageName = jsonObject.getString("page_name"),
         productId = jsonObject.getInteger("product_id"),
         categoryId = jsonObject.getInteger("category_id"),
@@ -75,7 +75,7 @@ fun BlockInfo.toDocument(): JsonObject {
   }
 
   val document = JsonObject()
-  document.put("block_id", blockId)
+  document.put("_id", blockId)
   document.put("product_id", productId)
   document.put("category_id", categoryId)
   document.put("page_name", pageName)

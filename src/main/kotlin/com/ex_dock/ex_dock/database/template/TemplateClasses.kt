@@ -7,7 +7,19 @@ data class Template(
   val blockName: String,
   val templateData: String,
   val dataString: String,
-)
+) {
+  companion object {
+    fun fromJson(json: JsonObject): Template {
+      val templateKey = json.getString("template_key")
+      val blockName = json.getString("block_name")
+      val templateData = json.getString("template_data")
+      val dataString = json.getString("data_string")
+
+      return Template(templateKey, blockName, templateData, dataString)
+    }
+  }
+
+}
 
 fun Template.toDocument(): JsonObject {
   val document = JsonObject()

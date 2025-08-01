@@ -16,7 +16,35 @@ data class CategoryInfo(
   var metaKeywords: String?,
   var pageIndex: PageIndex,
   var products: List<String>
-)
+) {
+  companion object {
+    fun fromJson(json: JsonObject): CategoryInfo {
+      val categoryId = json.getString("_id")
+      val upperCategory = json.getString("upper_category")
+      val name = json.getString("name")
+      val shortDescription = json.getString("short_description")
+      val description = json.getString("description")
+      val metaTitle = json.getString("meta_title")
+      val metaDescription = json.getString("meta_description")
+      val metaKeywords = json.getString("meta_keywords")
+      val pageIndex = json.getString("page_index").toPageIndex()
+      val products = json.getJsonArray("products").map { it.toString() }
+
+      return CategoryInfo(
+        categoryId,
+        upperCategory,
+        name,
+        shortDescription,
+        description,
+        metaTitle,
+        metaDescription,
+        metaKeywords,
+        pageIndex,
+        products
+      )
+    }
+  }
+}
 
 fun CategoryInfo.toDocument(): JsonObject {
   val productIds = JsonArray()
@@ -25,7 +53,7 @@ fun CategoryInfo.toDocument(): JsonObject {
   }
 
   val document = JsonObject()
-  document.put("category_id", categoryId)
+  document.put("_id", categoryId)
   document.put("upper_category", upperCategory)
   document.put("name", name)
   document.put("short_description", shortDescription)
