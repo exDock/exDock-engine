@@ -29,7 +29,15 @@ fun Vertx.getConnection(): MongoClient {
     try {
       val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
       if (isDocker) {
+        val p = Properties()
+        p.setProperty("database", "ex-dock")
 
+        connectOptions
+          .put("connection_string", "mongodb://admin:docker@localhost:8890/")
+          .put("db_name", "ex-dock")
+
+        client = MongoClient.createShared(this, connectOptions)
+        return client
       } else {
         error("Could not load the Properties file!")
       }
