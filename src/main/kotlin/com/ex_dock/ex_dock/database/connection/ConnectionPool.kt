@@ -15,6 +15,19 @@ fun Vertx.getConnection(): MongoClient {
   val connectOptions = JsonObject()
 
   try {
+    val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
+    if (isDocker) {
+      MainVerticle.logger.info { "Found GitHub instance!" }
+      val p = Properties()
+      p.setProperty("database", "ex-dock")
+
+      connectOptions
+        .put("connection_string", "mongodb://admin:docker@database:27017/")
+        .put("db_name", "ex-dock")
+
+      client = MongoClient.createShared(this, connectOptions)
+      return client
+    }
     val props = Properties().load()
     val p = Properties()
     p.setProperty("database", "ex-dock")
@@ -29,24 +42,6 @@ fun Vertx.getConnection(): MongoClient {
     return client
 
   } catch (_: Exception) {
-    try {
-      val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
-      if (isDocker) {
-        MainVerticle.logger.info { "Found GitHub instance!" }
-        val p = Properties()
-        p.setProperty("database", "ex-dock")
-
-        connectOptions
-          .put("connection_string", "mongodb://admin:docker@database:27017/")
-          .put("db_name", "ex-dock")
-
-        client = MongoClient.createShared(this, connectOptions)
-        return client
-      } else {
-        error("Could not load the Properties file!")
-      }
-    } catch (_: Exception) {
-      error("Could not read the Properties file!")
-    }
+    error("Could not read the Properties file!")
   }
 }
