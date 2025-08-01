@@ -99,11 +99,10 @@ class JDBCStarter : VerticleBase() {
     verticles.add(vertx.deployWorkerVerticleHelper(TextPagesJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(ScopeJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(ServerJDBCVerticle::class))
-//    verticles.add(vertx.deployWorkerVerticleHelper(UrlJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(UrlJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(ServiceVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(CacheVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
-//    verticles.add(vertx.deployWorkerVerticleHelper(ImageJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
   }
 
