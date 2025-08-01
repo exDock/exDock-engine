@@ -39,16 +39,13 @@ jobs:
           ## Category
           - "com.ex_dock.ex_dock.database.category.CategoryJdbcVerticleTest"
           ## Product
-          - "com.ex_dock.ex_dock.database.product.ProductCustomAttributesJdbcVerticleTest"
-          - "com.ex_dock.ex_dock.database.product.ProductGlobalEavJdbcVerticleTest"
           - "com.ex_dock.ex_dock.database.product.ProductJdbcVerticleTest"
-          - "com.ex_dock.ex_dock.database.product.ProductMultiSelectJdbcVerticleTest"
-          - "com.ex_dock.ex_dock.database.product.ProductStoreViewEavJdbcVerticleTest"
-          - "com.ex_dock.ex_dock.database.product.ProductWebsiteEavJdbcVerticleTest"
           ## Scope
           - "com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticleTest"
           ## Server
-          - "com.ex_dock.ex_dock.database.server.ServerJdbcVerticleTest"
+          - "com.ex_dock.ex_dock.database.server.ServerJDBCVerticleTest"
+          ## Template
+          - "com.ex_dock.ex_dock.database.template.TemplateJdbcVerticleTest"
           ## TextPages
           - "com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticleTest"
           ## Url
