@@ -1,11 +1,9 @@
 services:
-  testDatabase:
-    image: postgres:14-alpine
+  database:
+    image: mongodb/mongodb-community-server:latest
     ports:
-      - "8890:5432"
+      - "8890:27017"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=ex-dock
-    volumes:
-      - ../database/ex-dock.sql:/docker-entrypoint-initdb.d/datadump.sql
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=docker
+      - MONGO_INITDB_DATABASE=ex-dock
