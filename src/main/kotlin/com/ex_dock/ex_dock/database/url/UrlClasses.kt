@@ -1,51 +1,34 @@
 package com.ex_dock.ex_dock.database.url
 
-import com.ex_dock.ex_dock.database.category.Categories
-import com.ex_dock.ex_dock.database.product.Products
-import com.ex_dock.ex_dock.database.text_pages.TextPages
+import io.vertx.core.json.JsonObject
 
 data class UrlKeys(
-  var urlKey: String,
+  var urlKey: String?,
   var upperKey: String,
+  var requestedId: String,
   var pageType: PageType
-)
+) {
+  companion object {
+    fun fromJson(jsonObject: JsonObject): UrlKeys {
+      return UrlKeys(
+        urlKey = jsonObject.getString("_id"),
+        upperKey = jsonObject.getString("upper_key"),
+        requestedId = jsonObject.getString("requested_id"),
+        pageType = jsonObject.getString("page_type").toPageType()
+      )
+    }
+  }
+}
 
-data class TextPageUrls(
-  var urlKeys: String,
-  var upperKey: String,
-  var textPagesId: Int
-)
+fun UrlKeys.toDocument(): JsonObject {
+  val document = JsonObject()
+    .put("_id", this.urlKey)
+    .put("upper_key", this.upperKey)
+    .put("requested_id", this.requestedId)
+    .put("page_type", this.pageType.convertToString())
 
-data class ProductUrls(
-  var urlKeys: String,
-  var upperKey: String,
-  var productId: Int
-)
-
-data class CategoryUrls(
-  var urlKeys: String,
-  var upperKey: String,
-  var categoryId: Int
-)
-
-data class FullUrlKeys(
-  var urlKeys: UrlKeys,
-  var textPage: TextPages?,
-  var product: Products?,
-  var category: Categories?
-)
-
-data class JoinList(
-  var joinTextPage: Boolean,
-  var joinProduct: Boolean,
-  var joinCategory: Boolean,
-)
-
-data class FullUrlRequestInfo(
-  val urlKeys: String?,
-  val upperKey: String?,
-  val joinList: JoinList
-)
+  return document
+}
 
 enum class PageType(name: String) {
   PRODUCT("product"),

@@ -4,6 +4,8 @@ import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.backend.v1.router.auth.enableAuthRouter
 import com.ex_dock.ex_dock.backend.v1.router.docker.initDocker
 import com.ex_dock.ex_dock.backend.v1.router.enableBackendV1Router
+import com.ex_dock.ex_dock.backend.v1.router.image.initOpenImageRouter
+//import com.ex_dock.ex_dock.backend.v1.router.enableBackendV1Router
 import com.ex_dock.ex_dock.backend.v1.router.websocket.initWebsocket
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import io.github.oshai.kotlinlogging.KLogger
@@ -52,6 +54,7 @@ fun Router.enableBackendRouter(vertx: Vertx, logger: KLogger) {
   // Only use these routers for websockets, because they use other authorization methods
   backendRouter.initWebsocket(vertx, logger = logger)
   backendRouter.initDocker(vertx, logger = logger)
+  backendRouter.initOpenImageRouter(vertx)
 
   backendRouter.route().handler(JWTAuthHandler.create(jwtAuth))
 

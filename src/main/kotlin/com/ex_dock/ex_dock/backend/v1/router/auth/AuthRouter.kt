@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.backend.v1.router.auth
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
@@ -27,6 +28,7 @@ fun Router.enableAuthRouter(vertx: Vertx, absoluteMounting: Boolean = false) {
       if (exception.message == "invalid credentials") {
         ctx.fail(403, Error("invalid credentials"))
       } else {
+        MainVerticle.logger.error { exception.message }
         ctx.fail(500, Error("internal server error"))
       }
     }.onSuccess { message ->
