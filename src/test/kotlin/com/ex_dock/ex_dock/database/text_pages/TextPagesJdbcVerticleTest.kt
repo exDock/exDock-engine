@@ -7,6 +7,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.unit.TestSuite
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
@@ -29,6 +30,31 @@ class TextPagesJdbcVerticleTest {
     metaKeywords = "testMetaKeywords",
     pageIndex = PageIndex.IndexNoFollow
   )
+
+  @Test
+  @DisplayName("Test the text pages classes functions")
+  fun testTextPagesClassesFunctions(vertx: Vertx, context: VertxTestContext) {
+    val suite = TestSuite.create("testTextPagesClassesFunctions")
+
+    suite.test("testTextPagesToJson") { testContext ->
+      val result = testTextPage.toDocument()
+      testContext.assertEquals(testTextPage.textPagesId, result.getString("_id"))
+      testContext.assertEquals(testTextPage.name, result.getString("name"))
+    }.test("testTextPagesFromJson") { testContext ->
+      val textPageJson = testTextPage.toDocument()
+      val textPage = TextPages.fromJson(textPageJson)
+      testContext.assertEquals(testTextPage.textPagesId, textPage.textPagesId)
+      testContext.assertEquals(testTextPage.name, textPage.name)
+    }
+
+    suite.run(vertx).handler { res ->
+      if (res.succeeded()) {
+        context.completeNow()
+      } else {
+        context.failNow(res.cause())
+      }
+    }
+  }
 
   @BeforeEach
   @DisplayName("Add the text page to the database")
