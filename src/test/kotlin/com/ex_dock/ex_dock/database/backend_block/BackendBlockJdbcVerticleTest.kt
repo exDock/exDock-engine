@@ -6,6 +6,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.unit.TestSuite
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
@@ -33,6 +34,31 @@ class BackendBlockJdbcVerticleTest {
       )
     )
   )
+
+  @Test
+  @DisplayName("Test the backend block classes functions")
+  fun testBackendBlockClassesFunctions(vertx: Vertx, context: VertxTestContext) {
+    val suite = TestSuite.create("testBackendBlockClassesFunctions")
+
+    suite.test("testBlockInfoToJson") { testContext ->
+      val result = testBackendBlock.toDocument()
+      testContext.assertEquals(testBackendBlock.blockId, result.getString("_id"))
+      testContext.assertEquals(testBackendBlock.blockName, result.getString("block_name"))
+    }.test("testBlockInfoFromJson") { testContext ->
+      val blockInfoJson = testBackendBlock.toDocument()
+      val blockInfo = BlockInfo.fromJson(blockInfoJson)
+      testContext.assertEquals(testBackendBlock.blockId, blockInfo.blockId)
+      testContext.assertEquals(testBackendBlock.blockName, blockInfo.blockName)
+    }
+
+    suite.run(vertx).handler { res ->
+      if (res.succeeded()) {
+        context.completeNow()
+      } else {
+        context.failNow(res.cause())
+      }
+    }
+  }
 
   @BeforeEach
   @DisplayName("Add the backend block to the database")
