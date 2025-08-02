@@ -65,4 +65,5 @@ jobs:
       - name: Run Tests
         run: |
           docker compose -f .ci/compose.yaml -p ci up -d --quiet-pull
+          timeout 10
           mvn test -Dtest=${{ matrix.test_class }} --no-transfer-progress -e
