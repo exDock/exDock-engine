@@ -6,6 +6,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.unit.TestSuite
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
@@ -30,6 +31,31 @@ class CategoryJdbcVerticleTest {
     pageIndex = PageIndex.IndexFollow,
     products = listOf("1", "2", "3")
   )
+
+  @Test
+  @DisplayName("Test the category classes functions")
+  fun testCategoryClassesFunctions(vertx: Vertx, context: VertxTestContext) {
+    val suite = TestSuite.create("testCategoryClassesFunctions")
+
+    suite.test("testCategoryInfoToJson") { testContext ->
+      val result = testCategory.toDocument()
+      testContext.assertEquals(testCategory.categoryId, result.getString("_id"))
+      testContext.assertEquals(testCategory.name, result.getString("name"))
+    }.test("testCategoryInfoFromJson") { testContext ->
+      val categoryJson = testCategory.toDocument()
+      val category = CategoryInfo.fromJson(categoryJson)
+      testContext.assertEquals(testCategory.categoryId, category.categoryId)
+      testContext.assertEquals(testCategory.name, category.name)
+    }
+
+    suite.run(vertx).handler { res ->
+      if (res.succeeded()) {
+        context.completeNow()
+      } else {
+        context.failNow(res.cause())
+      }
+    }
+  }
 
   @BeforeEach
   @DisplayName("Add the category to the database")
