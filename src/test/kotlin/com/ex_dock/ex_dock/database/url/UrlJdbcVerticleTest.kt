@@ -6,6 +6,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.unit.TestSuite
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
@@ -24,6 +25,31 @@ class UrlJdbcVerticleTest {
     requestedId = "123",
     pageType = PageType.PRODUCT
   )
+
+  @Test
+  @DisplayName("Test the url classes functions")
+  fun testUrlClassesFunctions(vertx: Vertx, context: VertxTestContext) {
+    val suite = TestSuite.create("testUrlClassesFunctions")
+
+    suite.test("testUrlKeysToJson") { testContext ->
+      val result = testUrlKey.toDocument()
+      testContext.assertEquals(testUrlKey.urlKey, result.getString("_id"))
+      testContext.assertEquals(testUrlKey.upperKey, result.getString("upper_key"))
+    }.test("testUrlKeysFromJson") { testContext ->
+      val urlKeyJson = testUrlKey.toDocument()
+      val urlKey = UrlKeys.fromJson(urlKeyJson)
+      testContext.assertEquals(testUrlKey.urlKey, urlKey.urlKey)
+      testContext.assertEquals(testUrlKey.upperKey, urlKey.upperKey)
+    }
+
+    suite.run(vertx).handler { res ->
+      if (res.succeeded()) {
+        context.completeNow()
+      } else {
+        context.failNow(res.cause())
+      }
+    }
+  }
 
   @BeforeEach
   @DisplayName("Add the URL key to the database")
