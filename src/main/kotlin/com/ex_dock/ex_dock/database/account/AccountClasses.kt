@@ -7,51 +7,74 @@ import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.authorization.PermissionBasedAuthorization
 
-data class User(var userId: Int, var email: String, var password: String)
+data class FullUser(
+  var userId: String?,
+  var email: String,
+  var password: String,
+  var permissions: List<Pair<String, Permission>>,
+  var apiKey: String?
+) {
+  companion object {
+    fun fromJson(json: JsonObject): FullUser {
+      val userId = json.getString("_id")
+      val email = json.getString("email")
+      val password = json.getString("password")
+      val permissions = json.getJsonArray("permissions")
+      val apiKey = json.getString("api_key")
 
-data class UserCreation(var email: String, var password: String)
+      val permissionList = permissions.map { permission -> permission as JsonObject }
+        .map { permission ->
+          Pair(
+            permission.getString("first"),
+            Permission.fromString(permission.getString("second"))
+          )
+        }
 
-data class BackendPermissions(
-    val userId: Int,
-    var userPermission: Permission,
-    var serverSettings: Permission,
-    var template: Permission,
-    var categoryContent: Permission,
-    var categoryProducts: Permission,
-    var productContent: Permission,
-    var productPrice: Permission,
-    var productWarehouse: Permission,
-    var textPages: Permission,
-    var apiKey: String?
-)
-
-data class FullUser(var user: User, var backendPermissions: BackendPermissions) {
-  init {
-    require(user.userId == backendPermissions.userId)
+      return FullUser(userId, email, password, permissionList, apiKey)
+    }
   }
 }
 
 fun FullUser.convertUser(authHandler: ExDockAuthHandler): io.vertx.ext.auth.User {
   val authorizations = JsonArray()
-  val exDockUser = this.user
   val principal = JsonObject()
-    .put("id", exDockUser.userId)
-    .put("email", exDockUser.email)
-    .put("password", exDockUser.password)
+    .put("id", this.userId)
+    .put("email", this.email)
+    .put("password", this.password)
     .put("authorizations", authorizations)
   var user = io.vertx.ext.auth.User.create(principal)
+  val permissions = this.permissions
 
-  user = user.addPermission(this.backendPermissions.userPermission, "user", authHandler)
-  user = user.addPermission(this.backendPermissions.serverSettings, "server", authHandler)
-  user = user.addPermission(this.backendPermissions.template, "template", authHandler)
-  user = user.addPermission(this.backendPermissions.categoryContent, "categoryContent", authHandler)
-  user = user.addPermission(this.backendPermissions.categoryProducts, "categoryProducts", authHandler)
-  user = user.addPermission(this.backendPermissions.productContent, "productContent", authHandler)
-  user = user.addPermission(this.backendPermissions.productPrice, "productPrice", authHandler)
-  user = user.addPermission(this.backendPermissions.productWarehouse, "productWarehouse", authHandler)
-  user = user.addPermission(this.backendPermissions.textPages, "textPages", authHandler)
+  for (permission in permissions) {
+    user = user.addPermission(permission.second, permission.first, authHandler)
+  }
 
   return user
+}
+
+fun FullUser.toDocument(): JsonObject {
+  val permissionArray = JsonArray()
+  this.permissions.forEach { (permissionName, permissionType) ->
+    permissionArray.add(
+      JsonObject()
+        .put("first", permissionName)
+        .put("second", Permission.toString(permissionType))
+    )
+  }
+
+  val document = JsonObject()
+
+  if (this.userId != null) {
+    document.put("_id", this.userId)
+  }
+
+  document
+    .put("email", this.email)
+    .put("password", this.password.hash())
+    .put("permissions", permissionArray)
+    .put("api_key", this.apiKey.orEmpty())
+
+  return document
 }
 
 fun io.vertx.ext.auth.User.addPermission(permission: Permission, task: String, authHandler: ExDockAuthHandler): io.vertx.ext.auth.User {
@@ -90,7 +113,7 @@ fun io.vertx.ext.auth.User.addAuth(name: String, authHandler: ExDockAuthHandler)
   return this
 }
 
-enum class Permission(name: String) {
+enum class Permission(permissionName: String) {
   NONE("None"),
   READ("Read"),
   WRITE("Write"),
@@ -98,7 +121,7 @@ enum class Permission(name: String) {
 
   companion object {
     fun fromString(value: String): Permission {
-      return entries.find { it.name == value.lowercase() } ?: NONE
+      return entries.find { it.name.lowercase().replace("_", "-") == value.lowercase() } ?: NONE
     }
 
     fun toString(permission: Permission): String {

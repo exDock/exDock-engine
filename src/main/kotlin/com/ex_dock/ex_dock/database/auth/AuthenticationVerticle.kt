@@ -3,6 +3,7 @@ package com.ex_dock.ex_dock.database.auth
 import com.ex_dock.ex_dock.database.account.FullUser
 import com.ex_dock.ex_dock.database.account.convertUser
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
+import com.ex_dock.ex_dock.helper.load
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
@@ -59,12 +60,14 @@ class AuthenticationVerticle: VerticleBase() {
       authHandler.authenticate(usernamePasswordCredentials).onFailure { error ->
         message.fail(401, "invalid credentials")
       }.onSuccess { result ->
+        val props = Properties().load()
+        val issuer = props.getProperty("BASE_URL")
         val user = result
         val accessTokenOptions = JWTOptions()
           .setAlgorithm("RS256")
           .setExpiresInMinutes(15)
           .setSubject(user.principal().getString("id"))
-          .setIssuer("exDock")
+          .setIssuer(issuer)
         val claims = JsonObject().put("authorizations", user.principal().getJsonArray("authorizations"))
         val accessToken = jwtAuth.generateToken(claims, accessTokenOptions)
 
@@ -72,7 +75,7 @@ class AuthenticationVerticle: VerticleBase() {
           .setAlgorithm("RS256")
           .setExpiresInMinutes(60 * 24 * 7)
           .setSubject(user.principal().getString("id"))
-          .setIssuer("exDock")
+          .setIssuer(issuer)
         val refreshClaims = JsonObject()
         refreshClaims.put("jti", "jti-" + UUID.randomUUID().toString())
         val refreshToken = jwtAuth.generateToken(refreshClaims, refreshTokenOptions)
@@ -96,6 +99,8 @@ class AuthenticationVerticle: VerticleBase() {
         val userId = user.principal().getString("sub")
         eventBus.request<FullUser>("process.account.getFullUserByUserId", userId.toInt()).onComplete { userResult ->
           if (userResult.succeeded()) {
+            val props = Properties().load()
+            val issuer = props.getProperty("BASE_URL")
             val fullUser = userResult.result().body()
             val convertedUser = fullUser.convertUser(authHandler)
             val permissions = convertedUser.principal().getJsonArray("authorizations")
@@ -104,11 +109,24 @@ class AuthenticationVerticle: VerticleBase() {
               .setAlgorithm("RS256")
               .setExpiresInMinutes(15)
               .setSubject(convertedUser.principal().getString("sub"))
-              .setIssuer("exDock")
+              .setIssuer(issuer)
             val newClaims = JsonObject()
               .put("permissions", permissions)
             val newToken = jwtAuth.generateToken(newClaims, newTokenOptions)
-            message.reply(newToken)
+
+            val refreshTokenOptions = JWTOptions()
+              .setAlgorithm("RS256")
+              .setExpiresInMinutes(60 * 24 * 7)
+              .setSubject(user.principal().getString("id"))
+              .setIssuer(issuer)
+            val refreshClaims = JsonObject()
+            refreshClaims.put("jti", "jti-" + UUID.randomUUID().toString())
+            val refreshToken = jwtAuth.generateToken(refreshClaims, refreshTokenOptions)
+
+            message.reply(JsonObject()
+              .put("access_token", newToken)
+              .put("refresh_token", refreshToken)
+              .encode())
           } else {
             message.fail(500, "internal server error")
           }
