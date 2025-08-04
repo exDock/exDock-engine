@@ -36,7 +36,7 @@ jobs:
           - "com.ex_dock.ex_dock.frontend.cache.CacheVerticleTest"
 
           # Main
-          - "com.ex_dock.ex_dock.MainVerticleTest"
+          - "com.ex_dock.ex_dock.TestMainVerticle"
 
           # Database
           ## Account
