@@ -33,6 +33,7 @@ fun Router.initFileRouter(vertx: Vertx) {
 
     if (!fullPath.toFile().exists()) {
       ctx.fail(400, Error("Path does not exist"))
+      return@handler
     }
 
     if (fullPath.toFile().isDirectory) {
