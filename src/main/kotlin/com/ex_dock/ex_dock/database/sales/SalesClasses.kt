@@ -38,13 +38,18 @@ fun Order.toDocument(): JsonObject {
     )
   }
 
-  return JsonObject()
-    .put("_id", orderId)
+  val document = JsonObject()
     .put("language", language)
     .put("date", date)
     .put("customer_id", customerId)
     .put("status", status)
     .put("items", itemList)
+
+  if (orderId != null) {
+    document.put("_id", orderId)
+  }
+
+  return document
 }
 
 data class Invoice(
@@ -70,13 +75,18 @@ data class Invoice(
 }
 
 fun Invoice.toDocument(): JsonObject {
-  return JsonObject()
-    .put("_id", invoiceId)
+  val document = JsonObject()
     .put("invoice_date", invoiceDate)
     .put("order_date", orderDate)
     .put("order_id", orderId)
     .put("status", status)
     .put("amount", amount)
+
+  if (invoiceId != null) {
+    document.put("_id", invoiceId)
+  }
+
+  return document
 }
 
 data class CreditMemo(
@@ -119,8 +129,7 @@ fun CreditMemo.toDocument(): JsonObject {
     )
   }
 
-  return JsonObject()
-    .put("_id", creditMemoId)
+  val document = JsonObject()
     .put("credit_memo_date", creditMemoDate)
     .put("order_date", orderDate)
     .put("order_id", orderId)
@@ -128,6 +137,12 @@ fun CreditMemo.toDocument(): JsonObject {
     .put("amount", amount)
     .put("return_items", returnItems)
     .put("items", itemList)
+
+  if (creditMemoId != null) {
+    document.put("_id", creditMemoId)
+  }
+
+  return document
 }
 
 data class Transaction(
@@ -153,13 +168,18 @@ data class Transaction(
 }
 
 fun Transaction.toDocument(): JsonObject {
-  return JsonObject()
-    .put("_id", transactionId)
+  val document = JsonObject()
     .put("transaction_date", transactionDate)
     .put("order_id", orderId)
     .put("type", type)
     .put("method", method)
     .put("is_closed", isClosed)
+
+  if (transactionId != null) {
+    document.put("_id", transactionId)
+  }
+
+  return document
 }
 
 data class Shipment(
@@ -200,12 +220,19 @@ fun Shipment.toDocument(): JsonObject {
     )
   }
 
-  return JsonObject()
-    .put("_id", shipmentId)
+  val document = JsonObject()
     .put("shipment_date", shipmentDate)
     .put("address", address)
-    .put("tracking_number", trackingNumber)
     .put("order_id", orderId)
     .put("status", status)
     .put("items", itemList)
+
+  if (shipmentId != null) {
+    document.put("_id", shipmentId)
+  }
+  if (trackingNumber != null) {
+    document.put("tracking_number", trackingNumber)
+  }
+
+  return document
 }
