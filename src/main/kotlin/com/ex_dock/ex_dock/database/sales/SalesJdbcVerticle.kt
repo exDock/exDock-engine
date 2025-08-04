@@ -101,7 +101,7 @@ class SalesJdbcVerticle: VerticleBase() {
             val rowsFuture = client.save("orders", document)
 
             rowsFuture.onFailure { res ->
-                println("Failed to execute query: ${'$'}res")
+                println("Failed to execute query: $res")
                 message.fail(400, FAILED)
             }
 
