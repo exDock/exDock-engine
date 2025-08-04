@@ -27,20 +27,6 @@ jobs:
     strategy:
       matrix:
         test_class:
-#          # Backend
-#          - "com.ex_dock.ex_dock.backend.BackendRouterTest"
-#          ## V1
-#          ### Auth
-#          - "com.ex_dock.ex_dock.backend.v1.router.auth.AuthRouterTest"
-#          ### Docker
-#          - "com.ex_dock.ex_dock.backend.v1.router.docker.DockerRouterTest"
-#          ### File
-#          - "com.ex_dock.ex_dock.backend.v1.router.file.FileRouterTest"
-#          ### Sales
-#          - "com.ex_dock.ex_dock.backend.v1.router.sales.SalesRouterTest"
-#          ### Websocket
-#          - "com.ex_dock.ex_dock.backend.v1.router.websocket.WebsocketRouterTest"
-
           # Codecs
           - "com.ex_dock.ex_dock.codecs.template_engine.SingleUseTemplateDataCodecTest"
 
@@ -52,7 +38,7 @@ jobs:
           - "com.ex_dock.ex_dock.database.account.AccountJdbcVerticleTest"
           ## Auth
           - "com.ex_dock.ex_dock.database.auth.AuthenticationVerticleTest"
-          ## Backend Block
+          ## Backend block
           - "com.ex_dock.ex_dock.database.backend_block.BackendBlockJdbcVerticleTest"
           ## Category
           - "com.ex_dock.ex_dock.database.category.CategoryJdbcVerticleTest"
@@ -63,7 +49,7 @@ jobs:
           ## Scope
           - "com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticleTest"
           ## Server
-          - "com.ex_dock.ex_dock.database.server.ServerJdbcVerticleTest"
+          - "com.ex_dock.ex_dock.database.server.ServerJDBCVerticleTest"
           ## Template
           - "com.ex_dock.ex_dock.database.template.TemplateJdbcVerticleTest"
           ## TextPages
@@ -72,10 +58,6 @@ jobs:
           - "com.ex_dock.ex_dock.database.url.UrlJdbcVerticleTest"
           ## Utils
           - "com.ex_dock.ex_dock.database.utils.JdbcSetupTest"
-
-          # Frontend
-          ## Cache
-          - "com.ex_dock.ex_dock.frontend.cache.CacheVerticleTest"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
