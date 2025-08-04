@@ -29,7 +29,7 @@ class MainVerticle : VerticleBase() {
   }
   private val deployedVerticleIds = emptyList<String>().toMutableList()
 
-  private val props : Properties = Properties().load()
+  private lateinit var props : Properties
 
   /**
   * This function is the entry point for the Vert.x application. It starts an HTTP server and listens on port 8888.
@@ -39,6 +39,8 @@ class MainVerticle : VerticleBase() {
   * @return Nothing is returned from this function.
   */
   override fun start(): Future<*> {
+    props = Properties().load()
+
     vertx.deployVerticle(ExtensionsLauncher())
       .onSuccess{ verticleId ->
         logger.info { "MainVerticle started successfully" }

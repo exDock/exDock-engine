@@ -16,6 +16,11 @@ fun Properties.load(isDefault: Boolean = false): Properties {
   val localExternalConfigPath = "config/$configFileName"
   val configFile: File
 
+  if (!File(localExternalConfigPath).exists()) {
+    File(localExternalConfigPath).createNewFile()
+    copyDefaultProperties(localExternalConfigPath)
+  }
+
   val potentialExternalFile = File(externalConfigPath)
   if (potentialExternalFile.exists()) {
     configFile = potentialExternalFile
@@ -34,4 +39,14 @@ fun Properties.load(isDefault: Boolean = false): Properties {
   }
 
   return this
+}
+
+fun copyDefaultProperties(path: String) {
+  val externalFile = File(path)
+  val defaultFile = File("config/default.properties")
+  try {
+    defaultFile.copyTo(externalFile, overwrite = true)
+  } catch (e: IOException) {
+    MainVerticle.logger.error { e.message }
+  }
 }
