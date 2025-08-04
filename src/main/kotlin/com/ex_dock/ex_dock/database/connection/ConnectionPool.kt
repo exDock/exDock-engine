@@ -15,7 +15,6 @@ fun Vertx.getConnection(): MongoClient {
   try {
     val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
     if (isDocker) {
-      MainVerticle.logger.info { "Found GitHub instance!" }
       val p = Properties()
       p.setProperty("database", "ex-dock")
 
@@ -33,8 +32,6 @@ fun Vertx.getConnection(): MongoClient {
     connectOptions
       .put("connection_string", props.getProperty("DATABASE_STRING"))
       .put("db_name", "ex-dock")
-
-    MainVerticle.logger.info { "Found local instance!" }
 
     client = MongoClient.createShared(this, connectOptions)
     return client
