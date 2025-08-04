@@ -6,8 +6,12 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.util.*
 
-fun Properties.load(): Properties {
-  val configFileName = "secret.properties"
+fun Properties.load(isDefault: Boolean = false): Properties {
+  val configFileName: String = if (isDefault) {
+    "default.properties"
+  } else {
+    "secret.properties"
+  }
   val externalConfigPath = "/app/config/$configFileName"
   val localExternalConfigPath = "config/$configFileName"
   val configFile: File

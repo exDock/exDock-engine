@@ -12,9 +12,7 @@ class TestMainVerticle {
 
   @BeforeEach
   fun deploy_verticle(vertx: Vertx, testContext: VertxTestContext) {
-    println("Deploying MainVerticle")
     vertx.deployVerticle(MainVerticle()).onFailure {
-      println("Failed to deploy MainVerticle: $it")
       MainVerticle.logger.error { "Failed to deploy MainVerticle: $it" }
       testContext.failNow(it)
     }.onSuccess {

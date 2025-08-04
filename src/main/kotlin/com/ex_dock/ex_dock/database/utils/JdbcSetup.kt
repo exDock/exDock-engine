@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.utils
 
+import com.ex_dock.ex_dock.helper.load
 import java.util.Properties
 
 class JdbcSetup(
@@ -7,12 +8,8 @@ class JdbcSetup(
   defaultPropertiesFile: String = "default.properties",
   classLoader: ClassLoader = JdbcSetup::class.java.classLoader,
   ) {
-  private val props: Properties = classLoader.getResourceAsStream(propertiesFile).use {
-    Properties().apply { load(it) }
-  }
-  private val defaultProps: Properties = classLoader.getResourceAsStream(defaultPropertiesFile).use {
-    Properties().apply { load(it) }
-  }
+  private val props: Properties = Properties().load()
+  private val defaultProps: Properties = Properties().load(true)
   private var isCompleted: Boolean = false
 
   /**

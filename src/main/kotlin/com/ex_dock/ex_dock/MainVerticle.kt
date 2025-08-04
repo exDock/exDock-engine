@@ -7,6 +7,7 @@ import com.ex_dock.ex_dock.frontend.checkout.router.initCheckout
 import com.ex_dock.ex_dock.frontend.home.router.initHome
 import com.ex_dock.ex_dock.frontend.product.router.initProduct
 import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
+import com.ex_dock.ex_dock.helper.load
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.sendError
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -28,9 +29,7 @@ class MainVerticle : VerticleBase() {
   }
   private val deployedVerticleIds = emptyList<String>().toMutableList()
 
-  private val props : Properties = javaClass.classLoader.getResourceAsStream("secret.properties").use {
-    Properties().apply { load(it) }
-  }
+  private val props : Properties = Properties().load()
 
   /**
   * This function is the entry point for the Vert.x application. It starts an HTTP server and listens on port 8888.
