@@ -1,24 +1,33 @@
 services:
   ex-dock:
     build: .
+    depends_on:
+      database:
+        condition: service_healthy
     volumes:
       - ./config:/app/config
     ports:
       - "8888:8888"
     networks:
       - ex-dock
+
   database:
-    image: postgres:14-alpine
+    image: mongodb/mongodb-community-server:latest
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=ex-dock
-    volumes:
-      - ./database/ex-dock.sql:/docker-entrypoint-initdb.d/datadump.sql
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
     ports:
-      - "8890:5432"
+      - "8890:27017"
     networks:
       - ex-dock
+    env_file:
+      - .env
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 2s
+      retries: 10
 
 networks:
   ex-dock:

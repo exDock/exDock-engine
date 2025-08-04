@@ -7,6 +7,7 @@ import com.ex_dock.ex_dock.frontend.checkout.router.initCheckout
 import com.ex_dock.ex_dock.frontend.home.router.initHome
 import com.ex_dock.ex_dock.frontend.product.router.initProduct
 import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
+import com.ex_dock.ex_dock.helper.load
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.sendError
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -16,6 +17,7 @@ import io.vertx.core.VerticleBase
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.SessionStore
 import java.util.*
@@ -27,18 +29,16 @@ class MainVerticle : VerticleBase() {
   }
   private val deployedVerticleIds = emptyList<String>().toMutableList()
 
-  private val props : Properties = javaClass.classLoader.getResourceAsStream("secret.properties").use {
-    Properties().apply { load(it) }
-  }
+  private lateinit var props : Properties
 
   /**
   * This function is the entry point for the Vert.x application. It starts an HTTP server and listens on port 8888.
   *
-  * @param startPromise A [Promise] that will be completed when the HTTP server has started successfully or failed to start.
-  *
   * @return Nothing is returned from this function.
   */
   override fun start(): Future<*> {
+    props = Properties().load()
+
     vertx.deployVerticle(ExtensionsLauncher())
       .onSuccess{ verticleId ->
         logger.info { "MainVerticle started successfully" }
@@ -81,6 +81,7 @@ class MainVerticle : VerticleBase() {
     sessionHandler.setCookieSameSite(CookieSameSite.STRICT)
 
     mainRouter.route().handler(sessionHandler)
+    mainRouter.route().handler(BodyHandler.create())
 
     mainRouter.enableBackendRouter(vertx, logger)
 

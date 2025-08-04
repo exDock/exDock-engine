@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.frontend.auth
 
 import com.ex_dock.ex_dock.database.account.FullUser
 import com.ex_dock.ex_dock.database.account.convertUser
+import com.google.gson.Gson
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
@@ -50,7 +51,7 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
   override fun authenticate(credentials: Credentials?): Future<VertxUser> {
     // Test if credentials are not null
     if (credentials == null) {
-      return Future.failedFuture<VertxUser>("Credentials cannot be null")
+      return Future.failedFuture("Credentials cannot be null")
     }
 
     val jsonCredentials = credentials.toJson()
@@ -58,19 +59,17 @@ class ExDockAuthHandler(vertx: Vertx) : AuthenticationProvider {
     val password = jsonCredentials.getString("password")
 
     return Future.future { future ->
-      eventBus.request<FullUser>("process.account.getFullUserByEmail", email).onComplete {
-        if (it.succeeded()) {
-          val user = it.result().body()
-          // Check if the password matches the hashed password in the database
-          if (BCrypt.checkpw(password, user.user.password)) {
+      eventBus.request<JsonObject>("process.account.getUserByEmail", email)
+        .onFailure { error ->
+          future.fail("User not found")
+        }.onSuccess { message ->
+          val user = FullUser.fromJson(message.body())
+          if (BCrypt.checkpw(password, user.password)) {
             future.complete(user.convertUser(this))
           } else {
             future.fail("Invalid password")
           }
-        } else {
-          future.fail("User not found")
         }
-      }
     }
   }
 

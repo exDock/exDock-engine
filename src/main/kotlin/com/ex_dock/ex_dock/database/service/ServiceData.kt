@@ -7,6 +7,7 @@ fun getAllStandardTemplatesData(): List<Template> {
 
   templates.add(Template(
     "home",
+    "test block",
     "<test>testData</test>",
     ""
   ))
