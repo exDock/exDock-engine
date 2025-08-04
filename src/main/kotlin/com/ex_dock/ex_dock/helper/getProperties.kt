@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.helper
 
+import com.ex_dock.ex_dock.MainVerticle
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -16,12 +17,16 @@ fun Properties.load(): Properties {
     configFile = potentialExternalFile
     try {
       FileInputStream(configFile).use { this.load(it) }
-    } catch (_: IOException) {}
+    } catch (e: IOException) {
+      MainVerticle.logger.error { e.message }
+    }
   } else {
     configFile = File(localExternalConfigPath)
     try {
       FileInputStream(configFile).use { this.load(it) }
-    } catch (_: IOException) {}
+    } catch (e: IOException) {
+      MainVerticle.logger.error { e.message }
+    }
   }
 
   return this
