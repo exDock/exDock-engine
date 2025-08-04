@@ -29,9 +29,6 @@ override fun start(): Future<*> {
       Properties().apply { load(it) }
     }
 
-    // Check for available extensions and deploy them
-    checkExtensions()
-
     // Wait for JDBC Verticle to start first
     return deployVerticleHelper(vertx, JDBCStarter::class.qualifiedName.toString())
       .onFailure{ error ->
@@ -39,6 +36,9 @@ override fun start(): Future<*> {
       }.onSuccess {  verticleId ->
         verticleIds.add(verticleId)
         vertx.eventBus().registerVerticleIds(verticleIds)
+
+        // Check for available extensions and deploy them
+        checkExtensions()
       }
 }
 
