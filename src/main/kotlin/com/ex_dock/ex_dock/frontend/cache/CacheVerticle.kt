@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.frontend.cache
 
 import com.ex_dock.ex_dock.database.service.InvalidCacheKeyException
+import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
 import io.vertx.core.Future
@@ -155,7 +156,10 @@ class CacheVerticle : VerticleBase() {
       if (cacheData != null) {
         cache.refresh(cacheKey)
         message.reply("Cache flag was successfully set")
+        return@consumer
       }
+
+      message.reply("")
     }
   }
 }
