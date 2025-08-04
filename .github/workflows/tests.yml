@@ -28,16 +28,16 @@ jobs:
       matrix:
         test_class:
           # Codecs
-          - "com.ex_dock.ex_dock.codecs.*Test"
+          - "com.ex_dock.ex_dock.codecs.**"
 
           # backend
-          - "com.ex_dock.ex_dock.backend.*Test"
+          - "com.ex_dock.ex_dock.backend.**"
 
           # frontend
-          - "com.ex_dock.ex_dock.frontend.*Test"
+          - "com.ex_dock.ex_dock.frontend.**"
 
           # database
-          - "com.ex_dock.ex_dock.database.*Test"
+          - "com.ex_dock.ex_dock.database.**"
 
 
     steps:
@@ -53,4 +53,4 @@ jobs:
       - name: Run Tests
         run: |
           docker compose -f .ci/compose.yaml -p ci up -d --quiet-pull
-          mvn test -Dtest=${{ matrix.test_class }} --no-transfer-progress -e
+          mvn -Dtest=${{ matrix.test_class }} test --no-transfer-progress -e
