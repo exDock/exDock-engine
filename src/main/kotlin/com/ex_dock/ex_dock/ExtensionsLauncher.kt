@@ -3,6 +3,7 @@ package com.ex_dock.ex_dock
 import com.ex_dock.ex_dock.database.JDBCStarter
 import com.ex_dock.ex_dock.frontend.FrontendVerticle
 import com.ex_dock.ex_dock.helper.deployVerticleHelper
+import com.ex_dock.ex_dock.helper.load
 import com.ex_dock.ex_dock.helper.registerVerticleIds
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.Future
@@ -24,9 +25,7 @@ class ExtensionsLauncher: VerticleBase() {
  */
 override fun start(): Future<*> {
     // Load properties from the 'secret.properties' file
-    props = javaClass.classLoader.getResourceAsStream("secret.properties").use {
-      Properties().apply { load(it) }
-    }
+    props = Properties().load()
 
     // Wait for JDBC Verticle to start first
     return deployVerticleHelper(vertx, JDBCStarter::class.qualifiedName.toString())
