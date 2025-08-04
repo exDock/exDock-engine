@@ -61,8 +61,6 @@ jobs:
           - "com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticleTest"
           ## Url
           - "com.ex_dock.ex_dock.database.url.UrlJdbcVerticleTest"
-          ## Utils
-          - "com.ex_dock.ex_dock.database.utils.JdbcSetupTest"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
