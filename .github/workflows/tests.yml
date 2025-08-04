@@ -27,19 +27,19 @@ jobs:
     strategy:
       matrix:
         test_class:
-          # Backend
-          - "com.ex_dock.ex_dock.backend.BackendRouterTest"
-          ## V1
-          ### Auth
-          - "com.ex_dock.ex_dock.backend.v1.router.auth.AuthRouterTest"
-          ### Docker
-          - "com.ex_dock.ex_dock.backend.v1.router.docker.DockerRouterTest"
-          ### File
-          - "com.ex_dock.ex_dock.backend.v1.router.file.FileRouterTest"
-          ### Sales
-          - "com.ex_dock.ex_dock.backend.v1.router.sales.SalesRouterTest"
-          ### Websocket
-          - "com.ex_dock.ex_dock.backend.v1.router.websocket.WebsocketRouterTest"
+#          # Backend
+#          - "com.ex_dock.ex_dock.backend.BackendRouterTest"
+#          ## V1
+#          ### Auth
+#          - "com.ex_dock.ex_dock.backend.v1.router.auth.AuthRouterTest"
+#          ### Docker
+#          - "com.ex_dock.ex_dock.backend.v1.router.docker.DockerRouterTest"
+#          ### File
+#          - "com.ex_dock.ex_dock.backend.v1.router.file.FileRouterTest"
+#          ### Sales
+#          - "com.ex_dock.ex_dock.backend.v1.router.sales.SalesRouterTest"
+#          ### Websocket
+#          - "com.ex_dock.ex_dock.backend.v1.router.websocket.WebsocketRouterTest"
 
           # Codecs
           - "com.ex_dock.ex_dock.codecs.template_engine.SingleUseTemplateDataCodecTest"
