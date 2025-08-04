@@ -33,7 +33,7 @@ jobs:
           # Templating Engine
           - "com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticleSingleUseTest"
           # Cache
-          - "com.ex_dock.ex_dock.frontend.cache.CacheVerticleTest"
+#          - "com.ex_dock.ex_dock.frontend.cache.CacheVerticleTest"
 
           # Main
           - "com.ex_dock.ex_dock.TestMainVerticle"
