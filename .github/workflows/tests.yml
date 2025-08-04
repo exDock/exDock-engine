@@ -27,19 +27,55 @@ jobs:
     strategy:
       matrix:
         test_class:
+          # Backend
+          - "com.ex_dock.ex_dock.backend.BackendRouterTest"
+          ## V1
+          ### Auth
+          - "com.ex_dock.ex_dock.backend.v1.router.auth.AuthRouterTest"
+          ### Docker
+          - "com.ex_dock.ex_dock.backend.v1.router.docker.DockerRouterTest"
+          ### File
+          - "com.ex_dock.ex_dock.backend.v1.router.file.FileRouterTest"
+          ### Sales
+          - "com.ex_dock.ex_dock.backend.v1.router.sales.SalesRouterTest"
+          ### Websocket
+          - "com.ex_dock.ex_dock.backend.v1.router.websocket.WebsocketRouterTest"
+
           # Codecs
-          - "com.ex_dock.ex_dock.codecs.**"
+          - "com.ex_dock.ex_dock.codecs.template_engine.SingleUseTemplateDataCodecTest"
 
-          # backend
-          - "com.ex_dock.ex_dock.backend.**"
+          # Templating Engine
+          - "com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticleSingleUseTest"
 
-          # frontend
-          - "com.ex_dock.ex_dock.frontend.**"
+          # Database
+          ## Account
+          - "com.ex_dock.ex_dock.database.account.AccountJdbcVerticleTest"
+          ## Auth
+          - "com.ex_dock.ex_dock.database.auth.AuthenticationVerticleTest"
+          ## Backend Block
+          - "com.ex_dock.ex_dock.database.backend_block.BackendBlockJdbcVerticleTest"
+          ## Category
+          - "com.ex_dock.ex_dock.database.category.CategoryJdbcVerticleTest"
+          ## Product
+          - "com.ex_dock.ex_dock.database.product.ProductJdbcVerticleTest"
+          ## Sales
+          - "com.ex_dock.ex_dock.database.sales.SalesJdbcVerticleTest"
+          ## Scope
+          - "com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticleTest"
+          ## Server
+          - "com.ex_dock.ex_dock.database.server.ServerJdbcVerticleTest"
+          ## Template
+          - "com.ex_dock.ex_dock.database.template.TemplateJdbcVerticleTest"
+          ## TextPages
+          - "com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticleTest"
+          ## Url
+          - "com.ex_dock.ex_dock.database.url.UrlJdbcVerticleTest"
+          ## Utils
+          - "com.ex_dock.ex_dock.database.utils.JdbcSetupTest"
 
-          # database
-          - "com.ex_dock.ex_dock.database.**"
-
-
+          # Frontend
+          ## Cache
+          - "com.ex_dock.ex_dock.frontend.cache.CacheVerticleTest"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,4 +89,4 @@ jobs:
       - name: Run Tests
         run: |
           docker compose -f .ci/compose.yaml -p ci up -d --quiet-pull
-          mvn -Dtest=${{ matrix.test_class }} test --no-transfer-progress -e
+          mvn test -Dtest=${{ matrix.test_class }} --no-transfer-progress -e
