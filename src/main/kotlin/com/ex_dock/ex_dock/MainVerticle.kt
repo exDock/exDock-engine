@@ -34,8 +34,6 @@ class MainVerticle : VerticleBase() {
   /**
   * This function is the entry point for the Vert.x application. It starts an HTTP server and listens on port 8888.
   *
-  * @param startPromise A [Promise] that will be completed when the HTTP server has started successfully or failed to start.
-  *
   * @return Nothing is returned from this function.
   */
   override fun start(): Future<*> {
