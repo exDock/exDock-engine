@@ -26,6 +26,10 @@ fun Future<List<JsonObject>>.replySingleMessage(message: Message<String>) {
   }
 
   this.onSuccess { res ->
+    if (res.isEmpty()) {
+      message.fail(404, "Not found")
+      return@onSuccess
+    }
     message.reply(res.first())
   }
 }
