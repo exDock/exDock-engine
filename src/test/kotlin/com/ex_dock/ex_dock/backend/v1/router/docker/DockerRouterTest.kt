@@ -1,7 +1,6 @@
 package com.ex_dock.ex_dock.backend.v1.router.docker
 
 import com.ex_dock.ex_dock.MainVerticle
-import com.ex_dock.ex_dock.backend.v1.router.docker.ServerHealth
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.load
 import io.vertx.core.Vertx

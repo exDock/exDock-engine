@@ -2,15 +2,12 @@ package com.ex_dock.ex_dock.backend.v1.router.file
 
 import com.ex_dock.ex_dock.database.backend_block.BlockInfo
 import io.vertx.core.Vertx
-import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
-import kotlinx.serialization.Serializable
 import java.nio.file.Paths
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.io.path.isDirectory
 
 @OptIn(ExperimentalEncodingApi::class)
 fun Router.initFileRouter(vertx: Vertx) {

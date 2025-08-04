@@ -7,7 +7,6 @@ import com.ex_dock.ex_dock.helper.registerVerticleIds
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
-import io.vertx.ext.web.client.WebClient
 import java.util.*
 
 class ExtensionsLauncher: VerticleBase() {
@@ -43,8 +42,6 @@ override fun start(): Future<*> {
 }
 
   private fun checkExtensions() {
-    val client = WebClient.create(vertx)
-
     // ADD frontend Verticles
     vertx.deployVerticleHelper(FrontendVerticle::class).onFailure { error ->
       logger.error { "Failed to deploy frontend verticle: $error" }

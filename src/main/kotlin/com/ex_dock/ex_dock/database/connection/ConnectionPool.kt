@@ -1,6 +1,5 @@
 package com.ex_dock.ex_dock.database.connection
 
-import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.helper.load
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
