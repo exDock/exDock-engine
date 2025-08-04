@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.connection
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.helper.load
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -14,7 +15,8 @@ fun Vertx.getConnection(): MongoClient {
   try {
     val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
     if (isDocker) {
-      val p = Properties()
+      MainVerticle.logger.info { "Running inside GitHub Docker container" }
+      val p = Properties().load()
       p.setProperty("database", "ex-dock")
 
       connectOptions
