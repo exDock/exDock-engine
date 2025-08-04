@@ -5,6 +5,7 @@ import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.backend.v1.router.file.initFileRouter
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import com.ex_dock.ex_dock.backend.v1.router.image.initImage
+import com.ex_dock.ex_dock.backend.v1.router.sales.initSalesRouter
 import com.ex_dock.ex_dock.backend.v1.router.system.enableSystemRouter
 import com.ex_dock.ex_dock.database.backend_block.BlockInfo
 import com.ex_dock.ex_dock.helper.convertJsonElement
@@ -110,6 +111,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   backendV1Router.initImage(vertx)
   backendV1Router.enableSystemRouter(vertx)
   backendV1Router.initFileRouter(vertx)
+  backendV1Router.initSalesRouter(vertx)
 
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
