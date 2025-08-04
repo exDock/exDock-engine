@@ -28,30 +28,18 @@ jobs:
       matrix:
         test_class:
           # Codecs
-          - "com.ex_dock.ex_dock.codecs.template_engine.SingleUseTemplateDataCodecTest"
+          - "com.ex_dock.ex_dock.codecs.*Test"
 
-          # Templating Engine
-          - "com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticleSingleUseTest"
+          # backend
+          - "com.ex_dock.ex_dock.backend.*Test"
 
-          # Database
-          ## Account
-          - "com.ex_dock.ex_dock.database.account.AccountJdbcVerticleTest"
-          ## Category
-          - "com.ex_dock.ex_dock.database.category.CategoryJdbcVerticleTest"
-          ## Product
-          - "com.ex_dock.ex_dock.database.product.ProductJdbcVerticleTest"
-          ## Scope
-          - "com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticleTest"
-          ## Server
-          - "com.ex_dock.ex_dock.database.server.ServerJDBCVerticleTest"
-          ## Template
-          - "com.ex_dock.ex_dock.database.template.TemplateJdbcVerticleTest"
-          ## TextPages
-          - "com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticleTest"
-          ## Url
-          - "com.ex_dock.ex_dock.database.url.UrlJdbcVerticleTest"
-          ## Utils
-          - "com.ex_dock.ex_dock.database.utils.JdbcSetupTest"
+          # frontend
+          - "com.ex_dock.ex_dock.frontend.*Test"
+
+          # database
+          - "com.ex_dock.ex_dock.database.*Test"
+
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
