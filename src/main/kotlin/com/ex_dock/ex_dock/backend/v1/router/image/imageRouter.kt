@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.backend.v1.router.image
 
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.StaticHandler
@@ -15,9 +16,12 @@ fun Router.initImage(vertx: Vertx) {
 
   imageRouter.post("/").handler(StaticHandler.create("src/main/resources/images").setCachingEnabled(false))
 
-  imageRouter.post("/").handler { ctx ->
-    val path = ctx.request().getFormAttribute("path")
-    eventBus.send("process.service.convertImage", path)
+  imageRouter.post("/upload/:path").handler { ctx ->
+    val path = ctx.request().getParam("path")
+    val body = ctx.body().asString()
+    eventBus.send("process.service.convertImage", JsonObject()
+      .put("path", path)
+      .put("body", body))
     ctx.end("request to imageRouter successful")
   }
 

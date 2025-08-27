@@ -1,45 +1,45 @@
 package com.ex_dock.ex_dock.database.connection
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.helper.load
 import io.vertx.core.Vertx
-import io.vertx.jdbcclient.JDBCConnectOptions
-import io.vertx.jdbcclient.JDBCPool
-import io.vertx.sqlclient.Pool
-import io.vertx.sqlclient.PoolOptions
+import io.vertx.core.json.JsonObject
+import io.vertx.ext.mongo.MongoClient
 import java.util.*
 
 
-fun Vertx.getConnection(): Pool {
-  val connection: Pool
-  val connectOptions = JDBCConnectOptions()
+fun Vertx.getConnection(): MongoClient {
+  var client: MongoClient
+  val connectOptions = JsonObject()
 
   try {
+    val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
+    if (isDocker) {
+      MainVerticle.logger.info { "Found GitHub instance!" }
+      val p = Properties()
+      p.setProperty("database", "ex-dock")
+
+      connectOptions
+        .put("connection_string", "mongodb://admin:docker@localhost:8890/")
+        .put("db_name", "ex-dock")
+
+      client = MongoClient.createShared(this, connectOptions)
+      return client
+    }
     val props = Properties().load()
+    val p = Properties()
+    p.setProperty("database", "ex-dock")
 
     connectOptions
-      .setJdbcUrl(props.getProperty("DATABASE_URL"))
-      .setUser(props.getProperty("DATABASE_USERNAME"))
-      .setPassword(props.getProperty("DATABASE_PASSWORD"))
+      .put("connection_string", props.getProperty("DATABASE_STRING"))
+      .put("db_name", "ex-dock")
+
+    MainVerticle.logger.info { "Found local instance!" }
+
+    client = MongoClient.createShared(this, connectOptions)
+    return client
+
   } catch (_: Exception) {
-    try {
-      val isDocker: Boolean = !System.getenv("GITHUB_RUN_NUMBER").isNullOrEmpty()
-      if (isDocker) {
-        connectOptions
-          .setJdbcUrl("jdbc:postgresql://localhost:8890/ex-dock")
-          .setUser("postgres")
-          .setPassword("docker")
-      } else {
-        error("Could not load the Properties file!")
-      }
-    } catch (_: Exception) {
-      error("Could not read the Properties file!")
-    }
+    error("Could not read the Properties file!")
   }
-
-  val poolOptions = PoolOptions()
-    .setMaxSize(16)
-
-  connection = JDBCPool.pool(this, connectOptions, poolOptions)
-
-  return connection
 }

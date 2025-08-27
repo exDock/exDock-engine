@@ -2,10 +2,11 @@ package com.ex_dock.ex_dock.backend.v1.router
 
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
-import com.ex_dock.ex_dock.database.backend_block.FullBlockInfo
+import com.ex_dock.ex_dock.backend.v1.router.file.initFileRouter
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import com.ex_dock.ex_dock.backend.v1.router.system.enableSystemRouter
+import com.ex_dock.ex_dock.database.backend_block.BlockInfo
 import com.ex_dock.ex_dock.helper.convertJsonElement
 import com.ex_dock.ex_dock.helper.findValueByFieldName
 import com.ex_dock.ex_dock.helper.sendError
@@ -29,7 +30,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   backendV1Router.post("/getBlockData").handler { ctx ->
     val body = ctx.body().asJsonObject()
     val pageName = body.getString("page_name")
-    val productId = body.getInteger("product_id")
+    val productId = body.getString("product_id")
     val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
 //    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
 //      if (it.getBoolean("success")) {
@@ -39,39 +40,39 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
 //      }
 //    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
 //      if (it.getBoolean("success")) {
-      eventBus.request<MutableList<FullBlockInfo>>("process.backend_block.getAllFullInfoByBlockNames", pageName, listDeliveryOptions).onFailure {
+      eventBus.request<MutableList<JsonObject>>("process.backendBlock.getBackendBlocksByPageName", pageName, listDeliveryOptions).onFailure {
         println("Failed to get block info")
         ctx.end("Failed to get block info")
-      }.onComplete {
-        eventBus.request<JsonObject>("process.completeEav.getById", productId).onFailure {
+      }.onSuccess {
+        eventBus.request<JsonObject>("process.product.getProductById", productId).onFailure {
           println("Failed to get product info")
           ctx.end("Failed to get product info")
-        }.onComplete { product ->
-          val fullProduct = product.result().body()
+        }.onSuccess { product ->
+          val fullProduct = product.body()
           val jsonElement = JsonParser.parseString(fullProduct.toString()).asJsonObject
-          val blocks = it.result().body()
+          val blocks = BlockInfo.fromJsonList(it.body())
           val jsonResponse = JsonObject()
           blocks.forEach { block ->
             val blockInformationJson = JsonObject()
             val blockAttributesList = mutableListOf<JsonObject>()
 
             block.blockAttributes.forEach { blockAttribute ->
-              if (blockAttribute.attributeType != "list" && blockAttribute.attributeName != "images") {
+              if (blockAttribute.attributeName != "images") {
                 val attributeJson = JsonObject()
                 attributeJson.put("attribute_id", blockAttribute.attributeId)
                 attributeJson.put("attribute_name", blockAttribute.attributeName)
                 attributeJson.put("attribute_type", blockAttribute.attributeType)
                 attributeJson.put(
                   "current_attribute_value",
-                  jsonElement.get(blockAttribute.attributeId).convertJsonElement()
+                  jsonElement.get(blockAttribute.attributeId.replace("product_", "")).convertJsonElement()
 
                 )
                 blockAttributesList.add(attributeJson)
               }
             }
 
-            blockInformationJson.put("block_type", block.backendBlock.blockType)
-            if (block.backendBlock.blockName == "Images") {
+            blockInformationJson.put("block_type", block.blockType)
+            if (block.blockName == "Images") {
               blockInformationJson.put(
                 "images",
                 jsonElement.findValueByFieldName("images").convertJsonElement()
@@ -80,14 +81,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
               blockInformationJson.put("attributes", blockAttributesList)
             }
 
-            block.eavAttributeList.forEach { eavAttributeList ->
-              blockInformationJson.put(
-                eavAttributeList.attributeKey,
-                jsonElement.findValueByFieldName(eavAttributeList.attributeKey).convertJsonElement()
-              )
-            }
-
-            jsonResponse.put(block.backendBlock.blockName, blockInformationJson)
+            jsonResponse.put(block.blockName, blockInformationJson)
           }
 
           ctx.end(jsonResponse.toString())
@@ -115,6 +109,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   // TODO: routing
   backendV1Router.initImage(vertx)
   backendV1Router.enableSystemRouter(vertx)
+  backendV1Router.initFileRouter(vertx)
 
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"

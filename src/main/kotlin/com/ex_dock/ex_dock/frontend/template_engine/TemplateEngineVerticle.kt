@@ -1,6 +1,8 @@
 package com.ex_dock.ex_dock.frontend.template_engine
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.database.template.Template
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateDataCodec
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -11,13 +13,15 @@ import io.pebbletemplates.pebble.template.PebbleTemplate
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonObject
+import io.vertx.ext.mongo.MongoClient
 import io.vertx.sqlclient.Pool
 import io.vertx.sqlclient.Tuple
 import java.io.StringWriter
 import java.util.concurrent.TimeUnit
 
 class TemplateEngineVerticle: VerticleBase() {
-  private lateinit var client: Pool
+  private lateinit var client: MongoClient
   private lateinit var eventBus: EventBus
   private lateinit var templateCache: LoadingCache<String, TemplateCacheData>
   private lateinit var compiledTemplateCache: LoadingCache<String, Future<CompiledTemplateCacheData>>
@@ -91,16 +95,17 @@ class TemplateEngineVerticle: VerticleBase() {
 
   private fun cacheCompiledTemplate(key: String): Future<CompiledTemplateCacheData> {
     return Future.future { promise ->
-      val query = "SELECT template_key, template_data, data_string FROM templates WHERE template_key = ?"
-      client.preparedQuery(query).execute(Tuple.of(key)).onFailure { err ->
-        println("[FAILURE] query: \"$query\" failed")
-        println("err.message: ${err.message}")
+      val query = JsonObject()
+        .put("_id", key)
+      client.find("templates", query).onFailure { err ->
+        MainVerticle.logger.error { err.localizedMessage }
         promise.fail(err)
       }.onSuccess { res ->
-        val result = engine.getTemplate(res.first().getString("template_data"))
+        val template = Template.fromJson(res.first())
+        val result = engine.getTemplate(template.templateData)
         promise.complete(CompiledTemplateCacheData(
           result,
-          res.first().getString("data_string")
+          template.dataString
           ))
       }
     }
