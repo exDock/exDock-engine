@@ -65,17 +65,21 @@ fun convertToWebp(name: String, extension: String, file: File): Future<Unit> {
   return Future.succeededFuture()
 }
 
-fun convertToBasicExtensions(path: String, extension: String, validExtensions: List<String>, originalImage: File) {
-  // Make a list of all extensions that have not yet been made
-  val validExtensionsMutableList = validExtensions.toMutableList()
-  validExtensionsMutableList.remove("webp")
-  validExtensionsMutableList.remove(extension)
+fun convertToBasicExtensions(path: String, extension: String, validExtensions: List<String>, originalImage: File): Future<Unit> {
+  return Future.future { future ->
+    // Make a list of all extensions that have not yet been made
+    val validExtensionsMutableList = validExtensions.toMutableList()
+    validExtensionsMutableList.remove("webp")
+    validExtensionsMutableList.remove(extension)
 
-  for (ext in validExtensionsMutableList) {
-    // Convert the image to all other formats
-    val img: BufferedImage = ImageIO.read(originalImage)
-    val newFile = File("$path.$ext")
-    newFile.createNewFile()
-    ImageIO.write(img, ext, newFile)
+    for (ext in validExtensionsMutableList) {
+      // Convert the image to all other formats
+      val img: BufferedImage = ImageIO.read(originalImage)
+      val newFile = File("$path.$ext")
+      newFile.createNewFile()
+      ImageIO.write(img, ext, newFile)
+    }
+
+    future.succeed()
   }
 }

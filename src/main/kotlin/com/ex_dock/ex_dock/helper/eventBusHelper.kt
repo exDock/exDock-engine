@@ -74,7 +74,10 @@ fun EventBus.convertImage(path: String, imageBytes: String): Future<Unit> {
     if (extension == "jpeg") validExtensions.remove("jpg") else validExtensions.remove("jpeg")
 
     // Get the new uploaded image
-    convertToWebp("$directory\\$fileName", extension, newFile)
+    // No need to throw an error here since the original file still is uploaded, but just not converted
+    convertToWebp("$directory\\$fileName", extension, newFile).onFailure {
+      MainVerticle.logger.error { it.localizedMessage }
+    }
     convertToBasicExtensions("$directory\\$fileName", extension, validExtensions, newFile)
 
     // Update the product to include the new images
