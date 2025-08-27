@@ -13,8 +13,8 @@ data class BlockAttribute(
 data class BlockInfo(
   var blockId: String?,
   var pageName: String,
-  var productId: Int?,
-  var categoryId: Int?,
+  var productId: String?,
+  var categoryId: String?,
   var blockName: String,
   var blockType: String,
   var blockAttributes: List<BlockAttribute>
@@ -38,8 +38,8 @@ data class BlockInfo(
       val block = BlockInfo(
         blockId = jsonObject.getString("_id"),
         pageName = jsonObject.getString("page_name"),
-        productId = jsonObject.getInteger("product_id"),
-        categoryId = jsonObject.getInteger("category_id"),
+        productId = jsonObject.getString("product_id"),
+        categoryId = jsonObject.getString("category_id"),
         blockName = jsonObject.getString("block_name"),
         blockType = jsonObject.getString("block_type"),
         blockAttributes = blockAttributes
