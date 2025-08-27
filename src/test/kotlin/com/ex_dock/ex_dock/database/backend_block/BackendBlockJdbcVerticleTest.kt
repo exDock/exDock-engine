@@ -21,8 +21,8 @@ class BackendBlockJdbcVerticleTest {
   private val testBackendBlock = BlockInfo(
     blockId = "123",
     pageName = "testPage",
-    productId = 1,
-    categoryId = 1,
+    productId = "1",
+    categoryId = "1",
     blockName = "testBlock",
     blockType = "testType",
     blockAttributes = listOf(
