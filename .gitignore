@@ -195,4 +195,7 @@ nbdist/
 
 ### Images ###
 src/main/resources/images/*
-application-files/products/*
+application-files/*
+
+## Environment Files ###
+.env
