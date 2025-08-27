@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.service
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.helper.convertImage
 import io.vertx.core.Future
@@ -28,8 +29,13 @@ class ServiceVerticle: VerticleBase() {
       var image = body.getString("body")
       image = image.substring(1, image.length - 1)
       println("Got request")
-      convertImage(path, image, eventBus)
-      message.reply("Image conversion completed")
+      eventBus.convertImage(path, image).onFailure { err ->
+        MainVerticle.logger.error { err.localizedMessage }
+        message.fail(500, err.localizedMessage)
+      }.onSuccess {
+        MainVerticle.logger.info { "Image conversion completed" }
+        message.reply("Image conversion completed")
+      }
     }
   }
 }
