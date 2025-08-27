@@ -79,7 +79,7 @@ class AccountJdbcVerticle: VerticleBase() {
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
-        message.fail(400, FAILED)
+        message.fail(500, FAILED)
       }
 
       rowsFuture.onSuccess { res ->
@@ -109,7 +109,7 @@ class AccountJdbcVerticle: VerticleBase() {
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
-        message.fail(400, FAILED)
+        message.fail(500, FAILED)
       }
 
       rowsFuture.onSuccess { res ->
@@ -134,7 +134,7 @@ class AccountJdbcVerticle: VerticleBase() {
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
-        message.fail(400, FAILED)
+        message.fail(500, FAILED)
       }
 
       rowsFuture.onSuccess { res ->
