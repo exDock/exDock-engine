@@ -26,6 +26,11 @@ fun Future<List<JsonObject>>.replySingleMessage(message: Message<String>) {
   }
 
   this.onSuccess { res ->
+    if (res.isEmpty()) {
+      MainVerticle.logger.error { "Requested JDBC query did not return an entry" }
+      message.fail(500, "Requested JDBC query did not return an entry")
+      return@onSuccess
+    }
     message.reply(res.first())
   }
 }
