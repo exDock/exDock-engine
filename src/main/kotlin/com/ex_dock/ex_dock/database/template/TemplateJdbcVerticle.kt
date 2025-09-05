@@ -47,7 +47,7 @@ class TemplateJdbcVerticle: VerticleBase() {
     getTemplateByKeyConsumer.handler { message ->
       val key = message.body()
       val query = JsonObject()
-        .put("template_key", key)
+        .put("_id", key)
 
       client.find("templates", query).replySingleMessage(message)
     }
@@ -102,7 +102,7 @@ class TemplateJdbcVerticle: VerticleBase() {
     deleteTemplateConsumer.handler { message ->
       val key = message.body()
       val query = JsonObject()
-        .put("template_key", key)
+        .put("_id", key)
 
       val rowsFuture = client.removeDocuments("templates", query)
 
