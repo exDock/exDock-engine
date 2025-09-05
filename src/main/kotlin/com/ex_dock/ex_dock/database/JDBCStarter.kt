@@ -3,7 +3,6 @@ package com.ex_dock.ex_dock.database
 //import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.backend.v1.router.docker.ServerHealth
-import com.ex_dock.ex_dock.backend.v1.router.pages.PagesVerticle
 import com.ex_dock.ex_dock.backend.v1.router.system.SystemVerticle
 import com.ex_dock.ex_dock.database.account.AccountJdbcVerticle
 import com.ex_dock.ex_dock.database.account.FullUser
@@ -29,6 +28,8 @@ import com.ex_dock.ex_dock.database.text_pages.TextPages
 import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
+import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
+import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.registerGenericListCodec
@@ -93,7 +94,7 @@ class JDBCStarter : VerticleBase() {
     verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
-    verticles.add(vertx.deployWorkerVerticleHelper(PagesVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(TemplateEngineVerticle::class))
   }
 
   private fun getAllCodecClasses() {
@@ -111,6 +112,7 @@ class JDBCStarter : VerticleBase() {
       .registerGenericCodec(ImageProduct::class)
       .registerGenericCodec(ServerHealth::class)
       .registerGenericCodec(ProductInfo::class)
+      .registerGenericCodec(SingleUseTemplateData::class)
 
       .registerGenericListCodec(FullUser::class)
   }
