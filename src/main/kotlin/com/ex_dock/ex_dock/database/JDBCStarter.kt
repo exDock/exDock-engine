@@ -3,6 +3,7 @@ package com.ex_dock.ex_dock.database
 //import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.backend.v1.router.docker.ServerHealth
+import com.ex_dock.ex_dock.backend.v1.router.pages.PagesVerticle
 import com.ex_dock.ex_dock.backend.v1.router.system.SystemVerticle
 import com.ex_dock.ex_dock.database.account.AccountJdbcVerticle
 import com.ex_dock.ex_dock.database.account.FullUser
@@ -23,6 +24,7 @@ import com.ex_dock.ex_dock.database.server.ServerJDBCVerticle
 import com.ex_dock.ex_dock.database.server.ServerVersionData
 import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.database.template.Template
+import com.ex_dock.ex_dock.database.template.TemplateJdbcVerticle
 import com.ex_dock.ex_dock.database.text_pages.TextPages
 import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
@@ -90,6 +92,8 @@ class JDBCStarter : VerticleBase() {
     verticles.add(vertx.deployWorkerVerticleHelper(CacheVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(PagesVerticle::class))
   }
 
   private fun getAllCodecClasses() {
