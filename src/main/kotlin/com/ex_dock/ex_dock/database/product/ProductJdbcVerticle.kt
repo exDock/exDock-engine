@@ -1,6 +1,8 @@
 package com.ex_dock.ex_dock.database.product
 
 import com.ex_dock.ex_dock.database.connection.getConnection
+import com.ex_dock.ex_dock.database.product.attributes.createProductAttribute
+import com.ex_dock.ex_dock.database.product.attributes.getProductAttributes
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import com.ex_dock.ex_dock.helper.replyListMessage
 import com.ex_dock.ex_dock.helper.replySingleMessage
@@ -31,6 +33,9 @@ class ProductJdbcVerticle: VerticleBase() {
     createProduct()
     updateProduct()
     deleteProduct()
+
+    eventBus.createProductAttribute(client)
+    eventBus.getProductAttributes(client)
 
     return Future.succeededFuture<Unit>()
   }
