@@ -13,7 +13,7 @@ enum class ProductAttributeTypes(val typeName: String, val productAttributeType:
   IMAGE("Image", ImageProductAttribute()),
 
   STRING_LIST("${List::class.java.simpleName}<${STRING.typeName}>", StringListProductAttribute()),
-  IMAGE_LIST("${List::class.java.simpleName}<${IMAGE.typeName}>", ImageProductAttribute());
+  IMAGE_LIST("${List::class.java.simpleName}<${IMAGE.typeName}>", ImageListProductAttribute());
 
   companion object {
     fun fromString(name: String): ProductAttributeType {
