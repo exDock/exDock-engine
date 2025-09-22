@@ -1,7 +1,7 @@
 package com.ex_dock.ex_dock.database.product.attributes.types
 
-class BooleanProductAttribute: ProductAttributeType() {
+class StringProductAttributeType: ProductAttributeType() {
   override fun isType(value: Any): Boolean {
-    return value is Boolean
+    return value is String
   }
 }

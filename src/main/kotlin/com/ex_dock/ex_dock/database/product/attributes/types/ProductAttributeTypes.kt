@@ -4,16 +4,16 @@ import java.math.BigDecimal
 import java.util.Date
 
 enum class ProductAttributeTypes(val typeName: String, val productAttributeType: ProductAttributeType) {
-  STRING(String::class.java.simpleName, StringProductAttribute()),
-  INT(Int::class.java.simpleName, IntProductAttribute()),
-  DOUBLE(Double::class.java.simpleName, DoubleProductAttribute()),
-  BIG_DECIMAL(BigDecimal::class.java.simpleName, BigDecimalProductAttribute()),
-  BOOLEAN(Boolean::class.java.simpleName, BooleanProductAttribute()),
-  DATETIME(Date::class.java.simpleName, DateTimeProductAttribute()),
-  IMAGE("Image", ImageProductAttribute()),
+  STRING(String::class.java.simpleName, StringProductAttributeType()),
+  INT(Int::class.java.simpleName, IntProductAttributeType()),
+  DOUBLE(Double::class.java.simpleName, DoubleProductAttributeType()),
+  BIG_DECIMAL(BigDecimal::class.java.simpleName, BigDecimalProductAttributeType()),
+  BOOLEAN(Boolean::class.java.simpleName, BooleanProductAttributeType()),
+  DATETIME(Date::class.java.simpleName, DateTimeProductAttributeType()),
+  IMAGE("Image", ImageProductAttributeType()),
 
-  STRING_LIST("${List::class.java.simpleName}<${STRING.typeName}>", StringListProductAttribute()),
-  IMAGE_LIST("${List::class.java.simpleName}<${IMAGE.typeName}>", ImageListProductAttribute());
+  STRING_LIST("${List::class.java.simpleName}<${STRING.typeName}>", StringListProductAttributeType()),
+  IMAGE_LIST("${List::class.java.simpleName}<${IMAGE.typeName}>", ImageListProductAttributeType());
 
   companion object {
     fun fromString(name: String): ProductAttributeType {

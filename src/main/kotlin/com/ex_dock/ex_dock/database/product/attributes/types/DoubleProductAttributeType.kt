@@ -1,7 +1,7 @@
 package com.ex_dock.ex_dock.database.product.attributes.types
 
-class IntProductAttribute: ProductAttributeType() {
+class DoubleProductAttributeType: ProductAttributeType() {
   override fun isType(value: Any): Boolean {
-    return value is Int
+    return value is Double
   }
 }

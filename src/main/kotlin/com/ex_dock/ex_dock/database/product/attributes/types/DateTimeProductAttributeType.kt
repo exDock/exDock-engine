@@ -1,7 +1,9 @@
 package com.ex_dock.ex_dock.database.product.attributes.types
 
-class DoubleProductAttribute: ProductAttributeType() {
+import java.util.Date
+
+class DateTimeProductAttributeType: ProductAttributeType() {
   override fun isType(value: Any): Boolean {
-    return value is Double
+    return value is Date
   }
 }
