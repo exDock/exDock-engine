@@ -6,3 +6,7 @@ import kotlin.reflect.KClass
 fun KClass<*>.deliveryOptions(): DeliveryOptions {
   return DeliveryOptions().setCodecName(this.codecName())
 }
+
+fun KClass<*>.deliveryOptionsList(): DeliveryOptions {
+  return DeliveryOptions().setCodecName(this.codecListName())
+}
