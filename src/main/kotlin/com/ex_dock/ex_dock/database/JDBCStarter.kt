@@ -29,8 +29,8 @@ import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
-import com.ex_dock.ex_dock.helper.registerGenericCodec
-import com.ex_dock.ex_dock.helper.registerGenericListCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericListCodec
 import com.ex_dock.ex_dock.helper.registerVerticleIds
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase

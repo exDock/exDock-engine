@@ -2,7 +2,6 @@ package com.ex_dock.ex_dock.database.url
 
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
-import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.replyListMessage
 import com.ex_dock.ex_dock.helper.replySingleMessage
 import io.vertx.core.Future
