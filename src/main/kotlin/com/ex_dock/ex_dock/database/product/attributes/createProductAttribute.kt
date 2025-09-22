@@ -7,18 +7,20 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
 
 fun EventBus.createProductAttribute(client: MongoClient) {
-  fun missingRequiredArgument(key: String): String {
-    return "The required argument '$key' was not provided while trying to create a productAttribute"
+  fun missingRequiredArgument(key: String): Nothing {
+    throw IllegalArgumentException(
+    "The required argument '$key' was not provided while trying to create a productAttribute"
+    )
   }
 
   this.localConsumer<JsonObject>("process.product.attributes.create").handler { message ->
     val body = message.body()
     val productAttribute = JsonObject()
 
-    val name: String = body.getString("name") ?: throw IllegalArgumentException(missingRequiredArgument("name"))
-    val key: String = body.getString("key") ?: throw IllegalArgumentException(missingRequiredArgument("key"))
+    val name: String = body.getString("name") ?: missingRequiredArgument("name")
+    val key: String = body.getString("key") ?: missingRequiredArgument("key")
     val type: ProductAttributeType = ProductAttributeTypes.fromString(
-      body.getString("type") ?: throw IllegalArgumentException(missingRequiredArgument("type"))
+      body.getString("type") ?: missingRequiredArgument("type")
     )
     val description: String? = body.getString("description")
 
