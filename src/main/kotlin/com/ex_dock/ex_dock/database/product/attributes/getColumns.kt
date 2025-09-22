@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonObject
 
 fun EventBus.getProductColumns() {
   this.localConsumer<String>("process.product.getColumns").handler { message ->
-    this.request<List<JsonObject>>(
+    this.request<JsonArray>(
       "process.product.attributes.getAll",
       JsonObject().put("fieldsToReturn", JsonArray(listOf("name", "key"))),
     ).onFailure { err ->

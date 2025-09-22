@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.product.attributes
 
+import com.ex_dock.ex_dock.helper.codecs.deliveryOptionsList
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -22,7 +23,7 @@ fun EventBus.getProductAttributes(client: MongoClient) {
     client.findWithOptions("productAttributes", filter, findOptions).onFailure { err ->
       message.fail(500, err.message)
     }.onSuccess { res ->
-      message.reply(res)
+      message.reply(JsonArray(res))
     }
   }
 }

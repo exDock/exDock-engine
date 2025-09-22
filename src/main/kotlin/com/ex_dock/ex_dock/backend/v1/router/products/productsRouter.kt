@@ -35,10 +35,10 @@ fun Router.initProductsRouter(vertx: Vertx) {
     }
 
     if (ctx.queryParam("columns").firstOrNull() == "1") allFutures.addFuture { promise ->
-      eventBus.request<List<JsonObject>>("process.product.getColumns", "").onFailure { err ->
+      eventBus.request<JsonArray>("process.product.getColumns", "").onFailure { err ->
         promise.fail(err)
       }.onSuccess { message ->
-        columns = JsonArray(message.body())
+        columns = message.body()
         promise.complete()
       }
     }
