@@ -24,6 +24,23 @@ fun EventBus.createProductAttribute(client: MongoClient) {
     )
     val description: String? = body.getString("description")
 
-    // TODO: check if key exists
+    client.find("productAttributes", JsonObject().put("key", key)).onFailure { err ->
+      message.fail(500, err.message)
+    }.onSuccess { res ->
+      if (res.isNotEmpty()) {
+        return@onSuccess message.fail(409, "Product attribute with key '$key' already exists")
+      }
+
+      productAttribute.put("name", name)
+      productAttribute.put("key", key)
+      productAttribute.put("type", type.toString())
+      if (description != null) productAttribute.put("description", description)
+
+      client.save("productAttributes", productAttribute).onFailure { err ->
+        message.fail(500, err.message)
+      }.onSuccess { res ->
+        message.reply(res)  // Returns the id that was created
+      }
+    }
   }
 }
