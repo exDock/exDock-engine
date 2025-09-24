@@ -115,5 +115,7 @@ fun Router.initProductsRouter(vertx: Vertx) {
     }
   }
 
+  productsRouter.singleProduct(eventBus)
+
   this.route("/products*").subRouter(productsRouter)
 }
