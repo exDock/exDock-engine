@@ -17,6 +17,7 @@ fun Router.initOpenImageRouter(vertx: Vertx) {
 
     if (!fullPath.toFile().exists()) {
       ctx.fail(404, Error("Image does not exist"))
+      return@handler
     }
 
     val contentType: String = when (fullPath.toFile().extension) {
@@ -30,6 +31,7 @@ fun Router.initOpenImageRouter(vertx: Vertx) {
     if (contentType == "unknown") {
       MainVerticle.logger.error { "Incorrect file type" }
       ctx.fail(404, Error("Image does not exist"))
+      return@handler
     }
 
     val image = fullPath.toFile()

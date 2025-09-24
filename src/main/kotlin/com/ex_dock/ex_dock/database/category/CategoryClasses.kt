@@ -3,8 +3,6 @@ package com.ex_dock.ex_dock.database.category
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 
-//import com.ex_dock.ex_dock.database.product.Products
-
 data class CategoryInfo(
   var categoryId: String?,
   var upperCategory: String?,
