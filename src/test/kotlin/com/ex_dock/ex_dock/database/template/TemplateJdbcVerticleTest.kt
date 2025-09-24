@@ -6,6 +6,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.unit.TestSuite
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
@@ -24,6 +25,31 @@ class TemplateJdbcVerticleTest {
     templateData = "testTemplate",
     dataString = "testDataString"
   )
+
+  @Test
+  @DisplayName("Test the template classes functions")
+  fun testTemplateClassesFunctions(vertx: Vertx, context: VertxTestContext) {
+    val suite = TestSuite.create("testTemplateClassesFunctions")
+
+    suite.test("testTemplateToJson") { testContext ->
+      val result = testTemplate.toDocument()
+      testContext.assertEquals(testTemplate.templateKey, result.getString("template_key"))
+      testContext.assertEquals(testTemplate.blockName, result.getString("block_name"))
+    }.test("testTemplateFromJson") { testContext ->
+      val templateJson = testTemplate.toDocument()
+      val template = Template.fromJson(templateJson)
+      testContext.assertEquals(testTemplate.templateKey, template.templateKey)
+      testContext.assertEquals(testTemplate.blockName, template.blockName)
+    }
+
+    suite.run(vertx).handler { res ->
+      if (res.succeeded()) {
+        context.completeNow()
+      } else {
+        context.failNow(res.cause())
+      }
+    }
+  }
 
   @BeforeEach
   @DisplayName("Add the template to the database")

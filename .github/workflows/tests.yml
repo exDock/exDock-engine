@@ -32,14 +32,25 @@ jobs:
 
           # Templating Engine
           - "com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticleSingleUseTest"
+          # Cache
+#          - "com.ex_dock.ex_dock.frontend.cache.CacheVerticleTest"
+
+          # Main
+#          - "com.ex_dock.ex_dock.TestMainVerticle"
 
           # Database
           ## Account
           - "com.ex_dock.ex_dock.database.account.AccountJdbcVerticleTest"
+          ## Auth
+          - "com.ex_dock.ex_dock.database.auth.AuthenticationVerticleTest"
+          ## Backend block
+          - "com.ex_dock.ex_dock.database.backend_block.BackendBlockJdbcVerticleTest"
           ## Category
           - "com.ex_dock.ex_dock.database.category.CategoryJdbcVerticleTest"
           ## Product
           - "com.ex_dock.ex_dock.database.product.ProductJdbcVerticleTest"
+          ## Sales
+          - "com.ex_dock.ex_dock.database.sales.SalesJdbcVerticleTest"
           ## Scope
           - "com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticleTest"
           ## Server
@@ -50,8 +61,6 @@ jobs:
           - "com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticleTest"
           ## Url
           - "com.ex_dock.ex_dock.database.url.UrlJdbcVerticleTest"
-          ## Utils
-          - "com.ex_dock.ex_dock.database.utils.JdbcSetupTest"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

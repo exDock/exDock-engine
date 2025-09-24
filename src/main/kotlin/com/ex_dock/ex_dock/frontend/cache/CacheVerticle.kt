@@ -155,7 +155,10 @@ class CacheVerticle : VerticleBase() {
       if (cacheData != null) {
         cache.refresh(cacheKey)
         message.reply("Cache flag was successfully set")
+        return@consumer
       }
+
+      message.reply("")
     }
   }
 }

@@ -16,7 +16,7 @@ import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
 import java.util.*
 
-class AuthenticationVerticle: VerticleBase() {
+class AuthenticationVerticle : VerticleBase() {
   private lateinit var eventBus: EventBus
   private lateinit var jwtAuth: JWTAuth
   private lateinit var authHandler: ExDockAuthHandler
@@ -40,12 +40,15 @@ class AuthenticationVerticle: VerticleBase() {
       val publicKey = message.body().second
 
       val config: JWTAuthOptions = JWTAuthOptions()
-        .addPubSecKey(PubSecKeyOptions()
-          .setAlgorithm("RS256")
-          .setBuffer(privateKey))
-        .addPubSecKey(PubSecKeyOptions()
-          .setAlgorithm("RS256")
-          .setBuffer(publicKey)
+        .addPubSecKey(
+          PubSecKeyOptions()
+            .setAlgorithm("RS256")
+            .setBuffer(privateKey)
+        )
+        .addPubSecKey(
+          PubSecKeyOptions()
+            .setAlgorithm("RS256")
+            .setBuffer(publicKey)
         )
 
       jwtAuth = JWTAuth.create(vertx, config)
@@ -80,10 +83,12 @@ class AuthenticationVerticle: VerticleBase() {
         refreshClaims.put("jti", "jti-" + UUID.randomUUID().toString())
         val refreshToken = jwtAuth.generateToken(refreshClaims, refreshTokenOptions)
 
-        message.reply(JsonObject()
-          .put("access_token", accessToken)
-          .put("refresh_token", refreshToken)
-          .encode())
+        message.reply(
+          JsonObject()
+            .put("access_token", accessToken)
+            .put("refresh_token", refreshToken)
+            .encode()
+        )
       }
     }
   }
@@ -94,14 +99,20 @@ class AuthenticationVerticle: VerticleBase() {
 
       jwtAuth.authenticate(TokenCredentials().setToken(refreshToken)).onFailure {
         message.fail(401, "invalid refresh token")
-      }.onSuccess{ result ->
+      }.onSuccess { result ->
         val user = result
         val userId = user.principal().getString("sub")
-        eventBus.request<FullUser>("process.account.getFullUserByUserId", userId.toInt()).onComplete { userResult ->
-          if (userResult.succeeded()) {
+        eventBus.request<JsonObject>("process.account.getUserById", userId)
+          .onFailure {
+            if (it.message == "Not found") {
+              message.fail(401, "Invalid refresh token")
+              return@onFailure
+            }
+            message.fail(500, "internal server error")
+          }.onSuccess { userResult ->
             val props = Properties().load()
             val issuer = props.getProperty("BASE_URL")
-            val fullUser = userResult.result().body()
+            val fullUser = FullUser.fromJson(userResult.body())
             val convertedUser = fullUser.convertUser(authHandler)
             val permissions = convertedUser.principal().getJsonArray("authorizations")
 
@@ -123,14 +134,12 @@ class AuthenticationVerticle: VerticleBase() {
             refreshClaims.put("jti", "jti-" + UUID.randomUUID().toString())
             val refreshToken = jwtAuth.generateToken(refreshClaims, refreshTokenOptions)
 
-            message.reply(JsonObject()
-              .put("access_token", newToken)
-              .put("refresh_token", refreshToken)
-              .encode())
-          } else {
-            message.fail(500, "internal server error")
+            message.reply(
+              JsonObject()
+                .put("access_token", newToken)
+                .put("refresh_token", refreshToken)
+            )
           }
-        }
       }
     }
   }
