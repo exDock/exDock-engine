@@ -21,7 +21,7 @@ fun Router.enablePagesRouter(vertx: Vertx) {
     }
   }
 
-  pagesRouter["/getPreview"].handler { ctx ->
+  pagesRouter.post("/getPreview").handler { ctx ->
     val body = ctx.body().asJsonObject()
     val template = body.getString("template")
     val data = body.getJsonObject("data")
