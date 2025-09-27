@@ -3,6 +3,8 @@ package com.ex_dock.ex_dock.backend.v1.router.products
 import com.ex_dock.ex_dock.database.category.toPageIndex
 import com.ex_dock.ex_dock.database.product.ProductInfo
 import com.ex_dock.ex_dock.database.product.toDocument
+import com.ex_dock.ex_dock.helper.ctx.errorResponse
+import com.ex_dock.ex_dock.helper.ctx.jsonResponse
 import com.ex_dock.ex_dock.helper.futures.addFuture
 import com.ex_dock.ex_dock.helper.json.toList
 import io.vertx.core.Future
@@ -44,7 +46,7 @@ fun Router.initProductsRouter(vertx: Vertx) {
     }
 
     Future.all<Unit>(allFutures).onFailure { err ->
-      ctx.response().setStatusCode(500).end(err.message)
+      ctx.errorResponse(err)
     }.onSuccess {
       val result = mutableMapOf<String, Any>()
 
@@ -53,7 +55,7 @@ fun Router.initProductsRouter(vertx: Vertx) {
       if (filters != null) result["filters"] = filters
       if (bulkActions != null) result["bulkActions"] = bulkActions
 
-      ctx.response().end(JsonObject(result).encode())
+      ctx.jsonResponse(JsonObject(result))
     }
   }
 
@@ -63,7 +65,7 @@ fun Router.initProductsRouter(vertx: Vertx) {
     println("Create product POST route is reached")
 
     if (bodyJson == null) {
-      ctx.response().setStatusCode(400).end("Add product (router): missing json in body")
+      ctx.errorResponse(400, "Add product (router): missing json in body")
       throw IllegalArgumentException("Add product (router): missing bodyJson")
     }
 
@@ -109,10 +111,10 @@ fun Router.initProductsRouter(vertx: Vertx) {
 
     eventBus.request<ProductInfo>("process.product.createProduct", productInfo, productInfoDeliveryOptions)
       .onFailure { err ->
-        ctx.response().setStatusCode(500).end(err.message)
+        ctx.errorResponse(err)
       }.onSuccess { res ->
-      ctx.response().end(res.body().toDocument().encode())
-    }
+        ctx.jsonResponse(res.body().toDocument())
+      }
   }
 
   productsRouter.singleProduct(eventBus)
