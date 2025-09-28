@@ -113,6 +113,7 @@ class SalesJdbcVerticleTest {
         deployWorkerVerticleHelper(
             vertx,
             SalesJdbcVerticle::class.java.name,
+          SalesJdbcVerticle::class.java.name,
             1,
             1
         ).onFailure {

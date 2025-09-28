@@ -60,6 +60,7 @@ class ScopeJdbcVerticleTest {
     deployWorkerVerticleHelper(
       vertx,
       ScopeJdbcVerticle::class.qualifiedName.toString(),
+      ScopeJdbcVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onFailure { err ->
