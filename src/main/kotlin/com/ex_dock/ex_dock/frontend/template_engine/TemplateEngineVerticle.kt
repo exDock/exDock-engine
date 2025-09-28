@@ -1,10 +1,17 @@
 package com.ex_dock.ex_dock.frontend.template_engine
 
 import com.ex_dock.ex_dock.MainVerticle
+import com.ex_dock.ex_dock.database.category.CategoryInfo
 import com.ex_dock.ex_dock.database.connection.getConnection
-import com.ex_dock.ex_dock.database.template.Template
-import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
-import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateDataCodec
+import com.ex_dock.ex_dock.database.product.ProductInfo
+import com.ex_dock.ex_dock.database.sales.CreditMemo
+import com.ex_dock.ex_dock.database.sales.Invoice
+import com.ex_dock.ex_dock.database.sales.Order
+import com.ex_dock.ex_dock.database.sales.Shipment
+import com.ex_dock.ex_dock.database.sales.Transaction
+import com.ex_dock.ex_dock.helper.CacheData
+import com.ex_dock.ex_dock.helper.ExDockCache
+import com.github.benmanes.caffeine.cache.CacheLoader
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
 import io.pebbletemplates.pebble.PebbleEngine
@@ -15,16 +22,20 @@ import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
-import io.vertx.sqlclient.Pool
-import io.vertx.sqlclient.Tuple
 import java.io.StringWriter
 import java.util.concurrent.TimeUnit
 
-class TemplateEngineVerticle: VerticleBase() {
+class TemplateEngineVerticle : VerticleBase() {
   private lateinit var client: MongoClient
   private lateinit var eventBus: EventBus
   private lateinit var templateCache: LoadingCache<String, TemplateCacheData>
-  private lateinit var compiledTemplateCache: LoadingCache<String, Future<CompiledTemplateCacheData>>
+  private lateinit var productCache: ExDockCache<ProductInfo>
+  private lateinit var categoryCache: ExDockCache<CategoryInfo>
+  private lateinit var creditMemoCache: ExDockCache<CreditMemo>
+  private lateinit var invoiceCache: ExDockCache<Invoice>
+  private lateinit var orderCache: ExDockCache<Order>
+  private lateinit var shipmentCache: ExDockCache<Shipment>
+  private lateinit var transactionCache: ExDockCache<Transaction>
   private val engine = PebbleEngine.Builder().loader(StringLoader()).build()
 
   private val expireDuration = 10L
@@ -34,14 +45,37 @@ class TemplateEngineVerticle: VerticleBase() {
   override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
+    productCache = ExDockCache(vertx) { key -> getProductCacheData(key) }
+    categoryCache = ExDockCache(vertx) { key -> getCategoryCacheData(key) }
+    creditMemoCache = ExDockCache(vertx) { key -> getCreditMemoCacheData(key) }
+    invoiceCache = ExDockCache(vertx) { key -> getInvoiceCacheData(key) }
+    orderCache = ExDockCache(vertx) { key -> getOrderCacheData(key) }
+    shipmentCache = ExDockCache(vertx) { key -> getShipmentCacheData(key) }
+    transactionCache = ExDockCache(vertx) { key -> getTransactionCacheData(key) }
 
     templateCache = Caffeine.newBuilder()
       .expireAfterWrite(expireDuration, TimeUnit.MINUTES)
       .refreshAfterWrite(refreshDuration, TimeUnit.MINUTES)
-      .build { k -> loadTemplateCacheData(k)}
+      .build(CacheLoader { key ->
+        val future = eventBus.request<JsonObject>("process.template.getTemplateByKey", key)
+          .map { message ->
+            TemplateCacheData(
+              engine.getTemplate(message.body().getString("template_data")),
+              0
+            )
+          }.otherwise { null }
 
-    compiledTemplateCache = Caffeine.newBuilder()
-      .build { k -> cacheCompiledTemplate(k) }
+        val javaFuture = future
+          .toCompletionStage()
+          .toCompletableFuture()
+
+        return@CacheLoader try {
+          javaFuture.join()
+        } catch (e: Exception) {
+          MainVerticle.logger.error { "Cache loader failed for key: $key\n${e.localizedMessage}" }
+          null
+        }
+      })
 
     singleUseTemplate()
     getCompiledTemplate()
@@ -51,62 +85,51 @@ class TemplateEngineVerticle: VerticleBase() {
   }
 
   private fun singleUseTemplate() {
-    eventBus.registerCodec(SingleUseTemplateDataCodec())
-    eventBus.consumer("template.generate.singleUse") { message ->
-      val singleUseTemplateData: SingleUseTemplateData = message.body()
-      val compiledTemplate = engine.getTemplate(singleUseTemplateData.template)
+    eventBus.consumer<JsonObject>("template.generate.singleUse") { message ->
+      val body = message.body()
+      vertx.executeBlocking({
+        try {
+          val singleUseTemplateData: String = body.getString("templateData")
+          val compiledTemplate = engine.getTemplate(singleUseTemplateData)
+          val writer = StringWriter()
+          val context = getContextData(body)
 
-      val writer = StringWriter()
-      compiledTemplate.evaluate(writer, singleUseTemplateData.templateData)
-
-      message.reply(writer.toString())
+          compiledTemplate.evaluate(writer, context)
+          return@executeBlocking writer.toString()
+        } catch (e: Exception) {
+          MainVerticle.logger.error { e.localizedMessage }
+          throw e
+        }
+      }, false).onFailure { err ->
+        message.fail(500, err.message)
+      }.onSuccess { res ->
+        message.reply(res)
+      }
     }
   }
 
   private fun getCompiledTemplate() {
     eventBus.consumer("template.generate.compiled") { message ->
-      val key = message.body()
-      var templateString = ""
+      val body = message.body()
+      val context = getContextData(body)
 
-      val future: Future<Unit> = Future.future { promise ->
-        val templateCacheData = templateCache[key]
-
-        println(templateCacheData)
-
-        // Wait until the fetching of the template is done
-        templateCacheData.templateData.onFailure { err ->
-          promise.fail(err.message)
-        }.onSuccess { res ->
+      vertx.executeBlocking({
+        try {
+          val key = body.getString("template_key")
           incrementTemplateHitCount(key)
-          templateString = res
-          promise.complete()
-        }
-      }
+          val template = templateCache.get(key)
 
-      future.onComplete { ar ->
-        if (ar.succeeded()) {
-          message.reply(templateString)
-        } else {
-          message.fail(500, ar.cause().message)
+          val writer = StringWriter()
+          template.templateData.evaluate(writer, context)
+          return@executeBlocking writer.toString()
+        } catch (e: Exception) {
+          MainVerticle.logger.error { e.localizedMessage }
+          throw e
         }
-      }
-    }
-  }
-
-  private fun cacheCompiledTemplate(key: String): Future<CompiledTemplateCacheData> {
-    return Future.future { promise ->
-      val query = JsonObject()
-        .put("_id", key)
-      client.find("templates", query).onFailure { err ->
-        MainVerticle.logger.error { err.localizedMessage }
-        promise.fail(err)
+      }, false).onFailure { err ->
+        message.fail(500, err.message)
       }.onSuccess { res ->
-        val template = Template.fromJson(res.first())
-        val result = engine.getTemplate(template.templateData)
-        promise.complete(CompiledTemplateCacheData(
-          result,
-          template.dataString
-          ))
+        message.reply(res)
       }
     }
   }
@@ -129,36 +152,6 @@ class TemplateEngineVerticle: VerticleBase() {
     }
   }
 
-  private fun loadTemplateCacheData(key: String): TemplateCacheData {
-    // Initialize a new TemplateData object to avoid null values
-    val templateCacheData = TemplateCacheData(
-      templateData = Future.future {},
-      hits = 0,
-    )
-
-    // Fetch the template data asynchronously
-    templateCacheData.templateData = Future.future { promise ->
-      compiledTemplateCache[key].onFailure { err ->
-        println("err.message: ${err.message}")
-        promise.fail(err)
-      }.onSuccess { res ->
-        // Fetch the data from the cache
-        eventBus.request<Map<String, Any>>("process.cache.requestData", res.dataString)
-          .onFailure { dataError ->
-            println("Failed to load data from cache: $dataError")
-            promise.fail(dataError)
-          }.onSuccess { templateData ->
-            val writer = StringWriter()
-            val compiledTemplate = res.compiledTemplate
-            compiledTemplate.evaluate(writer, templateData.body())
-            promise.complete(writer.toString())
-          }
-      }
-    }
-
-    return templateCacheData
-  }
-
   private fun invalidateCacheKey() {
     eventBus.consumer<String>("template.cache.invalidate") { _ ->
       val keys = templateCache.asMap().keys
@@ -169,14 +162,128 @@ class TemplateEngineVerticle: VerticleBase() {
       }
     }
   }
+
+  private fun getContextData(ids: JsonObject): Map<String, Any?> {
+    val context: MutableMap<String, Any?> = mutableMapOf()
+    val accessor = DataAccessor(
+      productCache,
+      categoryCache,
+      creditMemoCache,
+      invoiceCache,
+      orderCache,
+      shipmentCache,
+      transactionCache
+    )
+    try {
+      if (ids.containsKey("productId")) {
+        context["product"] = accessor.get("product", key = ids.getString("productId"))
+      }
+      if (ids.containsKey("categoryId")) {
+        context["category"] = accessor.get("category", key = ids.getString("categoryId"))
+      }
+      if (ids.containsKey("creditMemoId")) {
+        context["creditMemo"] = accessor.get("credit_memo", key = ids.getString("creditMemoId"))
+      }
+      if (ids.containsKey("invoiceId")) {
+        context["invoice"] = accessor.get("invoice", key = ids.getString("invoiceId"))
+      }
+      if (ids.containsKey("orderId")) {
+        context["order"] = accessor.get("order", key = ids.getString("orderId"))
+      }
+      if (ids.containsKey("shipmentId")) {
+        context["shipment"] = accessor.get("shipment", key = ids.getString("shipmentId"))
+      }
+      if (ids.containsKey("transactionId")) {
+        context["transaction"] = accessor.get("transaction", key = ids.getString("transactionId"))
+      }
+
+      context["accessor"] = accessor
+    } catch (e: Exception) {
+      MainVerticle.logger.error { e.localizedMessage }
+    }
+
+    return context
+  }
+
+  private fun getProductCacheData(key: String): CacheData<ProductInfo>? {
+    return getCacheData(
+      key = key,
+      deserializer = ProductInfo.Companion::fromJson,
+      eventBusAddress = "process.product.getProductById"
+    )
+  }
+
+  private fun getCategoryCacheData(key: String): CacheData<CategoryInfo>? {
+    return getCacheData(
+      key = key,
+      deserializer = CategoryInfo.Companion::fromJson,
+      eventBusAddress = "process.category.getCategoryById"
+    )
+  }
+
+  private fun getCreditMemoCacheData(key: String): CacheData<CreditMemo>? {
+    return getCacheData(
+      key = key,
+      deserializer = CreditMemo.Companion::fromJson,
+      eventBusAddress = "process.sales.getCreditMemoById"
+    )
+  }
+
+  private fun getInvoiceCacheData(key: String): CacheData<Invoice>? {
+    return getCacheData(
+      key = key,
+      deserializer = Invoice.Companion::fromJson,
+      eventBusAddress = "process.sales.getInvoiceById"
+    )
+  }
+
+  private fun getOrderCacheData(key: String): CacheData<Order>? {
+    return getCacheData(
+      key = key,
+      deserializer = Order.Companion::fromJson,
+      eventBusAddress = "process.sales.getOrderById"
+    )
+  }
+
+  private fun getShipmentCacheData(key: String): CacheData<Shipment>? {
+    return getCacheData(
+      key = key,
+      deserializer = Shipment.Companion::fromJson,
+      eventBusAddress = "process.sales.getShipmentById"
+    )
+  }
+
+  private fun getTransactionCacheData(key: String): CacheData<Transaction>? {
+    return getCacheData(
+      key = key,
+      deserializer = Transaction.Companion::fromJson,
+      eventBusAddress = "process.sales.getTransactionById"
+    )
+  }
+
+  private fun <T: Any> getCacheData(
+    key: String,
+    deserializer: (JsonObject) -> T,
+    eventBusAddress: String
+  ): CacheData<T>? {
+    val future = eventBus.request<JsonObject>(eventBusAddress, key)
+      .map { CacheData(deserializer(it.body()), 0)  }
+      .otherwise { null }
+
+    val javaFuture = future
+      .toCompletionStage()
+      .toCompletableFuture()
+
+    return try {
+      javaFuture.join()
+    } catch (_: Exception) {
+      MainVerticle.logger.error { "Cache loader failed for key: $key" }
+      null
+    }
+  }
 }
 
 private data class TemplateCacheData(
-  var templateData: Future<String>,
+  var templateData: PebbleTemplate,
   var hits: Int,
-)
-
-private data class CompiledTemplateCacheData(
-  var compiledTemplate: PebbleTemplate,
-  var dataString: String,
 )
