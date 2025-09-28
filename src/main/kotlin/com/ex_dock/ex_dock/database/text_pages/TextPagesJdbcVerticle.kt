@@ -63,7 +63,7 @@ class TextPagesJdbcVerticle: VerticleBase() {
 
       rowsFuture.onFailure { res ->
         println("Failed to execute query: $res")
-        message.fail(400, "Failed to execute query: $res")
+        message.fail(500, "Failed to execute query: $res")
       }
 
       rowsFuture.onSuccess { res ->
