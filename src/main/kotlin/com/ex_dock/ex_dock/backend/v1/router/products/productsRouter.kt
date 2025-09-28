@@ -62,8 +62,6 @@ fun Router.initProductsRouter(vertx: Vertx) {
   productsRouter.post("/").handler { ctx ->
     val bodyJson = ctx.body().asJsonObject()
 
-    println("Create product POST route is reached")
-
     if (bodyJson == null) {
       ctx.errorResponse(400, "Add product (router): missing json in body")
       throw IllegalArgumentException("Add product (router): missing bodyJson")
