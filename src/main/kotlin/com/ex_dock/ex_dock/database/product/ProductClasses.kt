@@ -33,7 +33,11 @@ data class ProductInfo(
 ) {
   companion object {
     fun fromJson(jsonObject: JsonObject): ProductInfo {
-      val productId = jsonObject.getString("_id")
+      val productId: String? = when (val idValue = jsonObject.getValue("_id")) {
+        is String -> idValue
+        is JsonObject -> idValue.getString($$"$oid")
+        else -> null
+      }
       val name = jsonObject.getString("name")
       val shortName = jsonObject.getString("short_name")
       val description = jsonObject.getString("description")
@@ -111,7 +115,10 @@ fun ProductInfo.toDocument(): JsonObject {
   }
 
   val document = JsonObject()
-  document.put("_id", productId)
+  if (productId != null) {
+    // This is the standard Vert.x MongoDB way to represent ObjectId in JSON
+    document.put("_id", JsonObject().put($$"$oid", productId))
+  }
   document.put("name", name)
   document.put("short_name", shortName)
   document.put("description", description)
