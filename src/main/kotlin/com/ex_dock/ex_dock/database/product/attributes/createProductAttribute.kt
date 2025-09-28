@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.product.attributes
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.database.product.attributes.types.ProductAttributeType
 import com.ex_dock.ex_dock.database.product.attributes.types.ProductAttributeTypes
 import io.vertx.core.eventbus.EventBus
@@ -28,6 +29,7 @@ fun EventBus.createProductAttribute(client: MongoClient) {
       message.fail(500, err.message)
     }.onSuccess { res ->
       if (res.isNotEmpty()) {
+        MainVerticle.logger.error { "Cannot create product attribute: Product attribute with key '$key' already exists" }
         return@onSuccess message.fail(409, "Product attribute with key '$key' already exists")
       }
 
