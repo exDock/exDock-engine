@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.backend.v1.router
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.backend.v1.router.file.initFileRouter
@@ -9,6 +10,8 @@ import com.ex_dock.ex_dock.backend.v1.router.sales.initSalesRouter
 import com.ex_dock.ex_dock.backend.v1.router.system.enableSystemRouter
 import com.ex_dock.ex_dock.backend.v1.router.template.initTemplateRouter
 import com.ex_dock.ex_dock.database.backend_block.BlockInfo
+import com.ex_dock.ex_dock.database.product.ProductInfo
+import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
 import com.ex_dock.ex_dock.helper.convertJsonElement
 import com.ex_dock.ex_dock.helper.findValueByFieldName
 import com.ex_dock.ex_dock.helper.sendError
@@ -96,15 +99,20 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
     }
 
   backendV1Router["/test"].handler { ctx ->
-//    val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
-//    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
-//      if (it.getBoolean("success")) {
-//        ctx.end()
-//      } else {
-//        ctx.response().setStatusCode(403).end("User does not have the permission for this")
-//      }
-    vertx.eventBus().sendError(Exception("Test error to test websockets!"))
-    ctx.end()
+    eventBus.request<String>("template.generate.singleUse", JsonObject().put("templateData", "<title>TEST: {{ product.metaTitle }}</title>").put("productId", "68d6a5d2f3dadccf65b2f56c")).onFailure { error ->
+      MainVerticle.logger.error { error.localizedMessage }
+      ctx.fail(500, error)
+    }.onSuccess { res ->
+      ctx.end(res.body())
+    }
+  }
+
+  backendV1Router["/test2"].handler { ctx ->
+    eventBus.request<ProductInfo>("process.product.getProductById", "68d6a5d2f3dadccf65b2f56c").onFailure {
+      MainVerticle.logger.error { it.localizedMessage }
+    }.onSuccess { res ->
+      ctx.end(res.toString())
+    }
   }
 
 
