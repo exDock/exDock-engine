@@ -1,4 +1,4 @@
-package com.ex_dock.ex_dock.helper
+package com.ex_dock.ex_dock.helper.codecs
 
 import com.ex_dock.ex_dock.database.codec.GenericCodec
 import com.ex_dock.ex_dock.database.codec.GenericListCodec

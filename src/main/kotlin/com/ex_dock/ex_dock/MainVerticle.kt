@@ -8,11 +8,10 @@ import com.ex_dock.ex_dock.frontend.home.router.initHome
 import com.ex_dock.ex_dock.frontend.product.router.initProduct
 import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
 import com.ex_dock.ex_dock.helper.load
-import com.ex_dock.ex_dock.helper.registerGenericCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import com.ex_dock.ex_dock.helper.sendError
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.Future
-import io.vertx.core.Promise
 import io.vertx.core.VerticleBase
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions

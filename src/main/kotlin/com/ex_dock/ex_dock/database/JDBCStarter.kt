@@ -29,13 +29,15 @@ import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
-import com.ex_dock.ex_dock.helper.registerGenericCodec
-import com.ex_dock.ex_dock.helper.registerGenericListCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericListCodec
 import com.ex_dock.ex_dock.helper.registerVerticleIds
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonObject
+import java.util.ArrayList
 
 class JDBCStarter : VerticleBase() {
   companion object {
@@ -113,8 +115,10 @@ class JDBCStarter : VerticleBase() {
       .registerGenericCodec(Transaction::class)
       .registerGenericCodec(Shipment::class)
       .registerGenericCodec(List::class)
+      .registerGenericCodec(ArrayList::class)
 
       .registerGenericListCodec(FullUser::class)
+      .registerGenericListCodec(JsonObject::class)
   }
 
 }

@@ -111,7 +111,7 @@ fun ProductInfo.toDocument(): JsonObject {
   }
 
   val document = JsonObject()
-  document.put("_id", productId)
+  if (productId != null) document.put("_id", productId)
   document.put("name", name)
   document.put("short_name", shortName)
   document.put("description", description)

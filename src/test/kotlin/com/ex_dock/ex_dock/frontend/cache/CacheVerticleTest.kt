@@ -3,7 +3,7 @@ package com.ex_dock.ex_dock.frontend.cache
 import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.load
-import com.ex_dock.ex_dock.helper.registerGenericCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpClientResponse
 import io.vertx.core.http.HttpMethod
