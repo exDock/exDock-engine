@@ -15,9 +15,11 @@ import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions
+import io.vertx.core.file.FileSystem
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.SessionHandler
+import io.vertx.ext.web.handler.StaticHandler
 import io.vertx.ext.web.sstore.SessionStore
 import java.util.*
 
@@ -51,6 +53,8 @@ class MainVerticle : VerticleBase() {
     val mainRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
+    val staticHandler = StaticHandler.create("webroot")
+      .setCachingEnabled(false)
 
     eventBus.registerGenericCodec(List::class)
     eventBus.consumer<List<String>>("process.main.registerVerticleId").handler { message ->
@@ -81,6 +85,15 @@ class MainVerticle : VerticleBase() {
 
     mainRouter.route().handler(sessionHandler)
     mainRouter.route().handler(BodyHandler.create())
+    mainRouter.route("/docs/*").handler(staticHandler)
+
+    mainRouter.route("/docs").handler { ctx ->
+      ctx.response().setStatusCode(302).putHeader("Location", "/docs/index.html?url=/swagger.json").end()
+    }
+
+    mainRouter["/swagger.json"].handler {
+      ctx -> ctx.response().sendFile("swagger.json")
+    }
 
     mainRouter.enableBackendRouter(vertx, logger)
 
