@@ -1,28 +1,52 @@
 package com.ex_dock.ex_dock.helper
 
+import com.ex_dock.ex_dock.MainVerticle
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.util.*
 
-fun Properties.load(): Properties {
-  val configFileName = "secret.properties"
+fun Properties.load(isDefault: Boolean = false): Properties {
+  val configFileName: String = if (isDefault) {
+    "default.properties"
+  } else {
+    "secret.properties"
+  }
   val externalConfigPath = "/app/config/$configFileName"
   val localExternalConfigPath = "config/$configFileName"
   val configFile: File
+
+  if (!File(localExternalConfigPath).exists()) {
+    File(localExternalConfigPath).createNewFile()
+    copyDefaultProperties(localExternalConfigPath)
+  }
 
   val potentialExternalFile = File(externalConfigPath)
   if (potentialExternalFile.exists()) {
     configFile = potentialExternalFile
     try {
       FileInputStream(configFile).use { this.load(it) }
-    } catch (_: IOException) {}
+    } catch (e: IOException) {
+      MainVerticle.logger.error { e.message }
+    }
   } else {
     configFile = File(localExternalConfigPath)
     try {
       FileInputStream(configFile).use { this.load(it) }
-    } catch (_: IOException) {}
+    } catch (e: IOException) {
+      MainVerticle.logger.error { e.message }
+    }
   }
 
   return this
+}
+
+fun copyDefaultProperties(path: String) {
+  val externalFile = File(path)
+  val defaultFile = File("config/default.properties")
+  try {
+    defaultFile.copyTo(externalFile, overwrite = true)
+  } catch (e: IOException) {
+    MainVerticle.logger.error { e.message }
+  }
 }

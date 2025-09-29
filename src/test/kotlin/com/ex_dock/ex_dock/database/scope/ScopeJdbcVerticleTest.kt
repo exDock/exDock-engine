@@ -6,6 +6,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.unit.TestSuite
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
@@ -24,6 +25,31 @@ class ScopeJdbcVerticleTest {
     storeViewName = "testStoreView"
   )
 
+  @Test
+  @DisplayName("Test the scope classes functions")
+  fun testScopeClassesFunctions(vertx: Vertx, context: VertxTestContext) {
+    val suite = TestSuite.create("testScopeClassesFunctions")
+
+    suite.test("testScopeToJson") { testContext ->
+      val result = testScope.toDocument()
+      testContext.assertEquals(testScope.scopeId, result.getString("_id"))
+      testContext.assertEquals(testScope.websiteName, result.getString("website_name"))
+    }.test("testScopeFromJson") { testContext ->
+      val scopeJson = testScope.toDocument()
+      val scope = Scope.fromJson(scopeJson)
+      testContext.assertEquals(testScope.scopeId, scope.scopeId)
+      testContext.assertEquals(testScope.websiteName, scope.websiteName)
+    }
+
+    suite.run(vertx).handler { res ->
+      if (res.succeeded()) {
+        context.completeNow()
+      } else {
+        context.failNow(res.cause())
+      }
+    }
+  }
+
   @BeforeEach
   @DisplayName("Add the scope to the database")
   fun setup(vertx: Vertx, vertxTestContext: VertxTestContext) {
@@ -33,6 +59,7 @@ class ScopeJdbcVerticleTest {
 
     deployWorkerVerticleHelper(
       vertx,
+      ScopeJdbcVerticle::class.qualifiedName.toString(),
       ScopeJdbcVerticle::class.qualifiedName.toString(),
       1,
       1

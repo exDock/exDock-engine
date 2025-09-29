@@ -17,6 +17,7 @@ import com.ex_dock.ex_dock.database.image.Image
 import com.ex_dock.ex_dock.database.image.ImageProduct
 import com.ex_dock.ex_dock.database.product.ProductInfo
 import com.ex_dock.ex_dock.database.product.ProductJdbcVerticle
+import com.ex_dock.ex_dock.database.sales.*
 import com.ex_dock.ex_dock.database.scope.ScopeJdbcVerticle
 import com.ex_dock.ex_dock.database.server.ServerDataData
 import com.ex_dock.ex_dock.database.server.ServerJDBCVerticle
@@ -29,16 +30,20 @@ import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
+import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.registerGenericListCodec
 import com.ex_dock.ex_dock.helper.registerVerticleIds
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Future
+import io.vertx.core.Promise
+import io.vertx.core.ThreadingModel
 import io.vertx.core.VerticleBase
+import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
-import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 
 class JDBCStarter : VerticleBase() {
   companion object {
@@ -95,6 +100,9 @@ class JDBCStarter : VerticleBase() {
     verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(TemplateEngineVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(SalesJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(TemplateEngineVerticle::class, workerPoolSize = 5, poolName = "template-cache-isolation-pool"))
   }
 
   private fun getAllCodecClasses() {
@@ -106,12 +114,17 @@ class JDBCStarter : VerticleBase() {
       .registerGenericCodec(FullUser::class)
       .registerGenericCodec(Template::class)
       .registerGenericCodec(Map::class)
-      .registerGenericCodec(UsernamePasswordCredentials::class)
       .registerGenericCodec(BlockAttribute::class)
       .registerGenericCodec(Image::class)
       .registerGenericCodec(ImageProduct::class)
       .registerGenericCodec(ServerHealth::class)
       .registerGenericCodec(ProductInfo::class)
+      .registerGenericCodec(Order::class)
+      .registerGenericCodec(Invoice::class)
+      .registerGenericCodec(CreditMemo::class)
+      .registerGenericCodec(Transaction::class)
+      .registerGenericCodec(Shipment::class)
+      .registerGenericCodec(List::class)
       .registerGenericCodec(SingleUseTemplateData::class)
 
       .registerGenericListCodec(FullUser::class)

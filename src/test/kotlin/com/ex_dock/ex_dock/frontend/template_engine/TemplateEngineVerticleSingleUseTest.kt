@@ -29,6 +29,7 @@ class TemplateEngineVerticleSingleUseTest {
     deployWorkerVerticleHelper(
       vertx,
       TemplateEngineVerticle::class.qualifiedName.toString(),
+      TemplateEngineVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onSuccess {

@@ -8,6 +8,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.unit.TestSuite
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.AfterEach
@@ -50,6 +51,31 @@ class ProductJdbcVerticleTest {
     )
   )
 
+  @Test
+  @DisplayName("Test the product classes functions")
+  fun testProductClassesFunctions(vertx: Vertx, context: VertxTestContext) {
+    val suite = TestSuite.create("testProductClassesFunctions")
+
+    suite.test("testProductInfoToJson") { testContext ->
+      val result = testProduct.toDocument()
+      testContext.assertEquals(testProduct.productId, result.getString("_id"))
+      testContext.assertEquals(testProduct.name, result.getString("name"))
+    }.test("testProductInfoFromJson") { testContext ->
+      val productJson = testProduct.toDocument()
+      val product = ProductInfo.fromJson(productJson)
+      testContext.assertEquals(testProduct.productId, product.productId)
+      testContext.assertEquals(testProduct.name, product.name)
+    }
+
+    suite.run(vertx).handler { res ->
+      if (res.succeeded()) {
+        context.completeNow()
+      } else {
+        context.failNow(res.cause())
+      }
+    }
+  }
+
   @BeforeEach
   @DisplayName("Add the product to the database")
   fun setup(vertx: Vertx, vertxTestContext: VertxTestContext) {
@@ -59,6 +85,7 @@ class ProductJdbcVerticleTest {
 
     deployWorkerVerticleHelper(
       vertx,
+      ProductJdbcVerticle::class.qualifiedName.toString(),
       ProductJdbcVerticle::class.qualifiedName.toString(),
       1,
       1

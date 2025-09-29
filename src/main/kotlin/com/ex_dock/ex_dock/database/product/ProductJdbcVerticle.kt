@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.product
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import com.ex_dock.ex_dock.helper.replyListMessage
@@ -10,6 +11,7 @@ import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
+import org.bson.types.ObjectId
 
 class ProductJdbcVerticle: VerticleBase() {
   private lateinit var client: MongoClient
@@ -47,8 +49,10 @@ class ProductJdbcVerticle: VerticleBase() {
     val getProductByIdConsumer = eventBus.consumer<String>("process.product.getProductById")
     getProductByIdConsumer.handler { message ->
       val productId = message.body()
+      val objectIdQuery = JsonObject().put($$"$oid", productId)
+
       val query = JsonObject()
-        .put("_id", productId)
+        .put("_id", objectIdQuery)
       client.find("products", query).replySingleMessage(message)
     }
   }

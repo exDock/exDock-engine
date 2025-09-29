@@ -9,9 +9,6 @@ import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
-import io.vertx.sqlclient.Pool
-import io.vertx.sqlclient.Row
-import io.vertx.sqlclient.Tuple
 
 class TemplateJdbcVerticle: VerticleBase() {
   private lateinit var client: MongoClient
