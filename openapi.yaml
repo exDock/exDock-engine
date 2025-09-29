@@ -1,0 +1,792 @@
+openapi: 3.0.0
+info:
+  title: Ex-Dock API
+  version: 1.0.0
+paths:
+  /api/v1/token:
+    post:
+      summary: Get a JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: JWT token
+  /api/v1/refresh:
+    post:
+      summary: Refresh a JWT token
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: New JWT token
+  /api/v1/ping:
+    get:
+      summary: Ping the server
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Server responded!
+  /api/v1/docker/getData:
+    get:
+      summary: WebSocket endpoint to get docker container data
+      security:
+        - bearerAuth: []
+      responses:
+        '101':
+          description: Switching protocols
+  /api/v1/file/getAll:
+    get:
+      summary: Get all files in the root directory
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of files
+  /api/v1/file/getAll/{path}:
+    get:
+      summary: Get all files in a specific path
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of files
+  /api/v1/file/getBlockData/{blockName}:
+    get:
+      summary: Get block data for a specific block
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: blockName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Block data
+  /api/v1/image/upload/{path}:
+    post:
+      summary: Upload an image
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image uploaded
+  /api/v1/openImage/get/{path}:
+    get:
+      summary: Get an image
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Image file
+  /api/v1/products/overview:
+    get:
+      summary: Get an overview of all products
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Product overview
+  /api/v1/products:
+    post:
+      summary: Create a new product
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Product created
+  /api/v1/products/{id}:
+    get:
+      summary: Get a product by its ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product data
+  /api/v1/sales/orders:
+    get:
+      summary: Get all orders
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of orders
+    post:
+      summary: Create a new order
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Order created
+    put:
+      summary: Update an order
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Order updated
+  /api/v1/sales/orders/{id}:
+    get:
+      summary: Get an order by its ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order data
+    delete:
+      summary: Delete an order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order deleted
+  /api/v1/sales/invoices:
+    get:
+      summary: Get all invoices
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of invoices
+    post:
+      summary: Create a new invoice
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Invoice created
+    put:
+      summary: Update an invoice
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Invoice updated
+  /api/v1/sales/invoices/{id}:
+    get:
+      summary: Get an invoice by its ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice data
+    delete:
+      summary: Delete an invoice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice deleted
+  /api/v1/sales/credit-memos:
+    get:
+      summary: Get all credit memos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of credit memos
+    post:
+      summary: Create a new credit memo
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Credit memo created
+    put:
+      summary: Update a credit memo
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Credit memo updated
+  /api/v1/sales/credit-memos/{id}:
+    get:
+      summary: Get a credit memo by its ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Credit memo data
+    delete:
+      summary: Delete a credit memo
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Credit memo deleted
+  /api/v1/sales/transactions:
+    get:
+      summary: Get all transactions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of transactions
+    post:
+      summary: Create a new transaction
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Transaction created
+    put:
+      summary: Update a transaction
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Transaction updated
+  /api/v1/sales/transactions/{id}:
+    get:
+      summary: Get a transaction by its ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction data
+    delete:
+      summary: Delete a transaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction deleted
+  /api/v1/sales/shipments:
+    get:
+      summary: Get all shipments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of shipments
+    post:
+      summary: Create a new shipment
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Shipment created
+    put:
+      summary: Update a shipment
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Shipment updated
+  /api/v1/sales/shipments/{id}:
+    get:
+      summary: Get a shipment by its ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Shipment data
+    delete:
+      summary: Delete a shipment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Shipment deleted
+  /api/v1/system/getSettings:
+    get:
+      summary: Get system settings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: System settings
+  /api/v1/system/setSettings:
+    post:
+      summary: Set system settings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Settings saved
+  /api/v1/template/getAll:
+    get:
+      summary: Get all templates
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of templates
+  /api/v1/template/get/{key}:
+    get:
+      summary: Get a template by its key
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Template data
+  /api/v1/template/create:
+    post:
+      summary: Create a new template
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Template created
+  /api/v1/template/update:
+    put:
+      summary: Update a template
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Template updated
+  /api/v1/template/delete/{key}:
+    delete:
+      summary: Delete a template
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Template deleted
+  /api/v1/ws/error:
+    get:
+      summary: WebSocket endpoint for error broadcasting
+      security:
+        - bearerAuth: []
+      responses:
+        '101':
+          description: Switching protocols
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    FullUser:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: object
+            properties:
+              first:
+                type: string
+              second:
+                $ref: '#/components/schemas/Permission'
+        apiKey:
+          type: string
+    Permission:
+      type: string
+      enum:
+        - NONE
+        - READ
+        - WRITE
+        - READ_WRITE
+    BlockAttribute:
+      type: object
+      properties:
+        attribute_id:
+          type: string
+        attribute_name:
+          type: string
+        attribute_type:
+          type: string
+    BlockInfo:
+      type: object
+      properties:
+        block_id:
+          type: string
+        page_name:
+          type: string
+        product_id:
+          type: string
+        category_id:
+          type: string
+        block_name:
+          type: string
+        block_type:
+          type: string
+        block_attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlockAttribute'
+    CategoryInfo:
+      type: object
+      properties:
+        category_id:
+          type: string
+        upper_category:
+          type: string
+        name:
+          type: string
+        short_description:
+          type: string
+        description:
+          type: string
+        meta_title:
+          type: string
+        meta_description:
+          type: string
+        meta_keywords:
+          type: string
+        page_index:
+          $ref: '#/components/schemas/PageIndex'
+        products:
+          type: array
+          items:
+            type: string
+    PageIndex:
+      type: string
+      enum:
+        - index, follow
+        - index, nofollow
+        - noindex, follow
+        - noindex, nofollow
+    Image:
+      type: object
+      properties:
+        image_url:
+          type: string
+        image_name:
+          type: string
+        image_extensions:
+          type: string
+    ProductInfo:
+      type: object
+      properties:
+        product_id:
+          type: string
+        name:
+          type: string
+        short_name:
+          type: string
+        description:
+          type: string
+        short_description:
+          type: string
+        sku:
+          type: string
+        ean:
+          type: string
+        location:
+          type: string
+        manufacturer:
+          type: string
+        meta_title:
+          type: string
+        meta_description:
+          type: string
+        meta_keywords:
+          type: string
+        page_index:
+          $ref: '#/components/schemas/PageIndex'
+        price:
+          type: number
+        sale_price:
+          type: number
+        cost_price:
+          type: number
+        tax_class:
+          type: string
+        sale_dates:
+          type: array
+          items:
+            type: string
+        categories:
+          type: array
+          items:
+            type: string
+        attributes:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: object
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+    Order:
+      type: object
+      properties:
+        order_id:
+          type: string
+        language:
+          type: string
+        date:
+          type: string
+        customer_id:
+          type: string
+        status:
+          type: string
+        items:
+          type: array
+          items:
+            type: string
+    Invoice:
+      type: object
+      properties:
+        invoice_id:
+          type: string
+        invoice_date:
+          type: string
+        order_date:
+          type: string
+        order_id:
+          type: string
+        status:
+          type: string
+        amount:
+          type: number
+    CreditMemo:
+      type: object
+      properties:
+        credit_memo_id:
+          type: string
+        credit_memo_date:
+          type: string
+        order_date:
+          type: string
+        order_id:
+          type: string
+        status:
+          type: string
+        amount:
+          type: number
+        return_items:
+          type: boolean
+        items:
+          type: array
+          items:
+            type: string
+    Transaction:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+        transaction_date:
+          type: string
+        order_id:
+          type: string
+        type:
+          type: string
+        method:
+          type: string
+        is_closed:
+          type: boolean
+    Shipment:
+      type: object
+      properties:
+        shipment_id:
+          type: string
+        shipment_date:
+          type: string
+        address:
+          type: string
+        tracking_number:
+          type: string
+        order_id:
+          type: string
+        status:
+          type: string
+        items:
+          type: array
+          items:
+            type: string
+    Scope:
+      type: object
+      properties:
+        scope_id:
+          type: string
+        website_name:
+          type: string
+        store_view_name:
+          type: string
+    ServerData:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+    ServerVersionData:
+      type: object
+      properties:
+        major:
+          type: integer
+        minor:
+          type: integer
+        patch:
+          type: integer
+        version_name:
+          type: string
+        version_description:
+          type: string
+    Template:
+      type: object
+      properties:
+        template_key:
+          type: string
+        block_name:
+          type: string
+        template_data:
+          type: string
+        data_string:
+          type: string
+    TextPages:
+      type: object
+      properties:
+        text_pages_id:
+          type: string
+        name:
+          type: string
+        short_text:
+          type: string
+        text:
+          type: string
+        meta_title:
+          type: string
+        meta_description:
+          type: string
+        meta_keywords:
+          type: string
+        page_index:
+          $ref: '#/components/schemas/PageIndex'
+    UrlKeys:
+      type: object
+      properties:
+        url_key:
+          type: string
+        upper_key:
+          type: string
+        requested_id:
+          type: string
+        page_type:
+          $ref: '#/components/schemas/PageType'
+    PageType:
+      type: string
+      enum:
+        - product
+        - category
+        - text_page

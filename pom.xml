@@ -37,6 +37,19 @@
     </dependencies>
   </dependencyManagement>
 
+  <repositories>
+    <repository>
+      <id>gatehillsoftware-snapshots</id>
+      <name>Gatehill Software Snapshots</name>
+      <url>https://s3-eu-west-1.amazonaws.com/gatehillsoftware-maven/snapshots</url>
+    </repository>
+    <repository>
+      <id>sonatype-snapshots</id>
+      <name>Sonatype OSS Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <!-- The pom.xml needs to fetch the Kotlin libraries for automation to work -->
     <dependency>
