@@ -15,7 +15,6 @@ import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.http.CookieSameSite
 import io.vertx.core.http.HttpServerOptions
-import io.vertx.core.file.FileSystem
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.SessionHandler
@@ -113,7 +112,7 @@ class MainVerticle : VerticleBase() {
       .listen(props.getProperty("FRONTEND_PORT").toInt()).onFailure { error ->
         logger.error { "Failed to start HTTP server: $error" }
         vertx.eventBus().sendError(Exception("Failed to start the HTTP server"))
-      }.onSuccess { http ->
+      }.onSuccess { _ ->
         logger.info { "HTTP server started on port ${props.getProperty("FRONTEND_PORT")}" }
       }
   }
