@@ -23,7 +23,6 @@ class TemplateJdbcVerticleTest {
     templateKey = "testKey",
     blockName = "testBlockName",
     templateData = "testTemplate",
-    dataString = "testDataString"
   )
 
   @Test
@@ -75,7 +74,6 @@ class TemplateJdbcVerticleTest {
           assert(result.templateKey == testTemplate.templateKey)
           assert(result.blockName == testTemplate.blockName)
           assert(result.templateData == testTemplate.templateData)
-          assert(result.dataString == testTemplate.dataString)
           vertxTestContext.completeNow()
         }
       }
@@ -93,7 +91,6 @@ class TemplateJdbcVerticleTest {
           assert(result.templateKey == testTemplate.templateKey)
           assert(result.blockName == testTemplate.blockName)
           assert(result.templateData == testTemplate.templateData)
-          assert(result.dataString == testTemplate.dataString)
           vertxTestContext.completeNow()
         }
       }
