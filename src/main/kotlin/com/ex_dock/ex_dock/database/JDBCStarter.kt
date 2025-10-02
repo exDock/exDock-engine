@@ -30,18 +30,13 @@ import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
-import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import com.ex_dock.ex_dock.helper.registerGenericListCodec
 import com.ex_dock.ex_dock.helper.registerVerticleIds
-import io.vertx.core.DeploymentOptions
 import io.vertx.core.Future
-import io.vertx.core.Promise
-import io.vertx.core.ThreadingModel
 import io.vertx.core.VerticleBase
-import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 
