@@ -86,7 +86,6 @@ class TemplateJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
         template.templateKey
 
         message.reply(template, templateDeliveryOptions)
