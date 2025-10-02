@@ -5,12 +5,12 @@ import com.ex_dock.ex_dock.backend.v1.router.auth.enableAuthRouter
 import com.ex_dock.ex_dock.backend.v1.router.docker.initDocker
 import com.ex_dock.ex_dock.backend.v1.router.enableBackendV1Router
 import com.ex_dock.ex_dock.backend.v1.router.image.initOpenImageRouter
-//import com.ex_dock.ex_dock.backend.v1.router.enableBackendV1Router
 import com.ex_dock.ex_dock.backend.v1.router.websocket.initWebsocket
 import com.ex_dock.ex_dock.helper.registerGenericCodec
 import io.github.oshai.kotlinlogging.KLogger
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
+import io.vertx.core.http.HttpMethod
 import io.vertx.ext.auth.PubSecKeyOptions
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
@@ -47,7 +47,14 @@ fun Router.enableBackendRouter(vertx: Vertx, logger: KLogger) {
     pairDeliveryOptions
   )
 
-  backendRouter.route().handler(CorsHandler.create())
+  backendRouter.route().handler(CorsHandler.create()
+    .allowedMethod(HttpMethod.OPTIONS)
+    .allowedMethod(HttpMethod.GET)
+    .allowedMethod(HttpMethod.POST)
+    .allowedMethod(HttpMethod.PUT)
+    .allowedMethod(HttpMethod.DELETE)
+    .allowedMethod(HttpMethod.PATCH)
+  )
 
   backendRouter.enableAuthRouter(vertx)
 
