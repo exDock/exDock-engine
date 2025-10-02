@@ -2,7 +2,7 @@ package com.ex_dock.ex_dock.backend.v1.router.auth
 
 import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.backend.apiMountingPath
-import com.ex_dock.ex_dock.helper.registerGenericCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.json.JsonObject

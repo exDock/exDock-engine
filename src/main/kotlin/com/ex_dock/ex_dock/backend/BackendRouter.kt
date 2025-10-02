@@ -6,7 +6,7 @@ import com.ex_dock.ex_dock.backend.v1.router.docker.initDocker
 import com.ex_dock.ex_dock.backend.v1.router.enableBackendV1Router
 import com.ex_dock.ex_dock.backend.v1.router.image.initOpenImageRouter
 import com.ex_dock.ex_dock.backend.v1.router.websocket.initWebsocket
-import com.ex_dock.ex_dock.helper.registerGenericCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import io.github.oshai.kotlinlogging.KLogger
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions

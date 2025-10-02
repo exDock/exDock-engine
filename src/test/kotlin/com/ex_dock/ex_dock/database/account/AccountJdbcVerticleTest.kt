@@ -1,28 +1,21 @@
 package com.ex_dock.ex_dock.database.account
 
-import com.ex_dock.ex_dock.database.codec.GenericCodec
-import com.ex_dock.ex_dock.database.codec.GenericListCodec
-import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
-import com.ex_dock.ex_dock.helper.registerGenericCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
-import io.vertx.core.eventbus.MessageCodec
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.unit.TestSuite
-import io.vertx.ext.unit.junit.VertxUnitRunner
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.kotlin.core.json.jsonArrayOf
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mindrot.jbcrypt.BCrypt
 
 @ExtendWith(VertxExtension::class)
 class AccountJdbcVerticleTest {

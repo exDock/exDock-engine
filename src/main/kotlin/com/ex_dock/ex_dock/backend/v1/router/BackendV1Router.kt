@@ -6,6 +6,7 @@ import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.backend.v1.router.file.initFileRouter
 import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import com.ex_dock.ex_dock.backend.v1.router.image.initImage
+import com.ex_dock.ex_dock.backend.v1.router.products.initProductsRouter
 import com.ex_dock.ex_dock.backend.v1.router.sales.initSalesRouter
 import com.ex_dock.ex_dock.backend.v1.router.pages.enablePagesRouter
 import com.ex_dock.ex_dock.backend.v1.router.system.enableSystemRouter
@@ -148,6 +149,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   backendV1Router.enableSystemRouter(vertx)
   backendV1Router.initFileRouter(vertx)
   backendV1Router.initSalesRouter(vertx)
+  backendV1Router.initProductsRouter(vertx)
   backendV1Router.initTemplateRouter(vertx)
   backendV1Router.enablePagesRouter(vertx)
 
