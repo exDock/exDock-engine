@@ -62,7 +62,13 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
               eventBus.request<JsonObject>(addressPair.first.toString(), addressPair.second).onFailure { err ->
                 promise.fail(err.message)
               }.onSuccess { result ->
-                dataArray.add(result.body())
+                val resultBody: Any = result.body()
+                if (resultBody::class == ArrayList::class) {
+                  dataArray.add(JsonObject()
+                    .put(addressPair.first.toString().split(".")[2], resultBody))
+                } else {
+                  dataArray.add(resultBody)
+                }
                 promise.complete()
               }
             }
@@ -161,6 +167,7 @@ private fun JsonArray.convertAddresses(): JsonArray {
       "product" -> resultArray.add(Pair("process.product.getProductById", address.getString("id")))
       "category" -> resultArray.add(Pair("process.category.getCategoryById", address.getString("id")))
       "template" -> resultArray.add(Pair("process.template.getTemplateByKey", address.getString("id")))
+      "templatesAll" -> resultArray.add(Pair("process.template.getAllTemplates", address.getString("id")))
       else -> MainVerticle.logger.info { "Unknown address: $address" }
     }
   }
