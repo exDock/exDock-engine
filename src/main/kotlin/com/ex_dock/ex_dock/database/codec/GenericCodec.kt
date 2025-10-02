@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.codec
 
+import com.ex_dock.ex_dock.helper.codecs.codecName
 import io.vertx.core.eventbus.MessageCodec
 import kotlin.reflect.KClass
 import io.vertx.core.buffer.Buffer
@@ -65,7 +66,7 @@ class GenericCodec<T: Any>(private val codecClass: KClass<T>): MessageCodec<T, T
   }
 
   override fun name(): String {
-    return codecClass.simpleName+"Codec"
+    return codecClass.codecName()
   }
 
   override fun systemCodecID(): Byte {

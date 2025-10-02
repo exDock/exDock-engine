@@ -2,7 +2,7 @@ package com.ex_dock.ex_dock.database.text_pages
 
 import com.ex_dock.ex_dock.database.category.PageIndex
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
-import com.ex_dock.ex_dock.helper.registerGenericCodec
+import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
