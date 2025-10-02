@@ -37,11 +37,11 @@ fun Vertx.deployVerticleHelper(name: KClass<*>): Future<String> {
 }
 
 
-fun deployWorkerVerticleHelper(vertx: Vertx, name: String, workerPoolSize: Int, instances: Int): Future<String> {
+fun deployWorkerVerticleHelper(vertx: Vertx, name: String, poolName: String, workerPoolSize: Int, instances: Int): Future<String> {
   val promise: Promise<String> = Promise.promise()
   val options: DeploymentOptions = DeploymentOptions()
     .setThreadingModel(ThreadingModel.WORKER)
-    .setWorkerPoolName(name)
+    .setWorkerPoolName(poolName)
     .setWorkerPoolSize(workerPoolSize)
     .setInstances(instances)
 
@@ -65,8 +65,8 @@ fun deployWorkerVerticleHelper(vertx: Vertx, name: String, workerPoolSize: Int, 
   return promise.future()
 }
 
-fun Vertx.deployWorkerVerticleHelper(name: KClass<*>, workerPoolSize: Int = 1, instances: Int = workerPoolSize): Future<String> {
-  return deployWorkerVerticleHelper(this, name.qualifiedName.toString(), workerPoolSize, instances)
+fun Vertx.deployWorkerVerticleHelper(name: KClass<*>, poolName: String = name.qualifiedName.toString(), workerPoolSize: Int = 1, instances: Int = workerPoolSize): Future<String> {
+  return deployWorkerVerticleHelper(this, name.qualifiedName.toString(), poolName, workerPoolSize, instances)
 }
 
 

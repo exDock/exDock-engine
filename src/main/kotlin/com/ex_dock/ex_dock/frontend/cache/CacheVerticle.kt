@@ -84,19 +84,14 @@ class CacheVerticle : VerticleBase() {
    */
   private fun loadCacheData(key: String): CacheData {
     return when (key) {
-      "accounts" -> getDataFromDatabase("account.getAllFullUserInfo")
-      "categories" -> getDataFromDatabase("categories.getAllFullInfo")
-      "custom_attributes" -> getDataFromDatabase("attributes.getAllCustomAttributes")
-      "global_eav" -> getDataFromDatabase("eavGlobal.getAllEavGlobalInfo")
-      "products" -> getDataFromDatabase("products.getAllFullProducts")
-      "multi_select" -> getDataFromDatabase("multiSelect.getAllMultiSelectAttributesInfo")
-      "store_view_eav" -> getDataFromDatabase("eavStoreView.getAllEavStoreViewInfo")
-      "website_eav" -> getDataFromDatabase("eavWebsite.getAllEavWebsiteInfo")
+      "accounts" -> getDataFromDatabase("account.getAllUsers")
+      "categories" -> getDataFromDatabase("categories.getAllCategories")
+      "products" -> getDataFromDatabase("products.getAllProducts")
       "scopes" -> getDataFromDatabase("scope.getAllScopes")
       "server_data" -> getDataFromDatabase("server.getAllServerData")
       "server_version" -> getDataFromDatabase("server.getAllServerVersions")
-      "text_pages" -> getDataFromDatabase("textPages.getAllFullTextPages")
-      "urls" -> getDataFromDatabase("url.getAllFullUrls")
+      "text_pages" -> getDataFromDatabase("textPages.getAllTextPages")
+      "urls" -> getDataFromDatabase("url.getAllUrls")
       else -> throw InvalidCacheKeyException("Unknown cache key: $key")
     }
   }

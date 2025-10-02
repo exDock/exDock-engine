@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.backend.v1.router
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.backend.apiMountingPath
 import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.backend.v1.router.file.initFileRouter
@@ -7,16 +8,22 @@ import com.ex_dock.ex_dock.frontend.auth.ExDockAuthHandler
 import com.ex_dock.ex_dock.backend.v1.router.image.initImage
 import com.ex_dock.ex_dock.backend.v1.router.products.initProductsRouter
 import com.ex_dock.ex_dock.backend.v1.router.sales.initSalesRouter
+import com.ex_dock.ex_dock.backend.v1.router.pages.enablePagesRouter
 import com.ex_dock.ex_dock.backend.v1.router.system.enableSystemRouter
 import com.ex_dock.ex_dock.backend.v1.router.template.initTemplateRouter
 import com.ex_dock.ex_dock.database.backend_block.BlockInfo
+import com.ex_dock.ex_dock.database.product.ProductInfo
+import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
 import com.ex_dock.ex_dock.helper.convertJsonElement
 import com.ex_dock.ex_dock.helper.findValueByFieldName
 import com.ex_dock.ex_dock.helper.sendError
 import com.google.gson.JsonParser
+import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.eventbus.Message
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
@@ -33,7 +40,9 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   backendV1Router.post("/getBlockData").handler { ctx ->
     val body = ctx.body().asJsonObject()
     val pageName = body.getString("page_name")
-    val productId = body.getString("product_id")
+    val addressNames = body.getJsonArray("address_names").convertAddresses()
+    val dataArray = JsonArray()
+    val futures = mutableListOf<Future<Message<JsonObject>>>()
     val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
 //    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
 //      if (it.getBoolean("success")) {
@@ -47,12 +56,31 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
         println("Failed to get block info")
         ctx.end("Failed to get block info")
       }.onSuccess {
-        eventBus.request<JsonObject>("process.product.getProductById", productId).onFailure {
-          println("Failed to get product info")
-          ctx.end("Failed to get product info")
-        }.onSuccess { product ->
-          val fullProduct = product.body()
-          val jsonElement = JsonParser.parseString(fullProduct.toString()).asJsonObject
+        addressNames.forEach { address ->
+          val addressPair = address as Pair<*,*>
+          futures.add(
+            Future.future { promise ->
+              eventBus.request<JsonObject>(addressPair.first.toString(), addressPair.second).onFailure { err ->
+                promise.fail(err.message)
+              }.onSuccess { result ->
+                val resultBody: Any = result.body()
+                if (resultBody::class == ArrayList::class) {
+                  dataArray.add(JsonObject()
+                    .put(addressPair.first.toString().split(".")[2], resultBody))
+                } else {
+                  dataArray.add(resultBody)
+                }
+                promise.complete()
+              }
+            }
+          )
+        }
+
+        Future.all<JsonObject>(futures).onFailure { err ->
+          MainVerticle.logger.error { err.message }
+          ctx.end(err.message)
+        }.onSuccess { _ ->
+          val jsonElement = JsonParser.parseString(dataArray.toString()).asJsonArray
           val blocks = BlockInfo.fromJsonList(it.body())
           val jsonResponse = JsonObject()
           blocks.forEach { block ->
@@ -67,7 +95,9 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
                 attributeJson.put("attribute_type", blockAttribute.attributeType)
                 attributeJson.put(
                   "current_attribute_value",
-                  jsonElement.get(blockAttribute.attributeId.replace("product_", "")).convertJsonElement()
+                  jsonElement.findValueByFieldName(
+                    blockAttribute.attributeId.replace("product_", "")
+                  ).convertJsonElement()
 
                 )
                 blockAttributesList.add(attributeJson)
@@ -97,15 +127,20 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
     }
 
   backendV1Router["/test"].handler { ctx ->
-//    val token: String = ctx.request().headers()["Authorization"].replace("Bearer ", "")
-//    exDockAuthHandler.verifyPermissionAuthorization(token, "userREAD") {
-//      if (it.getBoolean("success")) {
-//        ctx.end()
-//      } else {
-//        ctx.response().setStatusCode(403).end("User does not have the permission for this")
-//      }
-    vertx.eventBus().sendError(Exception("Test error to test websockets!"))
-    ctx.end()
+    eventBus.request<String>("template.generate.singleUse", JsonObject().put("templateData", "<title>TEST: {{ product.metaTitle }}</title>").put("productId", "68d6a5d2f3dadccf65b2f56c")).onFailure { error ->
+      MainVerticle.logger.error { error.localizedMessage }
+      ctx.fail(500, error)
+    }.onSuccess { res ->
+      ctx.end(res.body())
+    }
+  }
+
+  backendV1Router["/test2"].handler { ctx ->
+    eventBus.request<ProductInfo>("process.product.getProductById", "68d6a5d2f3dadccf65b2f56c").onFailure {
+      MainVerticle.logger.error { it.localizedMessage }
+    }.onSuccess { res ->
+      ctx.end(res.toString())
+    }
   }
 
 
@@ -116,8 +151,28 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   backendV1Router.initSalesRouter(vertx)
   backendV1Router.initProductsRouter(vertx)
   backendV1Router.initTemplateRouter(vertx)
+  backendV1Router.enablePagesRouter(vertx)
+
 
   this.route(
     if (absoluteMounting) "$apiMountingPath/v1*" else "/v1*"
   ).subRouter(backendV1Router)
+}
+
+
+private fun JsonArray.convertAddresses(): JsonArray {
+  val resultArray = JsonArray()
+
+  this.forEach {
+    val address = it as JsonObject
+    when (address.getString("address")) {
+      "product" -> resultArray.add(Pair("process.product.getProductById", address.getString("id")))
+      "category" -> resultArray.add(Pair("process.category.getCategoryById", address.getString("id")))
+      "template" -> resultArray.add(Pair("process.template.getTemplateByKey", address.getString("id")))
+      "templatesAll" -> resultArray.add(Pair("process.template.getAllTemplates", address.getString("id")))
+      else -> MainVerticle.logger.info { "Unknown address: $address" }
+    }
+  }
+
+  return resultArray
 }

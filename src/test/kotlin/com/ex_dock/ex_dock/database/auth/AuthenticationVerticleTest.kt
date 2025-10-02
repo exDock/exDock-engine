@@ -39,6 +39,7 @@ class AuthenticationVerticleTest {
     deployWorkerVerticleHelper(
       vertx,
       AuthenticationVerticle::class.qualifiedName.toString(),
+      AuthenticationVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onFailure { err ->

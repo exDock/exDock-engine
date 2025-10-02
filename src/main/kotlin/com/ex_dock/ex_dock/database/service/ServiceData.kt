@@ -9,7 +9,6 @@ fun getAllStandardTemplatesData(): List<Template> {
     "home",
     "test block",
     "<test>testData</test>",
-    ""
   ))
   return templates.toList()
 }

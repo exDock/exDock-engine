@@ -29,6 +29,7 @@ class WebsocketRouterTest {
     deployWorkerVerticleHelper(
       vertx,
       MainVerticle::class.qualifiedName.toString(),
+      MainVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onFailure {
