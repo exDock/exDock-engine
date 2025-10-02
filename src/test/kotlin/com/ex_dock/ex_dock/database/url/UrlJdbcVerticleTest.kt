@@ -61,6 +61,7 @@ class UrlJdbcVerticleTest {
     deployWorkerVerticleHelper(
       vertx,
       UrlJdbcVerticle::class.qualifiedName.toString(),
+      UrlJdbcVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onFailure { err ->

@@ -24,16 +24,22 @@ import com.ex_dock.ex_dock.database.server.ServerJDBCVerticle
 import com.ex_dock.ex_dock.database.server.ServerVersionData
 import com.ex_dock.ex_dock.database.service.ServiceVerticle
 import com.ex_dock.ex_dock.database.template.Template
+import com.ex_dock.ex_dock.database.template.TemplateJdbcVerticle
 import com.ex_dock.ex_dock.database.text_pages.TextPages
 import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
+import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import com.ex_dock.ex_dock.helper.codecs.registerGenericListCodec
 import com.ex_dock.ex_dock.helper.registerVerticleIds
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Future
+import io.vertx.core.Promise
+import io.vertx.core.ThreadingModel
 import io.vertx.core.VerticleBase
+import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
@@ -93,6 +99,8 @@ class JDBCStarter : VerticleBase() {
     verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(SalesJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(TemplateEngineVerticle::class, workerPoolSize = 5, poolName = "template-cache-isolation-pool"))
   }
 
   private fun getAllCodecClasses() {

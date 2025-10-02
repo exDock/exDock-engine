@@ -66,6 +66,7 @@ class TextPagesJdbcVerticleTest {
     deployWorkerVerticleHelper(
       vertx,
       TextPagesJdbcVerticle::class.qualifiedName.toString(),
+      TextPagesJdbcVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onFailure { err ->

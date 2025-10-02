@@ -33,6 +33,7 @@ class ServerJDBCVerticleTest {
     deployWorkerVerticleHelper(
       vertx,
       ServerJDBCVerticle::class.qualifiedName.toString(),
+      ServerJDBCVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onFailure { err ->

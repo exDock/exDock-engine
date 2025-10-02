@@ -78,6 +78,7 @@ class AccountJdbcVerticleTest {
 
     deployWorkerVerticleHelper(
       vertx,
+      AccountJdbcVerticle::class.qualifiedName.toString(),
       AccountJdbcVerticle
       ::class.qualifiedName.toString(),
       1,
