@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.database.scope
 
 import io.vertx.core.json.JsonObject
 
+@Deprecated("Scope() is deprecated, use JsonObject instead")
 data class Scope(
   var scopeId: String?,
   var websiteName: String,
