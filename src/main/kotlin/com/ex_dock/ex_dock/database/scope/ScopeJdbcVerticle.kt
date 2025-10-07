@@ -29,37 +29,12 @@ class ScopeJdbcVerticle:  VerticleBase() {
     eventBus.getScopeById(client)
     eventBus.getScopesByWebsiteName(client)
     eventBus.getScopesByStoreViewName(client)
-    createScope()
+    eventBus.createWebsite(client)
+    eventBus.createStoreView(client)
     editScope()
     deleteScope()
 
     return Future.succeededFuture<Unit>()
-  }
-
-  private fun createScope() {
-    val createScopeConsumer = eventBus.consumer<Scope>("process.scope.createScope")
-    createScopeConsumer.handler { message ->
-      println("Received createScope message in ScopeJdbcVerticle")
-      val scope = message.body()
-      val document = scope.toDocument()
-
-      val rowsFuture = client.save("scopes", document)
-
-      rowsFuture.onFailure { res ->
-        println("Failed to execute query: $res")
-        message.fail(500, "Failed to execute query: $res")
-      }
-
-      rowsFuture.onSuccess { res ->
-        val lastInsertID: String? = res
-        if (lastInsertID != null) {
-          scope.scopeId = lastInsertID
-        }
-
-        setCacheFlag(eventBus, CACHE_ADDRESS)
-        message.reply(scope, fullScopeDeliveryOptions)
-      }
-    }
   }
 
   private fun editScope() {
