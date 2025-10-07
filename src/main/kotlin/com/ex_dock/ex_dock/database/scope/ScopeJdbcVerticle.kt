@@ -38,6 +38,7 @@ class ScopeJdbcVerticle:  VerticleBase() {
   }
 
   private fun editScope() {
+    // TODO: implement strict editScope functions and deprecate this global one
     val editScopeConsumer = eventBus.consumer<Scope>("process.scope.editScope")
     editScopeConsumer.handler { message ->
       val body = message.body()
@@ -66,6 +67,7 @@ class ScopeJdbcVerticle:  VerticleBase() {
   }
 
   private fun deleteScope() {
+    // TODO: remove all data associated with the scope
     val deleteScopeConsumer = eventBus.consumer<String>("process.scope.deleteScope")
     deleteScopeConsumer.handler { message ->
       val scopeId = message.body()
