@@ -17,7 +17,7 @@ class ScopeJdbcVerticle:  VerticleBase() {
   private val fullScopeDeliveryOptions: DeliveryOptions = DeliveryOptions().setCodecName("ScopeCodec")
 
   companion object {
-    private const val CACHE_ADDRESS = "scopes"
+    const val CACHE_ADDRESS = "scopes"
   }
 
   override fun start(): Future<*>? {

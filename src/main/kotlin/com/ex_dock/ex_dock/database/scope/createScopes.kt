@@ -22,7 +22,7 @@ internal fun EventBus.createWebsite(client: MongoClient) {
       .put("scopKey", key)
       .put("scopeType", "website")
 
-    client.insert("scopes", document).onFailure { err ->
+    client.insert(ScopeJdbcVerticle.CACHE_ADDRESS, document).onFailure { err ->
       message.errorResponse(err)
     }.onSuccess { res ->
       message.reply(res)
@@ -45,13 +45,13 @@ internal fun EventBus.createStoreView(client: MongoClient) {
       ?: return@handler message.fail(400, "The websiteId of the parent website (scope) is required.")
 
     val searchWebsiteQuery = JsonObject().put("scopeType", "website").put("_id", websiteId)
-    client.find("scopes", searchWebsiteQuery).onFailure { err ->
+    client.find(ScopeJdbcVerticle.CACHE_ADDRESS, searchWebsiteQuery).onFailure { err ->
       message.errorResponse(err)
     }.onSuccess { res ->
       if (res.isEmpty())
         return@onSuccess message.fail(400, "The websiteId of the parent website (scope) does not exist")
 
-      client.find("scopes", JsonObject().put("scopKey", key)).onFailure { err ->
+      client.find(ScopeJdbcVerticle.CACHE_ADDRESS, JsonObject().put("scopKey", key)).onFailure { err ->
         message.errorResponse(err)
       }.onSuccess { res ->
         if (res.isNotEmpty())
@@ -63,7 +63,7 @@ internal fun EventBus.createStoreView(client: MongoClient) {
           .put("scopeType", "store-view")
           .put("websiteId", websiteId)
 
-        client.insert("scopes", document).onFailure { err ->
+        client.insert(ScopeJdbcVerticle.CACHE_ADDRESS, document).onFailure { err ->
           message.errorResponse(err)
         }.onSuccess { res ->
           message.reply(res)
