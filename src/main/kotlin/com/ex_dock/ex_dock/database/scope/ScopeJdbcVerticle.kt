@@ -25,57 +25,15 @@ class ScopeJdbcVerticle:  VerticleBase() {
     eventBus = vertx.eventBus()
 
     // Initialize all eventbus connections for basic scopes
-    getAllScopes()
-    getScopeById()
-    getScopesByWebsiteName()
-    getScopesByStoreViewName()
+    eventBus.getAllScopes(client)
+    eventBus.getScopeById(client)
+    eventBus.getScopesByWebsiteName(client)
+    eventBus.getScopesByStoreViewName(client)
     createScope()
     editScope()
     deleteScope()
 
     return Future.succeededFuture<Unit>()
-  }
-
-  private fun getAllScopes() {
-    val getAllScopesConsumer = eventBus.consumer<String>("process.scope.getAllScopes")
-    getAllScopesConsumer.handler { message ->
-      val query = JsonObject()
-
-      client.find("scopes", query).replyListMessage(message)
-    }
-  }
-
-  private fun getScopeById() {
-    val getScopeByWebsiteIdConsumer = eventBus.consumer<String>("process.scope.getScopeByWebsiteId")
-    getScopeByWebsiteIdConsumer.handler { message ->
-      val websiteId = message.body()
-      val query = JsonObject()
-        .put("_id", websiteId)
-
-      client.find("scopes", query).replySingleMessage(message)
-    }
-  }
-
-  private fun getScopesByWebsiteName() {
-    val getScopesByWebsiteNameConsumer = eventBus.consumer<String>("process.scope.getScopesByWebsiteName")
-    getScopesByWebsiteNameConsumer.handler { message ->
-      val websiteName = message.body()
-      val query = JsonObject()
-        .put("website_name", websiteName)
-
-      client.find("scopes", query).replyListMessage(message)
-    }
-  }
-
-  private fun getScopesByStoreViewName() {
-    val getScopesByStoreViewNameConsumer = eventBus.consumer<String>("process.scope.getScopesByStoreViewName")
-    getScopesByStoreViewNameConsumer.handler { message ->
-      val storeViewName = message.body()
-      val query = JsonObject()
-        .put("store_view_name", storeViewName)
-
-      client.find("scopes", query).replyListMessage(message)
-    }
   }
 
   private fun createScope() {
