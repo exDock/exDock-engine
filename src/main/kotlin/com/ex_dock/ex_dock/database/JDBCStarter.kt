@@ -95,8 +95,6 @@ class JDBCStarter : VerticleBase() {
     verticles.add(vertx.deployWorkerVerticleHelper(CacheVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(BackendBlockJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
-    verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
-    verticles.add(vertx.deployWorkerVerticleHelper(TemplateEngineVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(SalesJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(TemplateEngineVerticle::class, workerPoolSize = 5, poolName = "template-cache-isolation-pool"))
