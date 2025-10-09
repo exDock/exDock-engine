@@ -6,6 +6,7 @@ import com.ex_dock.ex_dock.frontend.category.router.initCategory
 import com.ex_dock.ex_dock.frontend.checkout.router.initCheckout
 import com.ex_dock.ex_dock.frontend.home.router.initHome
 import com.ex_dock.ex_dock.frontend.product.router.initProduct
+import com.ex_dock.ex_dock.frontend.router.enableFrontendRouter
 import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
 import com.ex_dock.ex_dock.helper.load
 import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
@@ -49,6 +50,7 @@ class MainVerticle : VerticleBase() {
 
     val eventBus = vertx.eventBus()
     val mainRouter : Router = Router.router(vertx)
+    val frontendRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
 
@@ -91,17 +93,28 @@ class MainVerticle : VerticleBase() {
     mainRouter.initCheckout(vertx)
     mainRouter.initAccount(vertx)
 
+    frontendRouter.enableFrontendRouter(vertx, logger)
+
+    vertx.createHttpServer()
+      .requestHandler(frontendRouter)
+      .listen(props.getProperty("FRONTEND_PORT").toInt()).onFailure {
+        logger.error { "Failed to start HTTP server: $it" }
+        vertx.eventBus().sendError(Exception("Failed to start the HTTP server"))
+        }.onSuccess { http ->
+        logger.info { "HTTP server started on port ${props.getProperty("FRONTEND_PORT")}" }
+      }
+
     return vertx
       .createHttpServer(
         HttpServerOptions()
           .setRegisterWebSocketWriteHandlers(true)
       )
       .requestHandler(mainRouter)
-      .listen(props.getProperty("FRONTEND_PORT").toInt()).onFailure { error ->
+      .listen(props.getProperty("BACKEND_PORT").toInt()).onFailure { error ->
         logger.error { "Failed to start HTTP server: $error" }
         vertx.eventBus().sendError(Exception("Failed to start the HTTP server"))
       }.onSuccess { http ->
-        logger.info { "HTTP server started on port ${props.getProperty("FRONTEND_PORT")}" }
+        logger.info { "HTTP server started on port ${props.getProperty("BACKEND_PORT")}" }
       }
   }
 }
