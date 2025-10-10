@@ -47,6 +47,7 @@ fun Router.enableFrontendRouter(vertx: Vertx, logger: KLogger) {
   frontendRouter.route().handler(CorsHandler.create()
     .allowedMethod(HttpMethod.OPTIONS)
     .allowedMethod(HttpMethod.GET)
+    .allowedMethod(HttpMethod.POST)
   )
 
   frontendRouter.get("/about").handler { ctx ->

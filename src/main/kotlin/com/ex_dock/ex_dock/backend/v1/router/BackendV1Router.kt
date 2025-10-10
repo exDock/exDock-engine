@@ -11,6 +11,7 @@ import com.ex_dock.ex_dock.backend.v1.router.sales.initSalesRouter
 import com.ex_dock.ex_dock.backend.v1.router.pages.enablePagesRouter
 import com.ex_dock.ex_dock.backend.v1.router.system.enableSystemRouter
 import com.ex_dock.ex_dock.backend.v1.router.template.initTemplateRouter
+import com.ex_dock.ex_dock.backend.v1.router.url.initUrlRouter
 import com.ex_dock.ex_dock.database.backend_block.BlockInfo
 import com.ex_dock.ex_dock.database.product.ProductInfo
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
@@ -152,6 +153,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   backendV1Router.initProductsRouter(vertx)
   backendV1Router.initTemplateRouter(vertx)
   backendV1Router.enablePagesRouter(vertx)
+  backendV1Router.initUrlRouter(vertx)
 
 
   this.route(
