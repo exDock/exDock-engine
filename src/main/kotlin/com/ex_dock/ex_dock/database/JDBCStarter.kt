@@ -35,8 +35,12 @@ import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import com.ex_dock.ex_dock.helper.codecs.registerGenericListCodec
 import com.ex_dock.ex_dock.helper.registerVerticleIds
+import io.vertx.core.DeploymentOptions
 import io.vertx.core.Future
+import io.vertx.core.Promise
+import io.vertx.core.ThreadingModel
 import io.vertx.core.VerticleBase
+import io.vertx.core.Vertx
 import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
