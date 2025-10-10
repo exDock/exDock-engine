@@ -4,13 +4,10 @@ import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.database.category.CategoryInfo
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.database.product.ProductInfo
-import com.ex_dock.ex_dock.database.sales.CreditMemo
-import com.ex_dock.ex_dock.database.sales.Invoice
-import com.ex_dock.ex_dock.database.sales.Order
-import com.ex_dock.ex_dock.database.sales.Shipment
-import com.ex_dock.ex_dock.database.sales.Transaction
+import com.ex_dock.ex_dock.database.sales.*
+import com.ex_dock.ex_dock.helper.AsyncExDockCache
 import com.ex_dock.ex_dock.helper.CacheData
-import com.ex_dock.ex_dock.helper.ExDockCache
+import com.ex_dock.ex_dock.helper.toVertxFuture
 import com.github.benmanes.caffeine.cache.CacheLoader
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.LoadingCache
@@ -23,19 +20,20 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
 import java.io.StringWriter
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
 class TemplateEngineVerticle : VerticleBase() {
   private lateinit var client: MongoClient
   private lateinit var eventBus: EventBus
   private lateinit var templateCache: LoadingCache<String, TemplateCacheData>
-  private lateinit var productCache: ExDockCache<ProductInfo>
-  private lateinit var categoryCache: ExDockCache<CategoryInfo>
-  private lateinit var creditMemoCache: ExDockCache<CreditMemo>
-  private lateinit var invoiceCache: ExDockCache<Invoice>
-  private lateinit var orderCache: ExDockCache<Order>
-  private lateinit var shipmentCache: ExDockCache<Shipment>
-  private lateinit var transactionCache: ExDockCache<Transaction>
+  private lateinit var productCache: AsyncExDockCache<ProductInfo>
+  private lateinit var categoryCache: AsyncExDockCache<CategoryInfo>
+  private lateinit var creditMemoCache: AsyncExDockCache<CreditMemo>
+  private lateinit var invoiceCache: AsyncExDockCache<Invoice>
+  private lateinit var orderCache: AsyncExDockCache<Order>
+  private lateinit var shipmentCache: AsyncExDockCache<Shipment>
+  private lateinit var transactionCache: AsyncExDockCache<Transaction>
   private val engine = PebbleEngine.Builder().loader(StringLoader()).build()
 
   private val expireDuration = 10L
@@ -45,13 +43,13 @@ class TemplateEngineVerticle : VerticleBase() {
   override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
-    productCache = ExDockCache(vertx) { key -> getProductCacheData(key) }
-    categoryCache = ExDockCache(vertx) { key -> getCategoryCacheData(key) }
-    creditMemoCache = ExDockCache(vertx) { key -> getCreditMemoCacheData(key) }
-    invoiceCache = ExDockCache(vertx) { key -> getInvoiceCacheData(key) }
-    orderCache = ExDockCache(vertx) { key -> getOrderCacheData(key) }
-    shipmentCache = ExDockCache(vertx) { key -> getShipmentCacheData(key) }
-    transactionCache = ExDockCache(vertx) { key -> getTransactionCacheData(key) }
+    productCache = AsyncExDockCache(vertx) { key -> getProductCacheData(key) }
+    categoryCache = AsyncExDockCache(vertx) { key -> getCategoryCacheData(key) }
+    creditMemoCache = AsyncExDockCache(vertx) { key -> getCreditMemoCacheData(key) }
+    invoiceCache = AsyncExDockCache(vertx) { key -> getInvoiceCacheData(key) }
+    orderCache = AsyncExDockCache(vertx) { key -> getOrderCacheData(key) }
+    shipmentCache = AsyncExDockCache(vertx) { key -> getShipmentCacheData(key) }
+    transactionCache = AsyncExDockCache(vertx) { key -> getTransactionCacheData(key) }
 
     templateCache = Caffeine.newBuilder()
       .expireAfterWrite(expireDuration, TimeUnit.MINUTES)
@@ -85,22 +83,26 @@ class TemplateEngineVerticle : VerticleBase() {
   }
 
   private fun singleUseTemplate() {
-    eventBus.consumer<JsonObject>("template.generate.singleUse") { message ->
+    eventBus.consumer("template.generate.singleUse") { message ->
       val body = message.body()
-      vertx.executeBlocking({
-        try {
-          val singleUseTemplateData: String = body.getString("templateData")
-          val compiledTemplate = engine.getTemplate(singleUseTemplateData)
-          val writer = StringWriter()
-          val context = getContextData(body)
 
-          compiledTemplate.evaluate(writer, context)
-          return@executeBlocking writer.toString()
-        } catch (e: Exception) {
-          MainVerticle.logger.error { e.localizedMessage }
-          throw e
-        }
-      }, false).onFailure { err ->
+      val contextFuture: Future<MutableMap<String, Any?>> = getContextData(body).toVertxFuture()
+
+      contextFuture.compose { context ->
+        vertx.executeBlocking({
+          try {
+            val singleUseTemplateData: String = body.getString("templateData")
+            val compiledTemplate = engine.getTemplate(singleUseTemplateData)
+            val writer = StringWriter()
+
+            compiledTemplate.evaluate(writer, context)
+            return@executeBlocking writer.toString()
+          } catch (e: Exception) {
+            MainVerticle.logger.error { e.localizedMessage }
+            throw e
+          }
+        }, false)
+      }.onFailure { err ->
         message.fail(500, err.message)
       }.onSuccess { res ->
         message.reply(res)
@@ -111,22 +113,24 @@ class TemplateEngineVerticle : VerticleBase() {
   private fun getCompiledTemplate() {
     eventBus.consumer("template.generate.compiled") { message ->
       val body = message.body()
-      val context = getContextData(body)
+      val contextFuture: Future<MutableMap<String, Any?>> = getContextData(body).toVertxFuture()
 
-      vertx.executeBlocking({
-        try {
-          val key = body.getString("template_key")
-          incrementTemplateHitCount(key)
-          val template = templateCache.get(key)
+      contextFuture.compose { context ->
+        vertx.executeBlocking({
+          try {
+            val key = body.getString("template_key")
+            incrementTemplateHitCount(key)
+            val template = templateCache.get(key)
 
-          val writer = StringWriter()
-          template.templateData.evaluate(writer, context)
-          return@executeBlocking writer.toString()
-        } catch (e: Exception) {
-          MainVerticle.logger.error { e.localizedMessage }
-          throw e
-        }
-      }, false).onFailure { err ->
+            val writer = StringWriter()
+            template.templateData.evaluate(writer, context)
+            return@executeBlocking writer.toString()
+          } catch (e: Exception) {
+            MainVerticle.logger.error { e.localizedMessage }
+            throw e
+          }
+        }, false)
+      }.onFailure { err ->
         message.fail(500, err.message)
       }.onSuccess { res ->
         message.reply(res)
@@ -163,7 +167,7 @@ class TemplateEngineVerticle : VerticleBase() {
     }
   }
 
-  private fun getContextData(ids: JsonObject): Map<String, Any?> {
+  private fun getContextData(ids: JsonObject): CompletableFuture<MutableMap<String, Any?>> {
     val context: MutableMap<String, Any?> = mutableMapOf()
     val accessor = DataAccessor(
       productCache,
@@ -174,38 +178,45 @@ class TemplateEngineVerticle : VerticleBase() {
       shipmentCache,
       transactionCache
     )
-    try {
-      if (ids.containsKey("productId")) {
-        context["product"] = accessor.get("product", key = ids.getString("productId"))
-      }
-      if (ids.containsKey("categoryId")) {
-        context["category"] = accessor.get("category", key = ids.getString("categoryId"))
-      }
-      if (ids.containsKey("creditMemoId")) {
-        context["creditMemo"] = accessor.get("credit_memo", key = ids.getString("creditMemoId"))
-      }
-      if (ids.containsKey("invoiceId")) {
-        context["invoice"] = accessor.get("invoice", key = ids.getString("invoiceId"))
-      }
-      if (ids.containsKey("orderId")) {
-        context["order"] = accessor.get("order", key = ids.getString("orderId"))
-      }
-      if (ids.containsKey("shipmentId")) {
-        context["shipment"] = accessor.get("shipment", key = ids.getString("shipmentId"))
-      }
-      if (ids.containsKey("transactionId")) {
-        context["transaction"] = accessor.get("transaction", key = ids.getString("transactionId"))
-      }
+    val futureMap: MutableMap<String, CompletableFuture<*>> = mutableMapOf()
 
-      context["accessor"] = accessor
-    } catch (e: Exception) {
-      MainVerticle.logger.error { e.localizedMessage }
+    fun putFuture(key: String, type: String, idKey: String) {
+      if (ids.containsKey(idKey)) {
+        accessor.get(type, key = ids.getString(idKey))?.let { future ->
+          futureMap[key] = future
+        }
+      }
     }
 
-    return context
+    putFuture("product", "product", "productId")
+    putFuture("category", "category", "categoryId")
+    putFuture("creditMemo", "credit_memo", "creditMemoId")
+    putFuture("invoice", "invoice", "invoiceId")
+    putFuture("order", "order", "orderId")
+    putFuture("shipment", "shipment", "shipmentId")
+    putFuture("transaction", "transaction", "transactionId")
+
+    val futuresArray = futureMap.values.toTypedArray()
+    return CompletableFuture.allOf(*futuresArray)
+      .thenApply {
+        val context: MutableMap<String, Any?> = mutableMapOf()
+
+        futureMap.forEach { (key, future) ->
+          val cacheData = future.join() as CacheData<*>?
+          context[key] = cacheData?.data
+        }
+
+        context["accessor"] = accessor
+
+        context
+      }
+      .exceptionally { e ->
+        MainVerticle.logger.error(e) { "Failed to load all cache data for context" }
+        emptyMap<String, Any?>().toMutableMap()
+      }
   }
 
-  private fun getProductCacheData(key: String): CacheData<ProductInfo>? {
+  private fun getProductCacheData(key: String): CompletableFuture<CacheData<ProductInfo>?> {
     return getCacheData(
       key = key,
       deserializer = ProductInfo.Companion::fromJson,
@@ -213,7 +224,7 @@ class TemplateEngineVerticle : VerticleBase() {
     )
   }
 
-  private fun getCategoryCacheData(key: String): CacheData<CategoryInfo>? {
+  private fun getCategoryCacheData(key: String): CompletableFuture<CacheData<CategoryInfo>?> {
     return getCacheData(
       key = key,
       deserializer = CategoryInfo.Companion::fromJson,
@@ -221,7 +232,7 @@ class TemplateEngineVerticle : VerticleBase() {
     )
   }
 
-  private fun getCreditMemoCacheData(key: String): CacheData<CreditMemo>? {
+  private fun getCreditMemoCacheData(key: String): CompletableFuture<CacheData<CreditMemo>?> {
     return getCacheData(
       key = key,
       deserializer = CreditMemo.Companion::fromJson,
@@ -229,7 +240,7 @@ class TemplateEngineVerticle : VerticleBase() {
     )
   }
 
-  private fun getInvoiceCacheData(key: String): CacheData<Invoice>? {
+  private fun getInvoiceCacheData(key: String): CompletableFuture<CacheData<Invoice>?> {
     return getCacheData(
       key = key,
       deserializer = Invoice.Companion::fromJson,
@@ -237,7 +248,7 @@ class TemplateEngineVerticle : VerticleBase() {
     )
   }
 
-  private fun getOrderCacheData(key: String): CacheData<Order>? {
+  private fun getOrderCacheData(key: String): CompletableFuture<CacheData<Order>?> {
     return getCacheData(
       key = key,
       deserializer = Order.Companion::fromJson,
@@ -245,7 +256,7 @@ class TemplateEngineVerticle : VerticleBase() {
     )
   }
 
-  private fun getShipmentCacheData(key: String): CacheData<Shipment>? {
+  private fun getShipmentCacheData(key: String): CompletableFuture<CacheData<Shipment>?> {
     return getCacheData(
       key = key,
       deserializer = Shipment.Companion::fromJson,
@@ -253,7 +264,7 @@ class TemplateEngineVerticle : VerticleBase() {
     )
   }
 
-  private fun getTransactionCacheData(key: String): CacheData<Transaction>? {
+  private fun getTransactionCacheData(key: String): CompletableFuture<CacheData<Transaction>?> {
     return getCacheData(
       key = key,
       deserializer = Transaction.Companion::fromJson,
@@ -261,25 +272,16 @@ class TemplateEngineVerticle : VerticleBase() {
     )
   }
 
-  private fun <T: Any> getCacheData(
+  private fun <T : Any> getCacheData(
     key: String,
     deserializer: (JsonObject) -> T,
     eventBusAddress: String
-  ): CacheData<T>? {
+  ): CompletableFuture<CacheData<T>?> {
     val future = eventBus.request<JsonObject>(eventBusAddress, key)
-      .map { CacheData(deserializer(it.body()), 0)  }
+      .map { CacheData(deserializer(it.body()), 0) }
       .otherwise { null }
 
-    val javaFuture = future
-      .toCompletionStage()
-      .toCompletableFuture()
-
-    return try {
-      javaFuture.join()
-    } catch (_: Exception) {
-      MainVerticle.logger.error { "Cache loader failed for key: $key" }
-      null
-    }
+    return future.toCompletionStage().toCompletableFuture()
   }
 }
 

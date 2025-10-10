@@ -64,7 +64,6 @@ class TemplateJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
         template.templateKey
 
         message.reply(template, templateDeliveryOptions)
@@ -86,7 +85,6 @@ class TemplateJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
         template.templateKey
 
         message.reply(template, templateDeliveryOptions)
@@ -99,7 +97,7 @@ class TemplateJdbcVerticle: VerticleBase() {
     deleteTemplateConsumer.handler { message ->
       val key = message.body()
       val query = JsonObject()
-        .put("template_key", key)
+        .put("_id", key)
 
       val rowsFuture = client.removeDocuments("templates", query)
 

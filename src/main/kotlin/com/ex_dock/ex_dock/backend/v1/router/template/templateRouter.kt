@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.backend.v1.router.template
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.database.template.Template
 import com.ex_dock.ex_dock.database.template.toDocument
 import io.vertx.core.Vertx
@@ -59,6 +60,18 @@ fun Router.initTemplateRouter(vertx: Vertx) {
       ctx.fail(500, it)
     }.onSuccess {
       ctx.response().putHeader("Content-Type", "application/json")
+        .end(it.body())
+    }
+  }
+
+  templateRouter.post("/generate").handler { ctx ->
+    val body = ctx.body().asJsonObject()
+
+    eventBus.request<String>("template.generate.singleUse", body).onFailure {
+      MainVerticle.logger.error { it.localizedMessage }
+      ctx.fail(500, it)
+    }.onSuccess {
+      ctx.response().putHeader("Content-Type", "text/html")
         .end(it.body())
     }
   }

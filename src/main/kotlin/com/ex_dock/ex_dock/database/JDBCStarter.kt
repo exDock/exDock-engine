@@ -30,6 +30,7 @@ import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
+import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import com.ex_dock.ex_dock.helper.codecs.registerGenericListCodec
@@ -123,6 +124,7 @@ class JDBCStarter : VerticleBase() {
       .registerGenericCodec(Transaction::class)
       .registerGenericCodec(Shipment::class)
       .registerGenericCodec(List::class)
+      .registerGenericCodec(SingleUseTemplateData::class)
       .registerGenericCodec(ArrayList::class)
 
       .registerGenericListCodec(FullUser::class)
