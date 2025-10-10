@@ -9,23 +9,31 @@ internal fun EventBus.createWebsite(client: MongoClient) {
   this.localConsumer<JsonObject>("process.scope.create.website").handler { message ->
     val data = message.body()
 
-    if (data.getString("_id") != null)
-      return@handler message.fail(400, "This function is for creating websites (scope), not editing them.")
-
-    val name = data.getString("scopeName")
-      ?: return@handler message.fail(400, "The name of the website (scope) is required.")
     val key = data.getString("scopeKey")
       ?: return@handler message.fail(400, "The key of the website (scope) is required.")
+    val name = data.getString("scopeName")
+      ?: return@handler message.fail(400, "The name of the website (scope) is required.")
 
-    val document = JsonObject()
-      .put("scopeName", name)
-      .put("scopKey", key)
-      .put("scopeType", "website")
-
-    client.insert(ScopeJdbcVerticle.CACHE_ADDRESS, document).onFailure { err ->
-      message.errorResponse(err)
+    client.findOne(
+      ScopeJdbcVerticle.CACHE_ADDRESS,
+      JsonObject().put("_id", key),
+      JsonObject().put("_id", 1),
+    ).onFailure { err ->
+      message.errorResponse(400, err)
     }.onSuccess { res ->
-      message.reply(res)
+      if (res != null)
+        return@onSuccess message.fail(409, "This function is for creating websites (scope), not editing them.")
+
+      val document = JsonObject()
+        .put("_id", key)
+        .put("scopeName", name)
+        .put("scopeType", "website")
+
+      client.insert(ScopeJdbcVerticle.CACHE_ADDRESS, document).onFailure { err ->
+        message.errorResponse(err)
+      }.onSuccess { res ->
+        message.reply(res)
+      }
     }
   }
 }
@@ -34,9 +42,6 @@ internal fun EventBus.createStoreView(client: MongoClient) {
   this.localConsumer<JsonObject>("process.scope.create.store-view").handler { message ->
     val data = message.body()
 
-    if (data.getString("_id") != null)
-      return@handler message.fail(400, "This function is for creating store-views (scope), not editing them.")
-
     val name = data.getString("name")
       ?: return@handler message.fail(400, "The name of the store-view (scope) is required.")
     val key = data.getString("key")
@@ -44,29 +49,40 @@ internal fun EventBus.createStoreView(client: MongoClient) {
     val websiteId = data.getString("websiteId")
       ?: return@handler message.fail(400, "The websiteId of the parent website (scope) is required.")
 
-    val searchWebsiteQuery = JsonObject().put("scopeType", "website").put("_id", websiteId)
-    client.find(ScopeJdbcVerticle.CACHE_ADDRESS, searchWebsiteQuery).onFailure { err ->
-      message.errorResponse(err)
+    client.findOne(
+      ScopeJdbcVerticle.CACHE_ADDRESS,
+      JsonObject().put("_id", key),
+      JsonObject().put("_id", 1),
+    ).onFailure { err ->
+      message.errorResponse(400, err)
     }.onSuccess { res ->
-      if (res.isEmpty())
-        return@onSuccess message.fail(400, "The websiteId of the parent website (scope) does not exist")
+      if (res != null)
+        return@onSuccess message.fail(409, "This function is for creating store-views (scope), not editing them.")
 
-      client.find(ScopeJdbcVerticle.CACHE_ADDRESS, JsonObject().put("scopKey", key)).onFailure { err ->
+      val searchWebsiteQuery = JsonObject().put("scopeType", "website").put("_id", websiteId)
+      client.find(ScopeJdbcVerticle.CACHE_ADDRESS, searchWebsiteQuery).onFailure { err ->
         message.errorResponse(err)
       }.onSuccess { res ->
-        if (res.isNotEmpty())
-          return@onSuccess message.fail(400, "The key of the store-view (scope) already exists for a scope")
+        if (res.isEmpty())
+          return@onSuccess message.fail(400, "The websiteId of the parent website (scope) does not exist")
 
-        val document = JsonObject()
-          .put("scopeName", name)
-          .put("scopKey", key)
-          .put("scopeType", "store-view")
-          .put("websiteId", websiteId)
-
-        client.insert(ScopeJdbcVerticle.CACHE_ADDRESS, document).onFailure { err ->
+        client.find(ScopeJdbcVerticle.CACHE_ADDRESS, JsonObject().put("_id", key)).onFailure { err ->
           message.errorResponse(err)
         }.onSuccess { res ->
-          message.reply(res)
+          if (res.isNotEmpty())
+            return@onSuccess message.fail(400, "The key of the store-view (scope) already exists for a scope")
+
+          val document = JsonObject()
+            .put("_id", key)
+            .put("scopeName", name)
+            .put("scopeType", "store-view")
+            .put("websiteId", websiteId)
+
+          client.insert(ScopeJdbcVerticle.CACHE_ADDRESS, document).onFailure { err ->
+            message.errorResponse(err)
+          }.onSuccess { res ->
+            message.reply(res)
+          }
         }
       }
     }
