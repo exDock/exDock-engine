@@ -119,7 +119,7 @@ fun ProductInfo.toDocument(): JsonObject {
     // This is the standard Vert.x MongoDB way to represent ObjectId in JSON
     document.put("_id", JsonObject().put($$"$oid", productId))
   }
-  
+
   document.put("name", name)
   document.put("short_name", shortName)
   document.put("description", description)
