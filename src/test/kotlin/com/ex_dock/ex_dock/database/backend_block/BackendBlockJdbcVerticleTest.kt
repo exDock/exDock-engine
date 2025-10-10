@@ -70,6 +70,7 @@ class BackendBlockJdbcVerticleTest {
     deployWorkerVerticleHelper(
       vertx,
       BackendBlockJdbcVerticle::class.qualifiedName.toString(),
+      BackendBlockJdbcVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onFailure { err ->
