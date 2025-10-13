@@ -198,11 +198,7 @@ abstract class Attributes(internal val client: MongoClient) {
 
   fun getAttributeValue(entityId: String, attributeKey: String, scopeKey: String): Future<Any?> {
     return Future.future { promise ->
-      client.findOne(
-        getCollectionKey(scopeKey),
-        JsonObject().put("_id", entityId),
-        JsonObject().put(attributeKey, 1),
-      ).onFailure { err ->
+      getScopedDataSingle(scopeKey, JsonObject().put("_id", entityId), JsonObject().put(attributeKey, 1)).onFailure { err ->
         promise.fail(err)
       }.onSuccess { res ->
         promise.complete(res)
@@ -212,10 +208,10 @@ abstract class Attributes(internal val client: MongoClient) {
 
   fun getAttributeValue(entityIds: List<String>, attributeKey: String, scopeKey: String): Future<List<Any?>> {
     return Future.future { promise ->
-      client.findWithOptions(
+      getScopedData(
         getCollectionKey(scopeKey),
         JsonObject().put("_id", JsonObject().put($$"$in", JsonArray(entityIds))),
-        FindOptions().setFields(JsonObject().put(attributeKey, 1)),
+        JsonObject().put(attributeKey, 1),
       ).onFailure { err ->
         promise.fail(err)
       }.onSuccess { res ->
@@ -228,7 +224,7 @@ abstract class Attributes(internal val client: MongoClient) {
     return Future.future { promise ->
       val fields = JsonObject()
       for (key in attributeKeys) fields.put(key, 1)
-      client.findOne(
+      getScopedDataSingle(
         getCollectionKey(scopeKey),
         JsonObject().put("_id", entityId),
         fields,
@@ -242,7 +238,7 @@ abstract class Attributes(internal val client: MongoClient) {
 
   fun getAttributesValue(entityId: String, scopeKey: String): Future<Any?> {
     return Future.future { promise ->
-      client.findOne(
+      getScopedDataSingle(
         getCollectionKey(scopeKey),
         JsonObject().put("_id", entityId),
         null,
