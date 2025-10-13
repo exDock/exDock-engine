@@ -22,7 +22,7 @@ abstract class Attributes(protected val client: MongoClient) {
     return "$collection-$scopeKey"
   }
 
-  private fun getScopedDataSingle(
+  internal fun getScopedDataSingle(
       scopeKey: String,
       query: JsonObject,
       fields: JsonObject? = null
@@ -86,7 +86,7 @@ abstract class Attributes(protected val client: MongoClient) {
     }
   }
 
-  private fun getScopedData(scopeKey: String, query: JsonObject, fields: JsonObject? = null): Future<List<JsonObject>> {
+  internal fun getScopedData(scopeKey: String, query: JsonObject, fields: JsonObject? = null): Future<List<JsonObject>> {
     var globalData: List<JsonObject>? = null
     var websiteData: List<JsonObject>? = null
     var scopeData: List<JsonObject>? = null
