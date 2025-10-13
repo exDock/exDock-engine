@@ -74,12 +74,12 @@ class ScopeJdbcVerticle:  VerticleBase() {
 
       val rowsFuture = client.removeDocument("scopes", query)
 
-      rowsFuture.onFailure { res ->
-        println("Failed to execute query: $res")
-        message.fail(500, "Failed to execute query: $res")
+      rowsFuture.onFailure { err ->
+        println("Failed to execute query: $err")
+        message.fail(500, "Failed to execute query: $err")
       }
 
-      rowsFuture.onSuccess { res ->
+      rowsFuture.onSuccess { _ ->
         message.reply("Scope deleted successfully")
       }
     }
