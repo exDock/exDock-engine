@@ -333,7 +333,19 @@ abstract class Attributes(internal val client: MongoClient) {
    *
    * Attention: Also removes the required attributes!
    */
-  abstract fun clearAllAttributesValue(entityId: String)
+  fun clearAllAttributesValue(entityId: String): Future<Unit> {
+    val query = JsonObject().put("_id", entityId)
+    val allFutures = mutableListOf<Future<*>>()
+    for ((key, _) in cachedScopes) allFutures.add(client.removeDocument(getCollectionKey(key), query))
+    allFutures.add(client.removeDocument(collection, query))
+    return Future.future { promise ->
+      Future.all<Unit>(allFutures).onFailure { err ->
+        promise.fail(err)
+      }.onSuccess { _ ->
+        promise.complete()
+      }
+    }
+  }
 
   abstract fun createAttribute(attributeName: String, attributeKey: String, dataType: String, scopeLevel: ScopeLevel)
 
