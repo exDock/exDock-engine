@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.helper.attributes
 
+import com.ex_dock.ex_dock.global.cachedScopes
 import com.ex_dock.ex_dock.helper.scopes.ScopeLevel
 import io.vertx.core.Future
 import io.vertx.core.json.JsonArray
@@ -19,6 +20,70 @@ abstract class Attributes(protected val client: MongoClient) {
   private fun getCollectionKey(scopeKey: String): String {
     if (scopeKey == "global") return collection
     return "$collection-$scopeKey"
+  }
+
+  private fun getScopedDataSingle(
+      scopeKey: String,
+      query: JsonObject,
+      fields: JsonObject? = null
+  ): Future<JsonObject?> {
+    var globalData: JsonObject? = null
+    var websiteData: JsonObject? = null
+    var scopeData: JsonObject? = null
+    val allFutures = mutableListOf<Future<Unit>>()
+
+    val scope = cachedScopes.getJsonObject(scopeKey) ?: return Future.failedFuture("Scope not found")
+
+    allFutures.add(
+      Future.future { promise ->
+        client.findOne(getCollectionKey("global"), query, fields).onFailure { err ->
+          promise.fail(err)
+        }.onSuccess { res ->
+          globalData = res
+          promise.complete()
+        }
+      }
+    )
+
+    if (scopeKey != "global") {
+      allFutures.add(
+        Future.future { promise ->
+          client.findOne(getCollectionKey(scopeKey), query, fields).onFailure { err ->
+            promise.fail(err)
+          }.onSuccess { res ->
+            scopeData = res
+          }
+        }
+      )
+
+      if (scope.getString("scopeType") == "store-view") {
+        allFutures.add(
+          Future.future { promise ->
+            client.findOne(getCollectionKey(scope.getString("websiteId")), query, fields).onFailure { err ->
+              promise.fail(err)
+            }.onSuccess { res ->
+              websiteData = res
+              promise.complete()
+            }
+          }
+        )
+      }
+    }
+
+    return Future.future { promise ->
+      Future.all<Unit>(allFutures).onFailure { err ->
+        promise.fail(err)
+      }.onSuccess { _ ->
+        if (globalData == null && websiteData == null && scopeData == null) return@onSuccess promise.complete(null)
+
+        promise.complete(
+          (globalData ?: JsonObject()).apply {
+            if (websiteData != null) mergeIn(websiteData)
+            if (scopeData != null) mergeIn(scopeData)
+          }
+        )
+      }
+    }
   }
 
   fun getAttributeValue(entityId: String, attributeKey: String, scopeKey: String): Future<Any?> {
