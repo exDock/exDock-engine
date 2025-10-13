@@ -86,6 +86,116 @@ abstract class Attributes(protected val client: MongoClient) {
     }
   }
 
+  private fun getScopedData(scopeKey: String, query: JsonObject, fields: JsonObject? = null): Future<List<JsonObject>> {
+    var globalData: List<JsonObject>? = null
+    var websiteData: List<JsonObject>? = null
+    var scopeData: List<JsonObject>? = null
+    val allFutures = mutableListOf<Future<Unit>>()
+
+    val scope = cachedScopes.getJsonObject(scopeKey) ?: return Future.failedFuture("Scope not found")
+    val findOptions = FindOptions().setFields(fields ?: JsonObject())
+
+    allFutures.add(
+      Future.future { promise ->
+        client.findWithOptions(
+          getCollectionKey("global"),
+          query,
+          findOptions,
+        ).onFailure { err ->
+          promise.fail(err)
+        }.onSuccess { res ->
+          globalData = res
+          promise.complete()
+        }
+      }
+    )
+
+    if (scopeKey != "global") {
+      allFutures.add(
+        Future.future { promise ->
+          client.findWithOptions(getCollectionKey(scopeKey), query, findOptions).onFailure { err ->
+            promise.fail(err)
+          }.onSuccess { res ->
+            scopeData = res
+          }
+        }
+      )
+
+      if (scope.getString("scopeType") == "store-view") {
+        allFutures.add(
+          Future.future { promise ->
+            client.findWithOptions(getCollectionKey(scope.getString("websiteId")), query, findOptions).onFailure { err ->
+              promise.fail(err)
+            }.onSuccess { res ->
+              websiteData = res
+              promise.complete()
+            }
+          }
+        )
+      }
+    }
+
+    return Future.future { promise ->
+      Future.all<Unit>(allFutures).onFailure { err ->
+        promise.fail(err)
+      }.onSuccess { _ ->
+        // Should never happen, but just to be sure
+        if (globalData == null && websiteData == null && scopeData == null) return@onSuccess promise.complete(null)
+
+        val globalDataMap = mutableMapOf<String, JsonObject>()
+        val websiteDataMap = mutableMapOf<String, JsonObject>()
+        val scopeDataMap = mutableMapOf<String, JsonObject>()
+        val allIds = mutableListOf<String>()
+
+        globalData?.forEach { data ->
+          val id = data.getString("_id")
+          allIds.add(id)
+          globalDataMap[id] = data
+        }
+        websiteData?.forEach { data ->
+          val id = data.getString("_id")
+          allIds.add(id)
+          websiteDataMap[id] = data
+        }
+        scopeData?.forEach { data ->
+          val id = data.getString("_id")
+          allIds.add(id)
+          scopeDataMap[id] = data
+        }
+
+        val result = mutableListOf<JsonObject>()
+
+        allIds.forEach { id ->
+          var websiteDone = false
+          var scopeDone = false
+          var data: JsonObject? = globalDataMap[id]
+          if (data == null) {
+            data = websiteDataMap[id]
+            websiteDone = true
+            if (data == null) {
+              data = scopeDataMap[id]
+              scopeDone = true
+            }
+          }
+
+          val websiteData = websiteDataMap[id]
+          if (!websiteDone && websiteData != null) {
+            data!!.mergeIn(websiteData)
+          }
+
+          val scopeData = scopeDataMap[id]
+          if (!scopeDone && scopeData != null) {
+            data!!.mergeIn(scopeData)
+          }
+
+          if (data != null) result.add(data)
+        }
+
+        promise.complete(result)
+      }
+    }
+  }
+
   fun getAttributeValue(entityId: String, attributeKey: String, scopeKey: String): Future<Any?> {
     return Future.future { promise ->
       client.findOne(
@@ -150,7 +260,12 @@ abstract class Attributes(protected val client: MongoClient) {
   fun setAttributeValue(entityId: String, attributeKey: String, value: Any, scopeKey: String): Future<Any> {
     return Future.future { promise ->
       if (!checkValueType(attributeKey, value)) return@future promise.fail(
-        "$value (type: ${value::class.simpleName}) is not the correct type for $attributeKey (type: ${getAttributeType(attributeKey).simpleName})")
+        "$value (type: ${value::class.simpleName}) is not the correct type for $attributeKey (type: ${
+          getAttributeType(
+            attributeKey
+          ).simpleName
+        })"
+      )
 
       client.findOneAndUpdate(
         getCollectionKey(scopeKey),
@@ -161,12 +276,18 @@ abstract class Attributes(protected val client: MongoClient) {
       }
     }
   }
+
   fun setAttributesValue(entityId: String, attributes: Map<String, Any>, scopeKey: String): Future<Map<String, Any>> {
     return Future.future { promise ->
       for ((attributeKey, value) in attributes) {
         // TODO: save all wrong types and return it inside 1 fail()
         if (!checkValueType(attributeKey, value)) return@future promise.fail(
-          "$value (type: ${value::class.simpleName}) is not the correct type for $attributeKey (type: ${getAttributeType(attributeKey).simpleName})")
+          "$value (type: ${value::class.simpleName}) is not the correct type for $attributeKey (type: ${
+            getAttributeType(
+              attributeKey
+            ).simpleName
+          })"
+        )
       }
       client.findOneAndUpdate(
         getCollectionKey(scopeKey),
@@ -192,6 +313,7 @@ abstract class Attributes(protected val client: MongoClient) {
       ).onFailure { err -> promise.fail(err) }.onSuccess { _ -> promise.complete() }
     }
   }
+
   /**
    * Clears the attributes for the entity.
    *
@@ -209,6 +331,7 @@ abstract class Attributes(protected val client: MongoClient) {
       ).onFailure { err -> promise.fail(err) }.onSuccess { _ -> promise.complete() }
     }
   }
+
   /**
    * Clears all the attributes for the entity. This is meant as an assist for the removal of the entityId
    *
