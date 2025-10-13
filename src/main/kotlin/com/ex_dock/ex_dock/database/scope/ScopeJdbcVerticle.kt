@@ -29,40 +29,12 @@ class ScopeJdbcVerticle:  VerticleBase() {
     eventBus.getScopesByWebsiteId(client)
     eventBus.createWebsite(client)
     eventBus.createStoreView(client)
-    editScope()
     deleteScope()
 
     return Future.succeededFuture<Unit>()
   }
 
-  private fun editScope() {
-    // TODO: implement strict editScope functions and deprecate this global one
-    val editScopeConsumer = eventBus.consumer<Scope>("process.scope.editScope")
-    editScopeConsumer.handler { message ->
-      val body = message.body()
-      if (body.scopeId == null) {
-        message.fail(400, "No scope ID provided")
-        return@handler
-      }
-      val document = body.toDocument()
-      val rowsFuture = client.save("scopes", document)
-
-      rowsFuture.onFailure { res ->
-        println("Failed to execute query: $res")
-        message.fail(500, "Failed to execute query: $res")
-      }
-
-      rowsFuture.onSuccess { res ->
-        val lastInsertID: String? = res
-        if (lastInsertID != null) {
-          body.scopeId = lastInsertID
-        }
-
-        setCacheFlag(eventBus, CACHE_ADDRESS)
-        message.reply(body, fullScopeDeliveryOptions)
-      }
-    }
-  }
+  // TODO: create editScope functions
 
   private fun deleteScope() {
     // TODO: remove all data associated with the scope
