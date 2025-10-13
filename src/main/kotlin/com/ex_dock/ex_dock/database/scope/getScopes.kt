@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.scope
 
+import com.ex_dock.ex_dock.global.cachedScopes
 import com.ex_dock.ex_dock.helper.replyListMessage
 import com.ex_dock.ex_dock.helper.replySingleMessage
 import io.vertx.core.eventbus.EventBus
@@ -12,7 +13,11 @@ internal fun EventBus.getAllScopes(client: MongoClient) {
   getAllScopesConsumer.handler { message ->
     val query = JsonObject()
 
-    client.find("scopes", query).replyListMessage(message)
+    client.find("scopes", query).onSuccess { res ->
+      val newCachedScopes = JsonObject()
+      for (scope in res) newCachedScopes.put(scope.getString("_id"), scope)
+      cachedScopes = newCachedScopes
+    }.replyListMessage(message)
   }
 }
 
@@ -22,7 +27,9 @@ internal fun EventBus.getScopeById(client: MongoClient) {
     val query = JsonObject()
       .put("_id", websiteId)
 
-    client.find("scopes", query).replySingleMessage(message)
+    client.find("scopes", query).onSuccess { res ->
+      cachedScopes.put(websiteId, res.first())
+    }.replySingleMessage(message)
   }
 }
 
@@ -33,6 +40,8 @@ internal fun EventBus.getScopesByWebsiteId(client: MongoClient) {
     val query = JsonObject()
       .put("websiteId", websiteName)
 
-    client.find("scopes", query).replyListMessage(message)
+    client.find("scopes", query).onSuccess { res ->
+      for (scope in res) cachedScopes.put(scope.getString("_id"), scope)
+    }.replyListMessage(message)
   }
 }

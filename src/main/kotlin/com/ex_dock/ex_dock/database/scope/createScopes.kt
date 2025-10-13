@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.database.scope
 
+import com.ex_dock.ex_dock.global.cachedScopes
 import com.ex_dock.ex_dock.helper.messages.errorResponse
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
@@ -32,6 +33,7 @@ internal fun EventBus.createWebsite(client: MongoClient) {
       client.insert(ScopeJdbcVerticle.CACHE_ADDRESS, document).onFailure { err ->
         message.errorResponse(err)
       }.onSuccess { res ->
+        cachedScopes.put(key, document)
         message.reply(res)
       }
     }
@@ -81,6 +83,7 @@ internal fun EventBus.createStoreView(client: MongoClient) {
           client.insert(ScopeJdbcVerticle.CACHE_ADDRESS, document).onFailure { err ->
             message.errorResponse(err)
           }.onSuccess { res ->
+            cachedScopes.put(key, document)
             message.reply(res)
           }
         }

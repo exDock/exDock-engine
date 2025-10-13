@@ -1,11 +1,9 @@
 package com.ex_dock.ex_dock.database.scope
 
 import com.ex_dock.ex_dock.database.connection.getConnection
-import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
-import com.ex_dock.ex_dock.helper.codecs.deliveryOptions
+import com.ex_dock.ex_dock.global.cachedScopes
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
-import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
@@ -13,7 +11,6 @@ import io.vertx.ext.mongo.MongoClient
 class ScopeJdbcVerticle:  VerticleBase() {
   private lateinit var client: MongoClient
   private lateinit var eventBus: EventBus
-  private val fullScopeDeliveryOptions: DeliveryOptions = Scope::class.deliveryOptions()
 
   companion object {
     const val CACHE_ADDRESS = "scopes"
@@ -52,6 +49,7 @@ class ScopeJdbcVerticle:  VerticleBase() {
       }
 
       rowsFuture.onSuccess { _ ->
+        cachedScopes.remove(scopeId)
         message.reply("Scope deleted successfully")
       }
     }
