@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
  * The [Attributes] abstract class dictates the way that attributes are handled in exDock.
  * It is the basis for all different types of attributes.
  */
-abstract class Attributes(protected val client: MongoClient) {
+abstract class Attributes(internal val client: MongoClient) {
   abstract val collection: String
 
   private fun getCollectionKey(scopeKey: String): String {
