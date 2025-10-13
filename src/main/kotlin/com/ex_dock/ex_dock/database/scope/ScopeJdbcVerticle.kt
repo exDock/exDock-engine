@@ -26,8 +26,7 @@ class ScopeJdbcVerticle:  VerticleBase() {
     // Initialize all eventbus connections for basic scopes
     eventBus.getAllScopes(client)
     eventBus.getScopeById(client)
-    eventBus.getScopesByWebsiteName(client)
-    eventBus.getScopesByStoreViewName(client)
+    eventBus.getScopesByWebsiteId(client)
     eventBus.createWebsite(client)
     eventBus.createStoreView(client)
     editScope()

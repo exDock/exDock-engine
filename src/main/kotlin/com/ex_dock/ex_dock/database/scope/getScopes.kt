@@ -17,8 +17,7 @@ internal fun EventBus.getAllScopes(client: MongoClient) {
 }
 
 internal fun EventBus.getScopeById(client: MongoClient) {
-  val getScopeByWebsiteIdConsumer = this.consumer<String>("process.scope.getScopeByWebsiteId")
-  getScopeByWebsiteIdConsumer.handler { message ->
+  this.consumer<String>("process.scope.getScopeById").handler { message ->
     val websiteId = message.body()
     val query = JsonObject()
       .put("_id", websiteId)
@@ -27,23 +26,12 @@ internal fun EventBus.getScopeById(client: MongoClient) {
   }
 }
 
-internal fun EventBus.getScopesByWebsiteName(client: MongoClient) {
-  val getScopesByWebsiteNameConsumer = this.consumer<String>("process.scope.getScopesByWebsiteName")
+internal fun EventBus.getScopesByWebsiteId(client: MongoClient) {
+  val getScopesByWebsiteNameConsumer = this.consumer<String>("process.scope.getScopesByWebsiteId")
   getScopesByWebsiteNameConsumer.handler { message ->
     val websiteName = message.body()
     val query = JsonObject()
-      .put("website_name", websiteName)
-
-    client.find("scopes", query).replyListMessage(message)
-  }
-}
-
-internal fun EventBus.getScopesByStoreViewName(client: MongoClient) {
-  val getScopesByStoreViewNameConsumer = this.consumer<String>("process.scope.getScopesByStoreViewName")
-  getScopesByStoreViewNameConsumer.handler { message ->
-    val storeViewName = message.body()
-    val query = JsonObject()
-      .put("store_view_name", storeViewName)
+      .put("websiteId", websiteName)
 
     client.find("scopes", query).replyListMessage(message)
   }
