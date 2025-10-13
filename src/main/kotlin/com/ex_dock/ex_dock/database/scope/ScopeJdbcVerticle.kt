@@ -3,8 +3,6 @@ package com.ex_dock.ex_dock.database.scope
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.frontend.cache.setCacheFlag
 import com.ex_dock.ex_dock.helper.codecs.deliveryOptions
-import com.ex_dock.ex_dock.helper.replyListMessage
-import com.ex_dock.ex_dock.helper.replySingleMessage
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.DeliveryOptions
