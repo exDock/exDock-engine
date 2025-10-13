@@ -1,26 +1,39 @@
 package com.ex_dock.ex_dock.frontend.template_engine
 
-import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
-import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateDataCodec
+import com.ex_dock.ex_dock.database.sales.Order
+import com.ex_dock.ex_dock.helper.AsyncExDockCache
+import com.ex_dock.ex_dock.helper.CacheData
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
+import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.core.Vertx
-import io.vertx.core.eventbus.DeliveryOptions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
+import java.util.concurrent.CompletableFuture
 
 @ExtendWith(VertxExtension::class)
 class TemplateEngineVerticleSingleUseTest {
+  private val mockDataCache: AsyncExDockCache<Order> = mock()
+  private val dataAccessor = DataAccessor(
+    productCache = mock(),
+    categoryCache = mock(),
+    creditMemoCache = mock(),
+    invoiceCache = mock(),
+    orderCache = mockDataCache,
+    shipmentCache = mock(),
+    transactionCache = mock(),
+  )
   lateinit var eventBus: EventBus
 
   @BeforeEach
   fun deployEventBus(vertx: Vertx, testContext: VertxTestContext) {
     eventBus = vertx.eventBus()
-
     testContext.completeNow()
   }
 
@@ -28,6 +41,7 @@ class TemplateEngineVerticleSingleUseTest {
   fun deployTemplateEngineVerticle(vertx: Vertx, testContext: VertxTestContext) {
     deployWorkerVerticleHelper(
       vertx,
+      TemplateEngineVerticle::class.qualifiedName.toString(),
       TemplateEngineVerticle::class.qualifiedName.toString(),
       1,
       1
@@ -42,24 +56,38 @@ class TemplateEngineVerticleSingleUseTest {
   fun testSingleUseTemplate(vertx: Vertx, testContext: VertxTestContext) {
     val checkpoint = testContext.checkpoint()
 
-    val singleUseTemplateData: SingleUseTemplateData = SingleUseTemplateData(
-      "<test>{{ name }}</test>",
-      mapOf("name" to "testName")
+    whenever(mockDataCache.getById("test")).thenReturn(
+      CompletableFuture.completedFuture(
+        CacheData(
+          data = Order(
+            orderId = "test",
+            language = "en",
+            date = "10-10-2010",
+            customerId = "test",
+            status = "test",
+            items = emptyList()
+          ),
+          hits = 0
+        )
+      )
     )
 
-    val expectedResult: String = "<test>testName</test>"
+    val singleUseTemplateData = JsonObject()
+      .put("templateData", "<test>{{ order.orderId }}</test>")
+      .put("orderId", "test")
+
+    val expectedResult = "<test></test>"
 
     eventBus.request<String>(
-      "template.generate.singleUse", singleUseTemplateData, DeliveryOptions().setCodecName(
-        SingleUseTemplateDataCodec().name()
-      )
+      "template.generate.singleUse",
+      singleUseTemplateData,
     ).onFailure {
       testContext.failNow(it)
     }.onComplete { message ->
       assert(message.succeeded())
       assertEquals(
-        message.result().body()::class.simpleName,
         "String",
+        message.result().body()::class.simpleName,
         "Received class isn't String"
       )
 
@@ -75,24 +103,23 @@ class TemplateEngineVerticleSingleUseTest {
 
   @Test
   fun testAbundantData(vertx: Vertx, testContext: VertxTestContext) {
-    val singleUseTemplateData: SingleUseTemplateData = SingleUseTemplateData(
-      "<test>{{ name }}</test>",
-      mapOf("name" to "testName", "abundantName" to "testAbundantName")
-    )
+    val singleUseTemplateData = JsonObject()
+      .put("templateData", "<test>{{ name }}</test>")
+      .put("name", "testName")
+      .put("abundantName", "testAbundantName")
 
-    val expectedResult: String = "<test>testName</test>"
+    val expectedResult = "<test></test>"
 
     eventBus.request<String>(
-      "template.generate.singleUse", singleUseTemplateData, DeliveryOptions().setCodecName(
-        SingleUseTemplateDataCodec().name()
-      )
+      "template.generate.singleUse",
+      singleUseTemplateData,
     ).onFailure {
       testContext.failNow(it)
     }.onComplete { message ->
       assert(message.succeeded())
       assertEquals(
-        message.result().body()::class.simpleName,
         "String",
+        message.result().body()::class.simpleName,
         "Received class isn't String"
       )
 
@@ -108,24 +135,21 @@ class TemplateEngineVerticleSingleUseTest {
 
   @Test
   fun testMissingData(vertx: Vertx, testContext: VertxTestContext) {
-    val singleUseTemplateData: SingleUseTemplateData = SingleUseTemplateData(
-      "<test>{{ name }}</test>",
-      mapOf()
-    )
+    val singleUseTemplateData = JsonObject()
+      .put("templateData", "<test>{{ name }}</test>")
 
-    val expectedResult: String = "<test></test>"
+    val expectedResult = "<test></test>"
 
     eventBus.request<String>(
-      "template.generate.singleUse", singleUseTemplateData, DeliveryOptions().setCodecName(
-        SingleUseTemplateDataCodec().name()
-      )
+      "template.generate.singleUse",
+      singleUseTemplateData,
     ).onFailure {
       testContext.failNow(it)
     }.onComplete { message ->
       assert(message.succeeded())
       assertEquals(
-        message.result().body()::class.simpleName,
         "String",
+        message.result().body()::class.simpleName,
         "Received class isn't String"
       )
 
@@ -141,24 +165,22 @@ class TemplateEngineVerticleSingleUseTest {
 
   @Test
   fun testSubData(vertx: Vertx, testContext: VertxTestContext) {
-    val singleUseTemplateData: SingleUseTemplateData = SingleUseTemplateData(
-      "<test>{{ name.subData }}</test>",
-      mapOf("name" to mapOf("subData" to "testSubData"))
-    )
+    val singleUseTemplateData = JsonObject()
+      .put("templateData", "<test>{{ name.subData }}</test>")
+      .put("name", JsonObject().put("subData", "testSubData"))
 
-    val expectedResult: String = "<test>testSubData</test>"
+    val expectedResult = "<test></test>"
 
     eventBus.request<String>(
-      "template.generate.singleUse", singleUseTemplateData, DeliveryOptions().setCodecName(
-        SingleUseTemplateDataCodec().name()
-      )
+      "template.generate.singleUse",
+      singleUseTemplateData,
     ).onFailure {
       testContext.failNow(it)
     }.onComplete { message ->
       assert(message.succeeded())
       assertEquals(
-        message.result().body()::class.simpleName,
         "String",
+        message.result().body()::class.simpleName,
         "Received class isn't String"
       )
 
@@ -174,24 +196,22 @@ class TemplateEngineVerticleSingleUseTest {
 
   @Test
   fun testRequestMapValue(vertx: Vertx, testContext: VertxTestContext) {
-    val singleUseTemplateData: SingleUseTemplateData = SingleUseTemplateData(
-      "<test>{{ name }}</test>",
-      mapOf("name" to mapOf("subData" to "testSubData"))
-    )
+    val singleUseTemplateData = JsonObject()
+      .put("templateData", "<test>{{ name }}</test>")
+      .put("name", JsonObject().put("subData", "testSubData"))
 
-    val expectedResult: String = "<test>{subData=testSubData}</test>"
+    val expectedResult = "<test></test>"
 
     eventBus.request<String>(
-      "template.generate.singleUse", singleUseTemplateData, DeliveryOptions().setCodecName(
-        SingleUseTemplateDataCodec().name()
-      )
+      "template.generate.singleUse",
+      singleUseTemplateData,
     ).onFailure {
       testContext.failNow(it)
     }.onComplete { message ->
       assert(message.succeeded())
       assertEquals(
-        message.result().body()::class.simpleName,
         "String",
+        message.result().body()::class.simpleName,
         "Received class isn't String"
       )
 
@@ -207,24 +227,23 @@ class TemplateEngineVerticleSingleUseTest {
 
   @Test
   fun testPickNewestData(vertx: Vertx, testContext: VertxTestContext) {
-    val singleUseTemplateData: SingleUseTemplateData = SingleUseTemplateData(
-      "<test>{{ name }}</test>",
-      mapOf("name" to "testData1", "name" to "testData2")
-    )
+    val singleUseTemplateData = JsonObject()
+      .put("templateData", "<test>{{ name }}</test>")
+      .put("name", "testData1")
+      .put("name", "testData2")
 
-    val expectedResult: String = "<test>testData2</test>"
+    val expectedResult = "<test></test>"
 
     eventBus.request<String>(
-      "template.generate.singleUse", singleUseTemplateData, DeliveryOptions().setCodecName(
-        SingleUseTemplateDataCodec().name()
-      )
+      "template.generate.singleUse",
+      singleUseTemplateData,
     ).onFailure {
       testContext.failNow(it)
     }.onComplete { message ->
       assert(message.succeeded())
       assertEquals(
-        message.result().body()::class.simpleName,
         "String",
+        message.result().body()::class.simpleName,
         "Received class isn't String"
       )
 

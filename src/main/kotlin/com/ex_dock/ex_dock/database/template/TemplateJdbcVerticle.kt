@@ -9,9 +9,6 @@ import io.vertx.core.eventbus.DeliveryOptions
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
-import io.vertx.sqlclient.Pool
-import io.vertx.sqlclient.Row
-import io.vertx.sqlclient.Tuple
 
 class TemplateJdbcVerticle: VerticleBase() {
   private lateinit var client: MongoClient
@@ -47,7 +44,7 @@ class TemplateJdbcVerticle: VerticleBase() {
     getTemplateByKeyConsumer.handler { message ->
       val key = message.body()
       val query = JsonObject()
-        .put("template_key", key)
+        .put("_id", key)
 
       client.find("templates", query).replySingleMessage(message)
     }
@@ -67,7 +64,6 @@ class TemplateJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
         template.templateKey
 
         message.reply(template, templateDeliveryOptions)
@@ -89,7 +85,6 @@ class TemplateJdbcVerticle: VerticleBase() {
       }
 
       rowsFuture.onSuccess { res ->
-        val lastInsertID: String = res
         template.templateKey
 
         message.reply(template, templateDeliveryOptions)
@@ -102,7 +97,7 @@ class TemplateJdbcVerticle: VerticleBase() {
     deleteTemplateConsumer.handler { message ->
       val key = message.body()
       val query = JsonObject()
-        .put("template_key", key)
+        .put("_id", key)
 
       val rowsFuture = client.removeDocuments("templates", query)
 

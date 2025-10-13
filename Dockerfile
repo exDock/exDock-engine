@@ -15,6 +15,8 @@ EXPOSE 8888
 
 WORKDIR $APP_DIR
 COPY --from=builder /project/target/*-fat.jar $APP_DIR/$APP_FILE
+COPY ./swagger.json $APP_DIR/swagger.json
+COPY ./webroot $APP_DIR/webroot
 
 ENTRYPOINT ["sh", "-c"]
 CMD ["exec java -jar $APP_FILE"]

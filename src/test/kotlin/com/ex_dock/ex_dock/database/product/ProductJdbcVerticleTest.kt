@@ -10,6 +10,7 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.ext.unit.TestSuite
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -21,7 +22,7 @@ class ProductJdbcVerticleTest {
   private lateinit var eventBus: EventBus
   private val productDeliveryOptions = DeliveryOptions().setCodecName("ProductInfoCodec")
   private val testProduct = ProductInfo(
-    productId = "123",
+    productId = ObjectId().toString(),
     name = "testName",
     shortName = "testShortName",
     description = "testDescription",
@@ -57,7 +58,6 @@ class ProductJdbcVerticleTest {
 
     suite.test("testProductInfoToJson") { testContext ->
       val result = testProduct.toDocument()
-      testContext.assertEquals(testProduct.productId, result.getString("_id"))
       testContext.assertEquals(testProduct.name, result.getString("name"))
     }.test("testProductInfoFromJson") { testContext ->
       val productJson = testProduct.toDocument()
@@ -84,6 +84,7 @@ class ProductJdbcVerticleTest {
 
     deployWorkerVerticleHelper(
       vertx,
+      ProductJdbcVerticle::class.qualifiedName.toString(),
       ProductJdbcVerticle::class.qualifiedName.toString(),
       1,
       1

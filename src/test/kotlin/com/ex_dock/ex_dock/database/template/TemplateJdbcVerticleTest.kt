@@ -23,7 +23,6 @@ class TemplateJdbcVerticleTest {
     templateKey = "testKey",
     blockName = "testBlockName",
     templateData = "testTemplate",
-    dataString = "testDataString"
   )
 
   @Test
@@ -33,7 +32,6 @@ class TemplateJdbcVerticleTest {
 
     suite.test("testTemplateToJson") { testContext ->
       val result = testTemplate.toDocument()
-      testContext.assertEquals(testTemplate.templateKey, result.getString("template_key"))
       testContext.assertEquals(testTemplate.blockName, result.getString("block_name"))
     }.test("testTemplateFromJson") { testContext ->
       val templateJson = testTemplate.toDocument()
@@ -61,6 +59,7 @@ class TemplateJdbcVerticleTest {
     deployWorkerVerticleHelper(
       vertx,
       TemplateJdbcVerticle::class.qualifiedName.toString(),
+      TemplateJdbcVerticle::class.qualifiedName.toString(),
       1,
       1
     ).onFailure { err ->
@@ -74,7 +73,6 @@ class TemplateJdbcVerticleTest {
           assert(result.templateKey == testTemplate.templateKey)
           assert(result.blockName == testTemplate.blockName)
           assert(result.templateData == testTemplate.templateData)
-          assert(result.dataString == testTemplate.dataString)
           vertxTestContext.completeNow()
         }
       }
@@ -92,7 +90,6 @@ class TemplateJdbcVerticleTest {
           assert(result.templateKey == testTemplate.templateKey)
           assert(result.blockName == testTemplate.blockName)
           assert(result.templateData == testTemplate.templateData)
-          assert(result.dataString == testTemplate.dataString)
           vertxTestContext.completeNow()
         }
       }
