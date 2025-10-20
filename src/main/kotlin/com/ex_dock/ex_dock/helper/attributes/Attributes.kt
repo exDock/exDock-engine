@@ -22,6 +22,18 @@ abstract class Attributes(internal val client: MongoClient) {
     return "$collection-$scopeKey"
   }
 
+  internal fun isValidAttributeKey(attributeKey: String): Boolean {
+    if (attributeKey.length < 4) return false
+
+    // Regular expression explanation:
+    // ^[a-zA-Z]             - Must start with a letter (upper or lower case).
+    // [a-zA-Z0-9_-]* - Followed by zero or more of: letters, numbers, hyphen, or underscore.
+    // [a-zA-Z0-9]$          - MUST end with a letter or a number.
+    //                         This ensures the key cannot end with a hyphen or an underscore.
+    val regex = Regex("^[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]$")
+    return attributeKey.matches(regex)
+  }
+
   internal fun getScopedDataSingle(
       scopeKey: String,
       query: JsonObject,
