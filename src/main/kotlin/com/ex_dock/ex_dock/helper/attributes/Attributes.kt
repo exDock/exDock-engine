@@ -274,7 +274,10 @@ abstract class Attributes(internal val client: MongoClient) {
   }
 
   abstract fun getAttributeType(attributeKey: String): Future<KClass<*>>
-  abstract fun checkValueType(attributeKey: String, value: Any): Future<Boolean>
+  abstract fun checkValueType(attributeKey: String, kClass: KClass<*>): Future<Boolean>
+  fun checkValueType(attributeKey: String, value: Any): Future<Boolean> {
+    return checkValueType(attributeKey, value::class)
+  }
 
   fun setAttributeValue(entityId: String, attributeKey: String, value: Any, scopeKey: String): Future<Any> {
     return Future.future { promise ->
