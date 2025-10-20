@@ -20,3 +20,12 @@ fun <T> Future<T>.onSuccess(promise: Promise<T>): Future<T> {
     promise.complete(res)
   }
 }
+
+/**
+ * This onSuccess method replaces the standard onSuccess { promise.complete() }
+ */
+fun <T> Future<T>.onSuccess(promise: Promise<Unit>): Future<T> {
+  return this.onSuccess { _ ->
+    promise.complete()
+  }
+}
