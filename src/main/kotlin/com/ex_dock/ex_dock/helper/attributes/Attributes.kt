@@ -419,7 +419,7 @@ abstract class Attributes(internal val client: MongoClient) {
   }
 
   /**
-   * Clears all the attributes for the entity. This is meant as an assist for the removal of the entityId
+   * Clears all the attributes for the entity. This is meant as an assist for the removal of the entityId.
    *
    * Attention: Also removes the required attributes!
    */
