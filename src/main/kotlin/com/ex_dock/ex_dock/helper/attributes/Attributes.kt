@@ -2,6 +2,7 @@ package com.ex_dock.ex_dock.helper.attributes
 
 import com.ex_dock.ex_dock.global.cachedScopes
 import com.ex_dock.ex_dock.helper.futures.onFailure
+import com.ex_dock.ex_dock.helper.futures.onSuccess
 import com.ex_dock.ex_dock.helper.scopes.ScopeLevel
 import io.vertx.core.Future
 import io.vertx.core.json.JsonArray
@@ -17,6 +18,7 @@ import kotlin.reflect.KClass
  */
 abstract class Attributes(internal val client: MongoClient) {
   abstract val collection: String
+  val collectionConfigKey = "$collection-attributes"
   abstract val allowedTypes: Map<String, KClass<*>>
 
   internal fun getCollectionKey(scopeKey: String): String {
@@ -273,7 +275,21 @@ abstract class Attributes(internal val client: MongoClient) {
     }
   }
 
-  abstract fun getAttributeType(attributeKey: String): Future<KClass<*>>
+  fun getAttributeType(attributeKey: String): Future<KClass<*>> {
+    return Future.future { promise ->
+      client.findOne(
+        collectionConfigKey,
+        JsonObject().put("_id", attributeKey),
+        JsonObject().put("type", 1)
+      ).onFailure(promise).onSuccess { res ->
+        promise.complete(
+          allowedTypes[res.getString("type")]
+            ?: throw IllegalStateException("For some reason, the attribute type for this attributeKey is not in the allowedTypes map... This means that the KClass can't be matched and returned. A database repair is required")
+        )
+      }
+    }
+  }
+
   fun checkValueType(attributeKey: String, kClass: KClass<*>): Future<Boolean> {
     return Future.future { promise ->
       getAttributeType(attributeKey).onFailure(promise).onSuccess { res ->
@@ -281,6 +297,7 @@ abstract class Attributes(internal val client: MongoClient) {
       }
     }
   }
+
   fun checkValueType(attributeKey: String, value: Any): Future<Boolean> {
     return checkValueType(attributeKey, value::class)
   }
@@ -420,14 +437,28 @@ abstract class Attributes(internal val client: MongoClient) {
     }
   }
 
-  abstract fun createAttribute(
+  fun createAttribute(
       attributeName: String,
       attributeKey: String,
       dataType: String,
       scopeLevel: ScopeLevel
-  ): Future<Unit>
+  ): Future<Unit> {
+    if (!isValidAttributeKey(attributeKey)) return Future.failedFuture("Invalid attribute key")
+    if (allowedTypes[dataType] == null) return Future.failedFuture("Invalid data type")
+    return Future.future { promise ->
+      val document = JsonObject()
+        .put("_id", attributeKey)
+        .put("name", attributeName)
+        .put("type", dataType)
+        .put("scopeLevel", scopeLevel.name)
+      client.insert(collectionConfigKey, document).onFailure(promise).onSuccess(promise)
+    }
+  }
 
   // TODO: fun editAttribute()
 
-  abstract fun deleteAttribute(attributeKey: String): Future<Unit>
+  fun deleteAttribute(attributeKey: String): Future<Unit> {
+    // TODO: remove all attributeValues for this attribute on all scopes
+    TODO("Not yet implemented")
+  }
 }
