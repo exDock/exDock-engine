@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.helper.attributes
 
 import com.ex_dock.ex_dock.global.cachedScopes
+import com.ex_dock.ex_dock.helper.futures.onComplete
 import com.ex_dock.ex_dock.helper.futures.onFailure
 import com.ex_dock.ex_dock.helper.futures.onSuccess
 import com.ex_dock.ex_dock.helper.scopes.ScopeLevel
@@ -482,7 +483,10 @@ abstract class Attributes(internal val client: MongoClient) {
   // TODO: fun editAttribute()
 
   fun deleteAttribute(attributeKey: String): Future<Unit> {
-    // TODO: remove all attributeValues for this attribute on all scopes
-    TODO("Not yet implemented")
+    return Future.future { promise ->
+      clearAttributeAllValues(attributeKey).onFailure(promise).onSuccess { _ ->
+        client.removeDocument(collectionConfigKey, JsonObject().put("_id", attributeKey)).onComplete(promise)
+      }
+    }
   }
 }
