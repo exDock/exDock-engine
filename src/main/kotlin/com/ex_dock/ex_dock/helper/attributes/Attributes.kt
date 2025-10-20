@@ -21,6 +21,7 @@ abstract class Attributes(internal val client: MongoClient) {
   abstract val collection: String
   val collectionConfigKey = "$collection-attributes"
   abstract val allowedTypes: Map<String, KClass<*>>
+  abstract val systemAttributes: List<AttributeConfiguration>
 
   internal fun getCollectionKey(scopeKey: String): String {
     if (scopeKey == "global") return collection

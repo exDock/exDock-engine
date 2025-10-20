@@ -1,5 +1,6 @@
 package com.ex_dock.ex_dock.helper.attributes
 
+import com.ex_dock.ex_dock.helper.scopes.ScopeLevel
 import io.vertx.ext.mongo.MongoClient
 import kotlin.reflect.KClass
 
@@ -10,5 +11,10 @@ class ProductAttributes(client: MongoClient) : Attributes(client) {
     "integer" to Int::class,
     "number" to Number::class,
     "boolean" to Boolean::class,
+  )
+  override val systemAttributes: List<AttributeConfiguration> = listOf(
+    AttributeConfiguration("name", "Product name", "string", ScopeLevel.STORE_VIEW),
+    AttributeConfiguration("description", "Product description", "string", ScopeLevel.STORE_VIEW),
+    // TODO: think about all system attributes for the products
   )
 }
