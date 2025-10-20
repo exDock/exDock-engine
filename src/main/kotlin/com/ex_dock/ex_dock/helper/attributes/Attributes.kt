@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock.helper.attributes
 
 import com.ex_dock.ex_dock.global.cachedScopes
+import com.ex_dock.ex_dock.helper.futures.onFailure
 import com.ex_dock.ex_dock.helper.scopes.ScopeLevel
 import io.vertx.core.Future
 import io.vertx.core.json.JsonArray
@@ -98,7 +99,11 @@ abstract class Attributes(internal val client: MongoClient) {
     }
   }
 
-  internal fun getScopedData(scopeKey: String, query: JsonObject, fields: JsonObject? = null): Future<List<JsonObject>> {
+  internal fun getScopedData(
+      scopeKey: String,
+      query: JsonObject,
+      fields: JsonObject? = null
+  ): Future<List<JsonObject>> {
     var globalData: List<JsonObject>? = null
     var websiteData: List<JsonObject>? = null
     var scopeData: List<JsonObject>? = null
@@ -136,12 +141,13 @@ abstract class Attributes(internal val client: MongoClient) {
       if (scope.getString("scopeType") == "store-view") {
         allFutures.add(
           Future.future { promise ->
-            client.findWithOptions(getCollectionKey(scope.getString("websiteId")), query, findOptions).onFailure { err ->
-              promise.fail(err)
-            }.onSuccess { res ->
-              websiteData = res
-              promise.complete()
-            }
+            client.findWithOptions(getCollectionKey(scope.getString("websiteId")), query, findOptions)
+              .onFailure { err ->
+                promise.fail(err)
+              }.onSuccess { res ->
+                websiteData = res
+                promise.complete()
+              }
           }
         )
       }
@@ -210,7 +216,11 @@ abstract class Attributes(internal val client: MongoClient) {
 
   fun getAttributeValue(entityId: String, attributeKey: String, scopeKey: String): Future<Any?> {
     return Future.future { promise ->
-      getScopedDataSingle(scopeKey, JsonObject().put("_id", entityId), JsonObject().put(attributeKey, 1)).onFailure { err ->
+      getScopedDataSingle(
+        scopeKey,
+        JsonObject().put("_id", entityId),
+        JsonObject().put(attributeKey, 1)
+      ).onFailure { err ->
         promise.fail(err)
       }.onSuccess { res ->
         promise.complete(res)
@@ -262,47 +272,88 @@ abstract class Attributes(internal val client: MongoClient) {
     }
   }
 
-  abstract fun getAttributeType(attributeKey: String): KClass<*>
-  abstract fun checkValueType(attributeKey: String, value: Any): Boolean
+  abstract fun getAttributeType(attributeKey: String): Future<KClass<*>>
+  abstract fun checkValueType(attributeKey: String, value: Any): Future<Boolean>
 
   fun setAttributeValue(entityId: String, attributeKey: String, value: Any, scopeKey: String): Future<Any> {
     return Future.future { promise ->
-      if (!checkValueType(attributeKey, value)) return@future promise.fail(
-        "$value (type: ${value::class.simpleName}) is not the correct type for $attributeKey (type: ${
-          getAttributeType(
-            attributeKey
-          ).simpleName
-        })"
-      )
+      checkValueType(attributeKey, value).onFailure(promise).onSuccess { res ->
+        if (!res) {
+          getAttributeType(attributeKey).onComplete { asyncRes ->
+            promise.fail(
+              "$value (type: ${value::class.simpleName}) is not the correct type for $attributeKey (type: ${asyncRes.result() ?: "type name could not be retrieved"})"
+            )
+          }
+          return@onSuccess
+        }
 
-      client.findOneAndUpdate(
-        getCollectionKey(scopeKey),
-        JsonObject().put("_id", entityId),
-        JsonObject().put($$"$set", JsonObject().put(attributeKey, value)),
-      ).onFailure { err -> promise.fail(err) }.onSuccess { _ ->
-        promise.complete(value)
+        client.findOneAndUpdate(
+          getCollectionKey(scopeKey),
+          JsonObject().put("_id", entityId),
+          JsonObject().put($$"$set", JsonObject().put(attributeKey, value)),
+        ).onFailure(promise).onSuccess { _ ->
+          promise.complete(value)
+        }
       }
     }
   }
 
   fun setAttributesValue(entityId: String, attributes: Map<String, Any>, scopeKey: String): Future<Map<String, Any>> {
     return Future.future { promise ->
-      for ((attributeKey, value) in attributes) {
-        // TODO: save all wrong types and return it inside 1 fail()
-        if (!checkValueType(attributeKey, value)) return@future promise.fail(
-          "$value (type: ${value::class.simpleName}) is not the correct type for $attributeKey (type: ${
-            getAttributeType(
-              attributeKey
-            ).simpleName
-          })"
-        )
+      val checkValueType: List<Future<Boolean>> = attributes.map { (attributeKey, value) ->
+        checkValueType(attributeKey, value)
       }
-      client.findOneAndUpdate(
-        getCollectionKey(scopeKey),
-        JsonObject().put("_id", entityId),
-        JsonObject().put($$"$set", JsonObject(attributes)),
-      ).onFailure { err -> promise.fail(err) }.onSuccess { _ ->
-        promise.complete(attributes)
+
+      val attributeKeyList = attributes.keys.toList()
+      val wrongTypeAttributeValues = mutableMapOf<String, Any>()
+
+      Future.all<Boolean>(checkValueType).onFailure(promise).onSuccess { asyncRes ->
+        asyncRes.list<Boolean>().forEachIndexed { index, res ->
+          if (!res) {
+            val attributeKey = attributeKeyList[index]
+            wrongTypeAttributeValues[attributeKey] = attributes[attributeKey]!!
+          }
+        }
+
+        if (wrongTypeAttributeValues.isNotEmpty()) {
+          val errorMessages = mutableListOf<String>()
+
+          val typeNameFutures: List<Future<KClass<*>?>> = wrongTypeAttributeValues.keys.map { attributeKey ->
+            Future.future { promise ->
+              getAttributeType(attributeKey).onComplete { asyncRes ->
+                promise.complete(asyncRes.result())
+              }
+            }
+          }
+
+          Future.all<KClass<*>>(typeNameFutures).onFailure(promise).onSuccess { res ->
+            wrongTypeAttributeValues.entries.forEachIndexed { index, (key, value) ->
+              val expectedTypeName =
+                (res.resultAt(index) as KClass<*>)::class.simpleName ?: "type name could not be retrieved"
+              errorMessages.add(
+                "$value (type: ${value::class.simpleName}) is not the correct type for $key (type: $expectedTypeName)"
+              )
+            }
+          }
+
+          promise.fail(
+            "The following type errors occurred while trying to set multiple attributes: \n- " +
+                errorMessages.joinToString("\n- ") +
+                "\n\nThe complete set attributes operation was aborted."
+          )
+
+          return@onSuccess
+        }
+
+        client.findOneAndUpdate(
+          getCollectionKey(scopeKey),
+          JsonObject().put("_id", entityId),
+          JsonObject().put($$"$set", JsonObject(attributes)),
+        ).onFailure { err -> promise.fail(err) }.onSuccess { _ ->
+          promise.complete(attributes)
+        }
+
+        return@onSuccess
       }
     }
   }
@@ -359,9 +410,14 @@ abstract class Attributes(internal val client: MongoClient) {
     }
   }
 
-  abstract fun createAttribute(attributeName: String, attributeKey: String, dataType: String, scopeLevel: ScopeLevel)
+  abstract fun createAttribute(
+      attributeName: String,
+      attributeKey: String,
+      dataType: String,
+      scopeLevel: ScopeLevel
+  ): Future<Unit>
 
   // TODO: fun editAttribute()
 
-  abstract fun deleteAttribute(attributeKey: String)
+  abstract fun deleteAttribute(attributeKey: String): Future<Unit>
 }
