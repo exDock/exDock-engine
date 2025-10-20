@@ -29,3 +29,17 @@ fun <T> Future<T>.onSuccess(promise: Promise<Unit>): Future<T> {
     promise.complete()
   }
 }
+
+/**
+ * This onComplete method replaces the standard .onFailure { promise.fail(it) }.onSuccess { promise.complete(it) }
+ */
+fun <T> Future<T>.onComplete(promise: Promise<T>): Future<T> {
+  return this.onFailure(promise).onSuccess(promise)
+}
+
+/**
+ * This onComplete method replaces the standard .onFailure { promise.fail(it) }.onSuccess { promise.complete() }
+ */
+fun <T> Future<T>.onComplete(promise: Promise<Unit>): Future<T> {
+  return this.onFailure(promise).onSuccess(promise)
+}
