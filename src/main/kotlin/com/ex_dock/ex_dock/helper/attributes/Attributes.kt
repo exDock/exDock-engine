@@ -281,10 +281,10 @@ abstract class Attributes(internal val client: MongoClient) {
       client.findOne(
         collectionConfigKey,
         JsonObject().put("_id", attributeKey),
-        JsonObject().put("type", 1)
+        JsonObject().put("attributeType", 1)
       ).onFailure(promise).onSuccess { res ->
         promise.complete(
-          allowedTypes[res.getString("type")]
+          allowedTypes[res.getString("attributeType")]
             ?: throw IllegalStateException("For some reason, the attribute type for this attributeKey is not in the allowedTypes map... This means that the KClass can't be matched and returned. A database repair is required")
         )
       }
@@ -473,9 +473,9 @@ abstract class Attributes(internal val client: MongoClient) {
     return Future.future { promise ->
       val document = JsonObject()
         .put("_id", attributeKey)
-        .put("name", attributeName)
-        .put("type", dataType)
-        .put("scopeLevel", scopeLevel.name)
+        .put("attributeName", attributeName)
+        .put("attributeType", dataType)
+        .put("attributeScopeLevel", scopeLevel.name)
       client.insert(collectionConfigKey, document).onFailure(promise).onSuccess(promise)
     }
   }
