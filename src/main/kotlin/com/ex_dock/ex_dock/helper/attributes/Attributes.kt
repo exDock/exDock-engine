@@ -17,6 +17,7 @@ import kotlin.reflect.KClass
  */
 abstract class Attributes(internal val client: MongoClient) {
   abstract val collection: String
+  abstract val allowedTypes: Map<String, KClass<*>>
 
   internal fun getCollectionKey(scopeKey: String): String {
     if (scopeKey == "global") return collection
