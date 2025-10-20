@@ -490,4 +490,13 @@ abstract class Attributes(internal val client: MongoClient) {
       }
     }
   }
+
+  /**
+   * This function checks if the system attributes are present, and if not, add all the missing attributes.
+   *
+   * Future will fail when system attributes are present, but the config doesn't match or on database error.
+   */
+  fun initialiseSystemAttributes(): Future<Unit> {
+    TODO("Not yet implemented")
+  }
 }
