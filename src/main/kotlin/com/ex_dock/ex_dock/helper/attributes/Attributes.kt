@@ -437,6 +437,30 @@ abstract class Attributes(internal val client: MongoClient) {
     }
   }
 
+  /**
+   * Clears all the values for a certain attribute across all scopes. This is meant as an assist for the removal of an attribute.
+   */
+  fun clearAttributeAllValues(attributeKey: String): Future<Unit> {
+    return Future.future { promise ->
+      val allFutures = mutableListOf<Future<*>>()
+      for ((key, _) in cachedScopes) allFutures.add(
+        client.updateCollection(
+          getCollectionKey(key),
+          JsonObject(),
+          JsonObject().put($$"$unset", JsonObject().put(attributeKey, null))
+        )
+      )
+      allFutures.add(
+        client.updateCollection(
+          collection,
+          JsonObject(),
+          JsonObject().put($$"$unset", JsonObject().put(attributeKey, null))
+        )
+      )
+      Future.all<Any?>(allFutures).onFailure(promise).onSuccess(promise)
+    }
+  }
+
   fun createAttribute(
       attributeName: String,
       attributeKey: String,
