@@ -4,7 +4,6 @@ import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import com.ex_dock.ex_dock.helper.deployWorkerVerticleHelper
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
-import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
@@ -132,7 +131,7 @@ class ScopeJdbcVerticleTest {
   @Order(4)
   @DisplayName("Test getting a scope by its ID")
   fun testGetScopeById(context: VertxTestContext) {
-    eventBus.request<JsonObject>("process.scope.getScopeByWebsiteId", testWebsiteId).onFailure {
+    eventBus.request<JsonObject>("process.scope.getScopeById", testWebsiteId).onFailure {
       context.failNow(it)
     }.onSuccess { message ->
       val result = message.body()

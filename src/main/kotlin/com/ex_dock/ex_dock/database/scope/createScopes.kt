@@ -84,7 +84,7 @@ internal fun EventBus.createStoreView(client: MongoClient) {
             message.errorResponse(err)
           }.onSuccess { res ->
             cachedScopes.put(key, document)
-            message.reply(res)
+            message.reply(res ?: key)
           }
         }
       }

@@ -9,8 +9,7 @@ import io.vertx.ext.mongo.MongoClient
 
 
 internal fun EventBus.getAllScopes(client: MongoClient) {
-  val getAllScopesConsumer = this.consumer<String>("process.scope.getAllScopes")
-  getAllScopesConsumer.handler { message ->
+  this.consumer<String>("process.scope.getAllScopes").handler { message ->
     val query = JsonObject()
 
     client.find("scopes", query).onSuccess { res ->
@@ -34,8 +33,7 @@ internal fun EventBus.getScopeById(client: MongoClient) {
 }
 
 internal fun EventBus.getScopesByWebsiteId(client: MongoClient) {
-  val getScopesByWebsiteNameConsumer = this.consumer<String>("process.scope.getScopesByWebsiteId")
-  getScopesByWebsiteNameConsumer.handler { message ->
+  this.consumer<String>("process.scope.getScopesByWebsiteId").handler { message ->
     val websiteName = message.body()
     val query = JsonObject()
       .put("websiteId", websiteName)
