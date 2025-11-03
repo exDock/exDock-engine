@@ -34,7 +34,7 @@ internal fun EventBus.createWebsite(client: MongoClient) {
         message.errorResponse(err)
       }.onSuccess { res ->
         cachedScopes.put(key, document)
-        message.reply(res)
+        message.reply(res ?: key)
       }
     }
   }
