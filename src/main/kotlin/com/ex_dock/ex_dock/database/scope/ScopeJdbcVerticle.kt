@@ -1,7 +1,9 @@
 package com.ex_dock.ex_dock.database.scope
 
+import com.ex_dock.ex_dock.MainVerticle
 import com.ex_dock.ex_dock.database.connection.getConnection
 import com.ex_dock.ex_dock.global.cachedScopes
+import com.ex_dock.ex_dock.helper.messages.errorResponse
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
@@ -35,20 +37,14 @@ class ScopeJdbcVerticle:  VerticleBase() {
 
   private fun deleteScope() {
     // TODO: remove all data associated with the scope
-    val deleteScopeConsumer = eventBus.consumer<String>("process.scope.deleteScope")
-    deleteScopeConsumer.handler { message ->
+    eventBus.consumer<String>("process.scope.deleteScope").handler { message ->
       val scopeId = message.body()
       val query = JsonObject()
         .put("_id", scopeId)
 
-      val rowsFuture = client.removeDocument("scopes", query)
-
-      rowsFuture.onFailure { err ->
-        println("Failed to execute query: $err")
-        message.fail(500, "Failed to execute query: $err")
-      }
-
-      rowsFuture.onSuccess { _ ->
+      client.removeDocument("scopes", query).onFailure { err ->
+        message.errorResponse(500, "Failed to execute query: $err")
+      }.onSuccess { _ ->
         cachedScopes.remove(scopeId)
         message.reply("Scope deleted successfully")
       }
