@@ -24,6 +24,7 @@ fun <T> Future<T>.onSuccess(promise: Promise<T>): Future<T> {
 /**
  * This onSuccess method replaces the standard onSuccess { promise.complete() }
  */
+@JvmName("onSuccessUnit") // Make the JVM name unique for the Unit version
 fun <T> Future<T>.onSuccess(promise: Promise<Unit>): Future<T> {
   return this.onSuccess { _ ->
     promise.complete()
@@ -40,6 +41,7 @@ fun <T> Future<T>.onComplete(promise: Promise<T>): Future<T> {
 /**
  * This onComplete method replaces the standard .onFailure { promise.fail(it) }.onSuccess { promise.complete() }
  */
+@JvmName("onCompleteUnit") // Make the JVM name unique for the Unit version
 fun <T> Future<T>.onComplete(promise: Promise<Unit>): Future<T> {
   return this.onFailure(promise).onSuccess(promise)
 }
