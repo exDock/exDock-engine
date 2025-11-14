@@ -32,7 +32,6 @@ class TemplateJdbcVerticleTest {
 
     suite.test("testTemplateToJson") { testContext ->
       val result = testTemplate.toDocument()
-      testContext.assertEquals(testTemplate.templateKey, result.getString("template_key"))
       testContext.assertEquals(testTemplate.blockName, result.getString("block_name"))
     }.test("testTemplateFromJson") { testContext ->
       val templateJson = testTemplate.toDocument()

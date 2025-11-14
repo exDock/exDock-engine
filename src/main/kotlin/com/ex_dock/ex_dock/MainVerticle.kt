@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpServerOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.SessionHandler
+import io.vertx.ext.web.handler.StaticHandler
 import io.vertx.ext.web.sstore.SessionStore
 import java.util.*
 
@@ -87,6 +88,15 @@ class MainVerticle : VerticleBase() {
 
     mainRouter.route().handler(sessionHandler)
     mainRouter.route().handler(BodyHandler.create())
+    mainRouter.route("/docs/*").handler(staticHandler)
+
+    mainRouter.route("/docs").handler { ctx ->
+      ctx.response().setStatusCode(302).putHeader("Location", "/docs/index.html?url=/swagger.json").end()
+    }
+
+    mainRouter["/swagger.json"].handler {
+      ctx -> ctx.response().sendFile("swagger.json")
+    }
 
     mainRouter.enableBackendRouter(vertx, logger, authProvider)
 
