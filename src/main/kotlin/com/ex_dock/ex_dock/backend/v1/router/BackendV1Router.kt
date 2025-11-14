@@ -33,7 +33,6 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
   val backendV1Router: Router = Router.router(vertx)
   val eventBus: EventBus = vertx.eventBus()
-  val authProvider = AuthProvider()
   val exDockAuthHandler = ExDockAuthHandler(vertx)
 
   backendV1Router.route().handler(BodyHandler.create())
@@ -172,6 +171,8 @@ private fun JsonArray.convertAddresses(): JsonArray {
       "category" -> resultArray.add(Pair("process.category.getCategoryById", address.getString("id")))
       "template" -> resultArray.add(Pair("process.template.getTemplateByKey", address.getString("id")))
       "templatesAll" -> resultArray.add(Pair("process.template.getAllTemplates", address.getString("id")))
+      "url" -> resultArray.add(Pair("process.url.getUrlByKey", address.getString("id")))
+      "urlsAll" -> resultArray.add(Pair("process.url.getAllUrlKeys", address.getString("id")))
       else -> MainVerticle.logger.info { "Unknown address: $address" }
     }
   }
