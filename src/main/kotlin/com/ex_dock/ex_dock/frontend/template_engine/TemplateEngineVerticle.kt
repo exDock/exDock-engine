@@ -17,6 +17,7 @@ import io.pebbletemplates.pebble.template.PebbleTemplate
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
 import io.vertx.core.eventbus.EventBus
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
 import java.io.StringWriter
@@ -34,6 +35,8 @@ class TemplateEngineVerticle : VerticleBase() {
   private lateinit var orderCache: AsyncExDockCache<Order>
   private lateinit var shipmentCache: AsyncExDockCache<Shipment>
   private lateinit var transactionCache: AsyncExDockCache<Transaction>
+  private lateinit var listCache: AsyncExDockCache<JsonArray>
+
   private val engine = PebbleEngine.Builder().loader(StringLoader()).build()
 
   private val expireDuration = 10L
@@ -50,6 +53,7 @@ class TemplateEngineVerticle : VerticleBase() {
     orderCache = AsyncExDockCache(vertx) { key -> getOrderCacheData(key) }
     shipmentCache = AsyncExDockCache(vertx) { key -> getShipmentCacheData(key) }
     transactionCache = AsyncExDockCache(vertx) { key -> getTransactionCacheData(key) }
+    listCache = AsyncExDockCache(vertx) { key -> getListCacheData(key) }
 
     templateCache = Caffeine.newBuilder()
       .expireAfterWrite(expireDuration, TimeUnit.MINUTES)
@@ -176,7 +180,8 @@ class TemplateEngineVerticle : VerticleBase() {
       invoiceCache,
       orderCache,
       shipmentCache,
-      transactionCache
+      transactionCache,
+      listCache
     )
     val futureMap: MutableMap<String, CompletableFuture<*>> = mutableMapOf()
 
@@ -195,6 +200,7 @@ class TemplateEngineVerticle : VerticleBase() {
     putFuture("order", "order", "orderId")
     putFuture("shipment", "shipment", "shipmentId")
     putFuture("transaction", "transaction", "transactionId")
+    putFuture("list", "list", "listId")
 
     val futuresArray = futureMap.values.toTypedArray()
     return CompletableFuture.allOf(*futuresArray)
@@ -272,6 +278,13 @@ class TemplateEngineVerticle : VerticleBase() {
     )
   }
 
+  private fun getListCacheData(key: String): CompletableFuture<CacheData<JsonArray>?> {
+    return getCacheData(
+      key = key,
+      eventBusAddress = "process.list.delegateRequest"
+    )
+  }
+
   private fun <T : Any> getCacheData(
     key: String,
     deserializer: (JsonObject) -> T,
@@ -279,6 +292,17 @@ class TemplateEngineVerticle : VerticleBase() {
   ): CompletableFuture<CacheData<T>?> {
     val future = eventBus.request<JsonObject>(eventBusAddress, key)
       .map { CacheData(deserializer(it.body()), 0) }
+      .otherwise { null }
+
+    return future.toCompletionStage().toCompletableFuture()
+  }
+
+  private fun getCacheData(
+    key: String,
+    eventBusAddress: String
+  ): CompletableFuture<CacheData<JsonArray>?> {
+    val future = eventBus.request<JsonArray>(eventBusAddress, key)
+      .map { CacheData(it.body(), 0) }
       .otherwise { null }
 
     return future.toCompletionStage().toCompletableFuture()
