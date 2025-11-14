@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 class TemplateEngineVerticle : VerticleBase() {
   private lateinit var client: MongoClient
   private lateinit var eventBus: EventBus
-  private lateinit var templateCache: LoadingCache<String, TemplateCacheData>
+  private lateinit var templateCache: AsyncExDockCache<TemplateCacheData>
   private lateinit var productCache: AsyncExDockCache<ProductInfo>
   private lateinit var categoryCache: AsyncExDockCache<CategoryInfo>
   private lateinit var creditMemoCache: AsyncExDockCache<CreditMemo>
@@ -46,6 +46,7 @@ class TemplateEngineVerticle : VerticleBase() {
   override fun start(): Future<*>? {
     client = vertx.getConnection()
     eventBus = vertx.eventBus()
+    templateCache = AsyncExDockCache(vertx) { key -> getTemplateCacheData(key) }
     productCache = AsyncExDockCache(vertx) { key -> getProductCacheData(key) }
     categoryCache = AsyncExDockCache(vertx) { key -> getCategoryCacheData(key) }
     creditMemoCache = AsyncExDockCache(vertx) { key -> getCreditMemoCacheData(key) }
@@ -55,33 +56,8 @@ class TemplateEngineVerticle : VerticleBase() {
     transactionCache = AsyncExDockCache(vertx) { key -> getTransactionCacheData(key) }
     listCache = AsyncExDockCache(vertx) { key -> getListCacheData(key) }
 
-    templateCache = Caffeine.newBuilder()
-      .expireAfterWrite(expireDuration, TimeUnit.MINUTES)
-      .refreshAfterWrite(refreshDuration, TimeUnit.MINUTES)
-      .build(CacheLoader { key ->
-        val future = eventBus.request<JsonObject>("process.template.getTemplateByKey", key)
-          .map { message ->
-            TemplateCacheData(
-              engine.getTemplate(message.body().getString("template_data")),
-              0
-            )
-          }.otherwise { null }
-
-        val javaFuture = future
-          .toCompletionStage()
-          .toCompletableFuture()
-
-        return@CacheLoader try {
-          javaFuture.join()
-        } catch (e: Exception) {
-          MainVerticle.logger.error { "Cache loader failed for key: $key\n${e.localizedMessage}" }
-          null
-        }
-      })
-
     singleUseTemplate()
     getCompiledTemplate()
-    invalidateCacheKey()
 
     return Future.succeededFuture<Unit>()
   }
@@ -123,12 +99,20 @@ class TemplateEngineVerticle : VerticleBase() {
         vertx.executeBlocking({
           try {
             val key = body.getString("template_key")
-            incrementTemplateHitCount(key)
-            val template = templateCache.get(key)
+            val template = templateCache.getById(key)
 
-            val writer = StringWriter()
-            template.templateData.evaluate(writer, context)
-            return@executeBlocking writer.toString()
+            template.whenComplete { temp, err ->
+              if (err != null || temp == null) {
+                MainVerticle.logger.error { err.localizedMessage }
+                return@whenComplete
+              }
+
+              val writer = StringWriter()
+              temp.data.templateData.evaluate(writer, context)
+              message.reply(writer.toString())
+              return@whenComplete
+            }
+            return@executeBlocking
           } catch (e: Exception) {
             MainVerticle.logger.error { e.localizedMessage }
             throw e
@@ -138,35 +122,6 @@ class TemplateEngineVerticle : VerticleBase() {
         message.fail(500, err.message)
       }.onSuccess { res ->
         message.reply(res)
-      }
-    }
-  }
-
-  private fun incrementTemplateHitCount(key: String) {
-    val templateCacheData = templateCache.getIfPresent(key)
-
-    // Check if the cache data exists and is not expired or deleted
-    if (templateCacheData != null) {
-
-      // Check if the template data hits exceed the maximum hits or if the flag is set
-      if (templateCacheData.hits >= maxHitCount) {
-        templateCache.invalidate(key)
-        println("CACHE DATA EXPIRED")
-        return
-      }
-
-      templateCacheData.hits++
-      templateCache.put(key, templateCacheData)
-    }
-  }
-
-  private fun invalidateCacheKey() {
-    eventBus.consumer<String>("template.cache.invalidate") { _ ->
-      val keys = templateCache.asMap().keys
-
-      for (key in keys) {
-        templateCache.refresh(key)
-        println("CACHE DATA REFRESHED FOR KEY: $key")
       }
     }
   }
@@ -220,6 +175,15 @@ class TemplateEngineVerticle : VerticleBase() {
         MainVerticle.logger.error(e) { "Failed to load all cache data for context" }
         emptyMap<String, Any?>().toMutableMap()
       }
+  }
+
+  private fun getTemplateCacheData(key: String): CompletableFuture<CacheData<TemplateCacheData>?> {
+    return getCacheData(
+      key = key,
+      deserializer = { TemplateCacheData(engine.getTemplate(it.getString("template_data")), 0)
+      },
+      eventBusAddress = "process.template.getTemplateByKey"
+    )
   }
 
   private fun getProductCacheData(key: String): CompletableFuture<CacheData<ProductInfo>?> {
