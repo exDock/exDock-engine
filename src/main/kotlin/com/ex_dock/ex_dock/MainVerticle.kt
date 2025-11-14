@@ -1,6 +1,7 @@
 package com.ex_dock.ex_dock
 
 import com.ex_dock.ex_dock.backend.enableBackendRouter
+import com.ex_dock.ex_dock.backend.v1.router.auth.AuthProvider
 import com.ex_dock.ex_dock.frontend.account.router.initAccount
 import com.ex_dock.ex_dock.frontend.category.router.initCategory
 import com.ex_dock.ex_dock.frontend.checkout.router.initCheckout
@@ -11,6 +12,7 @@ import com.ex_dock.ex_dock.frontend.text_pages.router.initTextPages
 import com.ex_dock.ex_dock.helper.load
 import com.ex_dock.ex_dock.helper.codecs.registerGenericCodec
 import com.ex_dock.ex_dock.helper.sendError
+import com.ex_dock.ex_dock.websocket.router.enableWebsocketRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.vertx.core.Future
 import io.vertx.core.VerticleBase
@@ -51,10 +53,12 @@ class MainVerticle : VerticleBase() {
     val eventBus = vertx.eventBus()
     val mainRouter : Router = Router.router(vertx)
     val frontendRouter : Router = Router.router(vertx)
+    val websocketRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
+    val authProvider = AuthProvider()
 
-    eventBus.registerGenericCodec(List::class)
+//    eventBus.registerGenericCodec(List::class)
     eventBus.consumer<List<String>>("process.main.registerVerticleId").handler { message ->
       val verticleIds: List<String> = message.body()
       verticleIds.forEach { value ->
@@ -84,7 +88,7 @@ class MainVerticle : VerticleBase() {
     mainRouter.route().handler(sessionHandler)
     mainRouter.route().handler(BodyHandler.create())
 
-    mainRouter.enableBackendRouter(vertx, logger)
+    mainRouter.enableBackendRouter(vertx, logger, authProvider)
 
     mainRouter.initHome(eventBus)
     mainRouter.initProduct(vertx)
@@ -93,7 +97,8 @@ class MainVerticle : VerticleBase() {
     mainRouter.initCheckout(vertx)
     mainRouter.initAccount(vertx)
 
-    frontendRouter.enableFrontendRouter(vertx, logger)
+    frontendRouter.enableFrontendRouter(vertx, logger, authProvider)
+    websocketRouter.enableWebsocketRouter(vertx, logger)
 
     vertx.createHttpServer()
       .requestHandler(frontendRouter)
@@ -102,6 +107,18 @@ class MainVerticle : VerticleBase() {
         vertx.eventBus().sendError(Exception("Failed to start the HTTP server"))
         }.onSuccess { http ->
         logger.info { "HTTP server started on port ${props.getProperty("FRONTEND_PORT")}" }
+      }
+
+    vertx.createHttpServer(
+      HttpServerOptions()
+        .setRegisterWebSocketWriteHandlers(true)
+    )
+      .requestHandler(websocketRouter)
+      .listen(props.getProperty("WEBSOCKET_PORT").toInt()).onFailure {
+        logger.error { "Failed to start HTTP server: $it" }
+        vertx.eventBus().sendError(Exception("Failed to start the HTTP server"))
+      }.onSuccess { _ ->
+        logger.info { "HTTP server started on port ${props.getProperty("WEBSOCKET_PORT")}" }
       }
 
     return vertx
