@@ -9,6 +9,7 @@ import com.ex_dock.ex_dock.database.sales.Shipment
 import com.ex_dock.ex_dock.database.sales.Transaction
 import com.ex_dock.ex_dock.helper.AsyncExDockCache
 import com.ex_dock.ex_dock.helper.ExDockCache
+import io.vertx.core.json.JsonArray
 import java.util.concurrent.CompletableFuture
 
 class DataAccessor(
@@ -19,6 +20,7 @@ class DataAccessor(
   private val orderCache: AsyncExDockCache<Order>,
   private val shipmentCache: AsyncExDockCache<Shipment>,
   private val transactionCache: AsyncExDockCache<Transaction>,
+  private val listCache: AsyncExDockCache<JsonArray>,
 ) {
 
   fun get(type: String, key: String): CompletableFuture<*>? {
@@ -30,6 +32,7 @@ class DataAccessor(
       "order" -> orderCache.getById(key)
       "shipment" -> shipmentCache.getById(key)
       "transaction" -> transactionCache.getById(key)
+      "list" -> listCache.getById(key)
       else -> null
     }
   }

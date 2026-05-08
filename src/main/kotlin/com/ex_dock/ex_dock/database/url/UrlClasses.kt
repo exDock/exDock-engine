@@ -1,54 +1,48 @@
 package com.ex_dock.ex_dock.database.url
 
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 
 data class UrlKeys(
   var urlKey: String?,
   var upperKey: String,
-  var requestedId: String,
-  var pageType: PageType
+  var templates: List<String>,
+  var requiredParameters: List<String>
 ) {
   companion object {
     fun fromJson(jsonObject: JsonObject): UrlKeys {
+      val templates = jsonObject.getJsonArray("templates").map {
+        it.toString()
+      }
+      val requiredParameters = jsonObject.getJsonArray("required_parameters").map {
+        it.toString()
+      }
+
       return UrlKeys(
         urlKey = jsonObject.getString("_id"),
         upperKey = jsonObject.getString("upper_key"),
-        requestedId = jsonObject.getString("requested_id"),
-        pageType = jsonObject.getString("page_type").toPageType()
+        templates = templates,
+        requiredParameters = requiredParameters
       )
     }
   }
 }
 
 fun UrlKeys.toDocument(): JsonObject {
+  val templates = JsonArray()
+  this.templates.forEach { template ->
+    templates.add(template)
+  }
+  val requiredParameters = JsonArray()
+  this.requiredParameters.forEach { requiredParameter ->
+    requiredParameters.add(requiredParameter)
+  }
+
   val document = JsonObject()
     .put("_id", this.urlKey)
     .put("upper_key", this.upperKey)
-    .put("requested_id", this.requestedId)
-    .put("page_type", this.pageType.convertToString())
+    .put("templates", templates)
+    .put("required_parameters", requiredParameters)
 
   return document
-}
-
-enum class PageType(name: String) {
-  PRODUCT("product"),
-  CATEGORY("category"),
-  TEXT_PAGE("text_page")
-}
-
-fun PageType.convertToString(): String {
-  return when (this) {
-    PageType.TEXT_PAGE -> "text_page"
-    PageType.CATEGORY -> "category"
-    PageType.PRODUCT -> "product"
-  }
-}
-
-fun String.toPageType(): PageType {
-  return when (this) {
-    "text_page" -> PageType.TEXT_PAGE
-    "category" -> PageType.CATEGORY
-    "product" -> PageType.PRODUCT
-    else -> throw IllegalArgumentException("Invalid page type: $this")
-  }
 }

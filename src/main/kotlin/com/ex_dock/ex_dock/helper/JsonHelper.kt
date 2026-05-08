@@ -24,6 +24,7 @@ fun JsonElement.findValueByFieldName(fieldName: String): JsonElement? {
         if (foundValue != null) return foundValue
       }
     }
+    else -> return null
   }
   return null // Not found
 }

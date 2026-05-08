@@ -18,11 +18,10 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.JWTAuthHandler
 
-fun Router.enableBackendRouter(vertx: Vertx, logger: KLogger) {
+fun Router.enableBackendRouter(vertx: Vertx, logger: KLogger, authProvider: AuthProvider) {
   val backendRouter: Router = Router.router(vertx)
   val pairDeliveryOptions = DeliveryOptions().setCodecName("PairCodec")
   val eventBus = vertx.eventBus()
-  val authProvider = AuthProvider()
   val jwtAuth = JWTAuth.create(
     vertx,
     JWTAuthOptions()

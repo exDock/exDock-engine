@@ -15,6 +15,7 @@ import com.ex_dock.ex_dock.database.checkout.CheckoutJdbcVerticle
 import com.ex_dock.ex_dock.database.home.HomeJdbcVerticle
 import com.ex_dock.ex_dock.database.image.Image
 import com.ex_dock.ex_dock.database.image.ImageProduct
+import com.ex_dock.ex_dock.database.list.ListVerticle
 import com.ex_dock.ex_dock.database.product.ProductInfo
 import com.ex_dock.ex_dock.database.product.ProductJdbcVerticle
 import com.ex_dock.ex_dock.database.sales.*
@@ -28,6 +29,7 @@ import com.ex_dock.ex_dock.database.template.TemplateJdbcVerticle
 import com.ex_dock.ex_dock.database.text_pages.TextPages
 import com.ex_dock.ex_dock.database.text_pages.TextPagesJdbcVerticle
 import com.ex_dock.ex_dock.database.url.UrlJdbcVerticle
+import com.ex_dock.ex_dock.database.url.UrlKeys
 import com.ex_dock.ex_dock.frontend.cache.CacheVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.TemplateEngineVerticle
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
@@ -101,6 +103,7 @@ class JDBCStarter : VerticleBase() {
     verticles.add(vertx.deployWorkerVerticleHelper(SystemVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(SalesJdbcVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(TemplateJdbcVerticle::class))
+    verticles.add(vertx.deployWorkerVerticleHelper(ListVerticle::class))
     verticles.add(vertx.deployWorkerVerticleHelper(TemplateEngineVerticle::class, workerPoolSize = 5, poolName = "template-cache-isolation-pool"))
   }
 
@@ -126,6 +129,7 @@ class JDBCStarter : VerticleBase() {
       .registerGenericCodec(List::class)
       .registerGenericCodec(SingleUseTemplateData::class)
       .registerGenericCodec(ArrayList::class)
+      .registerGenericCodec(UrlKeys::class)
 
       .registerGenericListCodec(FullUser::class)
       .registerGenericListCodec(JsonObject::class)

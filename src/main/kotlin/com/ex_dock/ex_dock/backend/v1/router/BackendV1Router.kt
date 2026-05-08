@@ -11,6 +11,7 @@ import com.ex_dock.ex_dock.backend.v1.router.sales.initSalesRouter
 import com.ex_dock.ex_dock.backend.v1.router.pages.enablePagesRouter
 import com.ex_dock.ex_dock.backend.v1.router.system.enableSystemRouter
 import com.ex_dock.ex_dock.backend.v1.router.template.initTemplateRouter
+import com.ex_dock.ex_dock.backend.v1.router.url.initUrlRouter
 import com.ex_dock.ex_dock.database.backend_block.BlockInfo
 import com.ex_dock.ex_dock.database.product.ProductInfo
 import com.ex_dock.ex_dock.frontend.template_engine.template_data.single_use.SingleUseTemplateData
@@ -32,7 +33,6 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   val listDeliveryOptions = DeliveryOptions().setCodecName("ListCodec")
   val backendV1Router: Router = Router.router(vertx)
   val eventBus: EventBus = vertx.eventBus()
-  val authProvider = AuthProvider()
   val exDockAuthHandler = ExDockAuthHandler(vertx)
 
   backendV1Router.route().handler(BodyHandler.create())
@@ -152,6 +152,7 @@ fun Router.enableBackendV1Router(vertx: Vertx, absoluteMounting: Boolean = false
   backendV1Router.initProductsRouter(vertx)
   backendV1Router.initTemplateRouter(vertx)
   backendV1Router.enablePagesRouter(vertx)
+  backendV1Router.initUrlRouter(vertx)
 
 
   this.route(
@@ -170,6 +171,8 @@ private fun JsonArray.convertAddresses(): JsonArray {
       "category" -> resultArray.add(Pair("process.category.getCategoryById", address.getString("id")))
       "template" -> resultArray.add(Pair("process.template.getTemplateByKey", address.getString("id")))
       "templatesAll" -> resultArray.add(Pair("process.template.getAllTemplates", address.getString("id")))
+      "url" -> resultArray.add(Pair("process.url.getUrlByKey", address.getString("id")))
+      "urlsAll" -> resultArray.add(Pair("process.url.getAllUrlKeys", address.getString("id")))
       else -> MainVerticle.logger.info { "Unknown address: $address" }
     }
   }
