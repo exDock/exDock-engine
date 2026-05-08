@@ -57,6 +57,7 @@ class MainVerticle : VerticleBase() {
     val websocketRouter : Router = Router.router(vertx)
     val store = SessionStore.create(vertx)
     val sessionHandler = SessionHandler.create(store)
+    val staticHandler = StaticHandler.create()
     val authProvider = AuthProvider()
 
 //    eventBus.registerGenericCodec(List::class)
