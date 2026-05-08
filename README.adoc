@@ -1,8 +1,14 @@
+// Variables
+:current-release: 0.0.1
+:vertx-version: 5.0.1
+
 = exDock
 
-An ecommerce platform built with Kotlin, Vert.x, and Docker
+image:https://img.shields.io/badge/exDock-{current-release}-exDock.svg?color=2563eb[link="https://www.ex-dock.com"]
 
-This application is managed via the following Github project:
+An e-commerce platform built with Kotlin, Vert.x, and Docker
+
+This application is managed via the following GitHub project:
 https://github.com/users/rensPols/projects/2/views/1
 
 The backend UI is currently being developed in the following repo:
@@ -16,12 +22,12 @@ exDock addresses key limitations of existing open-source ecommerce solutions:
 
 2. *Efficiency:* The combination of Kotlin and Vert.x has the potential to significantly reduce load times and operational costs.
 
-3. *Easy Deployment:* Built with Docker, exDock simplifies the setup process. Users can pull the Docker image and complete the configuration through their browser, streamlining deployment.
+3. *Easy Deployment:* Built with Docker, exDock simplifies the setup process. Users can pull the Docker image and complete the configuration through their browser, streamlining the deployment process.
 
-By focusing on these aspects, exDock aims to provide a faster, more cost-effective, and user-friendly ecommerce solution.
+By focusing on these aspects, exDock aims to provide a faster, more cost-effective, and user-friendly e-commerce solution.
 
 == How to deploy exDock
-image:https://img.shields.io/badge/vert.x-4.5.9-purple.svg[link="https://vertx.io"]
+image:https://img.shields.io/badge/vert.x-{vertx-version}-purple.svg[link="https://vertx.io"]
 
 1. *Pull* the Docker image
 2. *Run* the Docker image
@@ -30,13 +36,13 @@ image:https://img.shields.io/badge/vert.x-4.5.9-purple.svg[link="https://vertx.i
 == How it works
 exDock is a Vert.x server that is run in a Docker container.
 This is the basis for the eCommerce platform.
-In order to extend the exDock functionality, you need to pull an additional Docker image.
+To extend the exDock functionality, you need to pull an additional Docker image.
 This image can then collaborate with the exDock main container and extend the functionality.
 
 When extra core functionality is required,
-it is possible to fork this repository and as long as the connection layer isn't altered,
+it is possible to fork this repository, and as long as the connection layer isn't altered,
 it should work fine. +
-!attention: Although possible, it is not recommended behaviour.
+! Attention: Although possible, it is not recommended behaviour.
 
 === Vert.x documentation
 
